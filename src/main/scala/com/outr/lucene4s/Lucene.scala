@@ -37,6 +37,11 @@ class Lucene(directory: Option[Path] = None, appendIfExists: Boolean = true) {
 
   def query(defaultField: String): QueryBuilder = QueryBuilder(this, defaultField)
 
+  def flush(): Unit = {
+    indexWriter.flush()
+    indexWriter.commit()
+  }
+
   def dispose(): Unit = {
     indexWriter.close()
     taxonomyWriter.close()
@@ -46,8 +51,8 @@ class Lucene(directory: Option[Path] = None, appendIfExists: Boolean = true) {
 
   private def indexReader: DirectoryReader = synchronized {
     val reader = currentIndexReader match {
-      case Some(r) => DirectoryReader.openIfChanged(r)
-      case None => DirectoryReader.open(indexWriter)
+      case Some(r) => DirectoryReader.openIfChanged(r, indexWriter, true)
+      case None => DirectoryReader.open(indexWriter, true, true)
     }
     currentIndexReader = Some(reader)
     reader

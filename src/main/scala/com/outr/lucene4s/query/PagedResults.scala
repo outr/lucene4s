@@ -1,0 +1,32 @@
+package com.outr.lucene4s.query
+
+import com.outr.lucene4s.Lucene
+import org.apache.lucene.search.TopDocs
+
+class PagedResults private[lucene4s](val lucene: Lucene,
+                                     val query: QueryBuilder,
+                                     val queryString: String,
+                                     val offset: Int,
+                                     topDocs: TopDocs) {
+  lazy val results: Vector[SearchResult] = topDocs.scoreDocs.toVector.map(sd => new SearchResult(lucene, this, sd))
+
+  def pageSize: Int = query.limit
+  def total: Int = topDocs.totalHits
+  def pageIndex: Int = offset / pageSize
+  def pages: Int = math.ceil(total.toDouble / pageSize.toDouble).toInt
+  def maxScore: Double = topDocs.getMaxScore.toDouble
+
+  def page(index: Int): PagedResults = query.offset(pageSize * index).search(queryString)
+  def hasNextPage: Boolean = (pageIndex * pageSize) < total
+  def hasPreviousPage: Boolean = offset > 0
+  def nextPage(): Option[PagedResults] = if (hasNextPage) {
+    Some(page(pageIndex + 1))
+  } else {
+    None
+  }
+  def previousPage(): Option[PagedResults] = if (hasPreviousPage) {
+    Some(page(pageIndex - 1))
+  } else {
+    None
+  }
+}

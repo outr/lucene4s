@@ -4,7 +4,7 @@ import com.outr.lucene4s.Lucene
 import org.apache.lucene.search.ScoreDoc
 import org.apache.lucene.util.BytesRef
 
-class SearchResult private[lucene4s](lucene: Lucene, search: SearchResults, scoreDoc: ScoreDoc) {
+class SearchResult private[lucene4s](lucene: Lucene, search: PagedResults, scoreDoc: ScoreDoc) {
   private lazy val doc = lucene.searcher.doc(scoreDoc.doc)
 
   def string(name: String): String = doc.getField(name).stringValue()

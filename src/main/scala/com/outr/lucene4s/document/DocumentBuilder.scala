@@ -13,7 +13,6 @@ class DocumentBuilder(lucene: Lucene, document: Document = new Document) {
       case ByteArrayFieldValue(v) => new Field(name, v, ft)
       case BytesRefFieldValue(v) => new Field(name, v, ft)
     }
-    println(s"Field: $f")
     document.add(f)
     this
   }

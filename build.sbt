@@ -3,6 +3,7 @@ organization := "com.outr"
 version := "1.0.0"
 scalaVersion := "2.11.8"
 sbtVersion := "0.13.11"
+parallelExecution in Test := false
 
 libraryDependencies += "org.apache.lucene" % "lucene-core" % "6.2.1"
 libraryDependencies += "org.apache.lucene" % "lucene-analyzers-common" % "6.2.1"
