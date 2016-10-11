@@ -10,5 +10,7 @@ libraryDependencies += "org.apache.lucene" % "lucene-analyzers-common" % "6.2.1"
 libraryDependencies += "org.apache.lucene" % "lucene-queryparser" % "6.2.1"
 libraryDependencies += "org.apache.lucene" % "lucene-facet" % "6.2.1"
 
+libraryDependencies += "com.typesafe.akka" %% "akka-actor" % "2.4.11"
+
 libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.0" % "test"
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.0" % "test"

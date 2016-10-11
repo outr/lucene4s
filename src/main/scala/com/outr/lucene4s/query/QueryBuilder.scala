@@ -20,7 +20,8 @@ case class QueryBuilder private[lucene4s](lucene: Lucene,
   def search(query: String): PagedResults = {
     val parser = new QueryParser(defaultField, lucene.standardAnalyzer)
     val q = parser.parse(query)
-    val sort = Sort.INDEXORDER
+    val sort = Sort.RELEVANCE   // TODO: support sorting
+    // TODO: support really high offsets via multiple jumps via searchAfter to avoid memory issues
     val topDocs = lucene.searcher.search(q, offset + limit, sort, scoreDocs, scoreMax) match {
       case td if offset != 0 => {    // Build a new TopDocs instance excluding the skipped
         new TopDocs(td.totalHits, td.scoreDocs.slice(offset, offset + limit), td.getMaxScore)

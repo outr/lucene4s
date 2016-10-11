@@ -2,6 +2,7 @@ package com.outr.lucene4s
 
 import java.nio.file.Path
 
+import akka.actor.ActorSystem
 import com.outr.lucene4s.document.DocumentBuilder
 import com.outr.lucene4s.query.QueryBuilder
 import org.apache.lucene.analysis.standard.StandardAnalyzer
@@ -13,8 +14,13 @@ import org.apache.lucene.index.{DirectoryReader, IndexWriter, IndexWriterConfig}
 import org.apache.lucene.search.IndexSearcher
 import org.apache.lucene.store.{FSDirectory, RAMDirectory}
 
+import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext.Implicits.global
+
 class Lucene(directory: Option[Path] = None, appendIfExists: Boolean = true) {
   private[lucene4s] lazy val standardAnalyzer = new StandardAnalyzer
+
+  private lazy val system = ActorSystem()
 
   private lazy val indexPath = directory.map(_.resolve("index"))
   private lazy val taxonomyPath = directory.map(_.resolve("taxonomy"))
@@ -31,8 +37,6 @@ class Lucene(directory: Option[Path] = None, appendIfExists: Boolean = true) {
 
   private var currentIndexReader: Option[DirectoryReader] = None
 
-  private[lucene4s] lazy val searcher = new IndexSearcher(indexReader)
-
   def doc(): DocumentBuilder = new DocumentBuilder(this)
 
   def query(defaultField: String): QueryBuilder = QueryBuilder(this, defaultField)
@@ -43,6 +47,7 @@ class Lucene(directory: Option[Path] = None, appendIfExists: Boolean = true) {
   }
 
   def dispose(): Unit = {
+    currentIndexReader.foreach(_.close())
     indexWriter.close()
     taxonomyWriter.close()
     indexDirectory.close()
@@ -51,12 +56,22 @@ class Lucene(directory: Option[Path] = None, appendIfExists: Boolean = true) {
 
   private def indexReader: DirectoryReader = synchronized {
     val reader = currentIndexReader match {
-      case Some(r) => DirectoryReader.openIfChanged(r, indexWriter, true)
+      case Some(r) => Option(DirectoryReader.openIfChanged(r, indexWriter, true)) match {
+        case Some(updated) if updated ne r => {         // New reader was assigned
+          system.scheduler.scheduleOnce(30.seconds) {
+            r.close()
+          }
+          updated
+        }
+        case _ => r                                     // null was returned
+      }
       case None => DirectoryReader.open(indexWriter, true, true)
     }
     currentIndexReader = Some(reader)
     reader
   }
+
+  private[lucene4s] def searcher: IndexSearcher = new IndexSearcher(indexReader)
 
   private[lucene4s] def store(document: Document): Unit = {
     indexWriter.addDocument(facetsConfig.build(taxonomyWriter, document))

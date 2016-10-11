@@ -17,7 +17,7 @@ class PagedResults private[lucene4s](val lucene: Lucene,
   def maxScore: Double = topDocs.getMaxScore.toDouble
 
   def page(index: Int): PagedResults = query.offset(pageSize * index).search(queryString)
-  def hasNextPage: Boolean = (pageIndex * pageSize) < total
+  def hasNextPage: Boolean = ((pageIndex + 1) * pageSize) < total
   def hasPreviousPage: Boolean = offset > 0
   def nextPage(): Option[PagedResults] = if (hasNextPage) {
     Some(page(pageIndex + 1))
