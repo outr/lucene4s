@@ -1,5 +1,6 @@
 package com.outr
 
+import com.outr.lucene4s.field.value._
 import org.apache.lucene.util.BytesRef
 
 import scala.language.implicitConversions
