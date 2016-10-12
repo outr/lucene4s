@@ -6,11 +6,13 @@ import org.apache.lucene.facet.DrillDownQuery
 import org.apache.lucene.queryparser.classic.QueryParser
 import org.apache.lucene.search.Query
 
+// TODO: add Sort
 case class QueryBuilder private[lucene4s](lucene: Lucene,
                                           defaultField: String,
                                           facets: Set[FacetQuery] = Set.empty,
                                           offset: Int = 0,
                                           limit: Int = 10,
+                                          sorting: List[Sort] = Nil,
                                           scoreDocs: Boolean = false,
                                           scoreMax: Boolean = false) {
   def offset(v: Int): QueryBuilder = copy(offset = v)
@@ -21,6 +23,11 @@ case class QueryBuilder private[lucene4s](lucene: Lucene,
   def scoreDocs(b: Boolean = true): QueryBuilder = copy(scoreDocs = b)
 
   def scoreMax(b: Boolean = true): QueryBuilder = copy(scoreMax = b)
+
+  def sort(sort: Sort, append: Boolean = true): QueryBuilder = {
+    val updated = if (append) sort :: sorting else List(sort)
+    copy(sorting = updated)
+  }
 
   def search(query: String = "*:*"): PagedResults = {
     val parser = new QueryParser(defaultField, lucene.standardAnalyzer)

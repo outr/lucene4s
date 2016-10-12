@@ -6,12 +6,16 @@ import com.outr.lucene4s.Lucene
 import com.outr.lucene4s.facet.{FacetField, FacetValue}
 import org.apache.lucene.facet.FacetsCollector
 import org.apache.lucene.facet.taxonomy.FastTaxonomyFacetCounts
-import org.apache.lucene.search.{CollectorManager, Sort, TopDocs, TopFieldCollector}
+import org.apache.lucene.search.{CollectorManager, Sort => LuceneSort, TopDocs, TopFieldCollector}
 
 import scala.collection.JavaConversions._
 
 class DocumentCollector(lucene: Lucene, query: QueryBuilder) extends CollectorManager[Collectors, SearchResults] {
-  val sort = Sort.RELEVANCE   // TODO: support sorting
+  val sort = if (query.sorting.nonEmpty) {
+    new LuceneSort(query.sorting.reverse.map(_.sortField()): _*)
+  } else {
+    LuceneSort.RELEVANCE
+  }
 
   override def newCollector(): Collectors = {
     val docMax = math.max(1, lucene.indexReader.maxDoc())

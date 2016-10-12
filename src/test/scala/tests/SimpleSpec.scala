@@ -1,6 +1,7 @@
 package tests
 
 import com.outr.lucene4s._
+import com.outr.lucene4s.query.Sort
 import org.scalatest.{Matchers, WordSpec}
 
 class SimpleSpec extends WordSpec with Matchers {
@@ -53,6 +54,21 @@ class SimpleSpec extends WordSpec with Matchers {
       results3(0)(name) should be("Carly Charles")
       page3.hasNextPage should be(false)
     }
+    "query sorting by name" in {
+      val paged = lucene.query(name).sort(Sort(name)).search()
+      paged.total should be(5)
+      paged.results(0)(name) should be("Andrew Anderson")
+      paged.results(1)(name) should be("Billy Bob")
+      paged.results(2)(name) should be("Carly Charles")
+      paged.results(3)(name) should be("Jane Doe")
+      paged.results(4)(name) should be("John Doe")
+    }
+    // TODO: query testing sort
+    // TODO: test multi-term querying
+    // TODO: storage and querying of Int, Long, Double, Boolean, Array[Byte]
+    // TODO: storage and querying of multiple points
+    // TODO: storage and querying of lat/long
+    // TODO: storage and querying of fullText
     "dispose" in {
       lucene.dispose()
     }
