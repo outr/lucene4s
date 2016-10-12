@@ -2,7 +2,9 @@ package com.outr.lucene4s.query
 
 import com.outr.lucene4s.Lucene
 import com.outr.lucene4s.facet.FacetField
+import org.apache.lucene.facet.DrillDownQuery
 import org.apache.lucene.queryparser.classic.QueryParser
+import org.apache.lucene.search.Query
 
 case class QueryBuilder private[lucene4s](lucene: Lucene,
                                           defaultField: String,
@@ -22,7 +24,18 @@ case class QueryBuilder private[lucene4s](lucene: Lucene,
 
   def search(query: String = "*:*"): PagedResults = {
     val parser = new QueryParser(defaultField, lucene.standardAnalyzer)
-    val q = parser.parse(query)
+    val q: Query = parser.parse(query) match {
+      case parsedQuery if facets.exists(_.path.nonEmpty) => {
+        val drillDown = new DrillDownQuery(lucene.facetsConfig, parsedQuery)
+        facets.foreach { fq =>
+          if (fq.path.nonEmpty) {
+            drillDown.add(fq.facet.name, fq.path: _*)
+          }
+        }
+        drillDown
+      }
+      case parsedQuery => parsedQuery
+    }
     // TODO: support really high offsets via multiple jumps via searchAfter to avoid memory issues
 
     val manager = new DocumentCollector(lucene, this)

@@ -42,6 +42,35 @@ class FacetsSpec extends WordSpec with Matchers {
       authorResult.count should be(2)
       authorResult.values.map(_.value).toSet should be(Set("Bob", "Lisa"))
       authorResult.values.map(_.count).toSet should be(Set(1, 1))
+      val publishResult = page.facet(publishDate).get
+      publishResult.childCount should be(1)
+      publishResult.count should be(2)
+      publishResult.values.map(_.value).toSet should be(Set("10"))
+      publishResult.values.map(_.count).toSet should be(Set(2))
+    }
+    "list all results for 2010/10" in {
+      val page = lucene.query(name).limit(10).facet(author).facet(publishDate, path = List("2010", "10")).search()
+      val authorResult = page.facet(author).get
+      authorResult.childCount should be(2)
+      authorResult.count should be(2)
+      authorResult.values.map(_.value).toSet should be(Set("Bob", "Lisa"))
+      authorResult.values.map(_.count).toSet should be(Set(1, 1))
+      val publishResult = page.facet(publishDate).get
+      publishResult.childCount should be(2)
+      publishResult.count should be(2)
+      publishResult.values.map(_.value).toSet should be(Set("15", "20"))
+      publishResult.values.map(_.count).toSet should be(Set(1, 1))
+    }
+    "list all results for 2010/10/20" in {
+      val page = lucene.query(name).limit(10).facet(author).facet(publishDate, path = List("2010", "10", "20")).search()
+      val authorResult = page.facet(author).get
+      authorResult.childCount should be(1)
+      authorResult.count should be(1)
+      authorResult.values.map(_.value).toSet should be(Set("Lisa"))
+      authorResult.values.map(_.count).toSet should be(Set(1))
+      val publishResult = page.facet(publishDate).get
+      publishResult.childCount should be(0)
+      publishResult.count should be(0)
     }
   }
 }

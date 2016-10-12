@@ -43,10 +43,14 @@ class DocumentCollector(lucene: Lucene, query: QueryBuilder) extends CollectorMa
     if (query.facets.nonEmpty) {
       val facets = new FastTaxonomyFacetCounts(lucene.taxonomyReader, lucene.facetsConfig, facetsCollector)
       query.facets.foreach { fq =>
-        val r = facets.getTopChildren(fq.limit, fq.facet.name, fq.path: _*)
-        val values = r.labelValues.toVector.map(lv => FacetResultValue(lv.label, lv.value.intValue()))
-        val facetResult = FacetResult(fq.facet, values, r.childCount, r.value.intValue())
-        facetResults += fq.facet -> facetResult
+        Option(facets.getTopChildren(fq.limit, fq.facet.name, fq.path: _*)) match {
+          case Some(r) => {
+            val values = if (r.childCount > 0) r.labelValues.toVector.map(lv => FacetResultValue(lv.label, lv.value.intValue())) else Vector.empty
+            val facetResult = FacetResult(fq.facet, values, r.childCount, r.value.intValue())
+            facetResults += fq.facet -> facetResult
+          }
+          case None => facetResults += fq.facet -> FacetResult(fq.facet, Vector.empty, 0, 0)
+        }
       }
     }
 
