@@ -9,7 +9,7 @@ class SimpleSpec extends WordSpec with Matchers {
 
   "Simple Spec" should {
     "create a simple document" in {
-      lucene.doc().field(name("John Doe")).index()
+      lucene.doc().add(name("John Doe")).index()
     }
     "query for the index" in {
       val paged = lucene.query("name").search("john")
@@ -19,10 +19,10 @@ class SimpleSpec extends WordSpec with Matchers {
       results(0)(name) should be("John Doe")
     }
     "add a few more documents" in {
-      lucene.doc().field(name("Jane Doe")).index()
-      lucene.doc().field(name("Andrew Anderson")).index()
-      lucene.doc().field(name("Billy Bob")).index()
-      lucene.doc().field(name("Carly Charles")).index()
+      lucene.doc().add(name("Jane Doe")).index()
+      lucene.doc().add(name("Andrew Anderson")).index()
+      lucene.doc().add(name("Billy Bob")).index()
+      lucene.doc().add(name("Carly Charles")).index()
     }
     "query using pagination" in {
       val page1 = lucene.query("name").limit(2).search("*:*")

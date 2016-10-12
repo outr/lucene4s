@@ -4,8 +4,9 @@ import java.nio.file.Path
 
 import akka.actor.ActorSystem
 import com.outr.lucene4s.document.DocumentBuilder
-import com.outr.lucene4s.field.{Field, FieldType}
+import com.outr.lucene4s.facet.FacetField
 import com.outr.lucene4s.field.value.support.ValueSupport
+import com.outr.lucene4s.field.{Field, FieldType}
 import com.outr.lucene4s.query.QueryBuilder
 import org.apache.lucene.analysis.standard.StandardAnalyzer
 import org.apache.lucene.document.Document
@@ -16,8 +17,8 @@ import org.apache.lucene.index.{DirectoryReader, IndexWriter, IndexWriterConfig}
 import org.apache.lucene.search.IndexSearcher
 import org.apache.lucene.store.{FSDirectory, RAMDirectory}
 
-import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
 
 class Lucene(directory: Option[Path] = None, appendIfExists: Boolean = true) {
   private[lucene4s] lazy val standardAnalyzer = new StandardAnalyzer
@@ -43,6 +44,15 @@ class Lucene(directory: Option[Path] = None, appendIfExists: Boolean = true) {
     def field[T](name: String, fieldType: FieldType = FieldType.Stored)(implicit support: ValueSupport[T]): Field[T] = {
       new Field[T](name, fieldType, support)
     }
+    def facet(name: String,
+              hierarchical: Boolean = false,
+              multiValued: Boolean = false,
+              requireDimCount: Boolean = false): FacetField = {
+      facetsConfig.setHierarchical(name, hierarchical)
+      facetsConfig.setMultiValued(name, multiValued)
+      facetsConfig.setRequireDimCount(name, requireDimCount)
+      FacetField(name, hierarchical, multiValued, requireDimCount)
+    }
   }
 
   def doc(): DocumentBuilder = new DocumentBuilder(this)
@@ -62,7 +72,7 @@ class Lucene(directory: Option[Path] = None, appendIfExists: Boolean = true) {
     taxonomyDirectory.close()
   }
 
-  private def indexReader: DirectoryReader = synchronized {
+  private[lucene4s] def indexReader: DirectoryReader = synchronized {
     val reader = currentIndexReader match {
       case Some(r) => Option(DirectoryReader.openIfChanged(r, indexWriter, true)) match {
         case Some(updated) if updated ne r => {         // New reader was assigned
