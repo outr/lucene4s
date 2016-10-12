@@ -17,7 +17,7 @@ case class QueryBuilder private[lucene4s](lucene: Lucene,
 
   def scoreMax(b: Boolean = true): QueryBuilder = copy(scoreMax = b)
 
-  def search(query: String): PagedResults = {
+  def search(query: String = "*:*"): PagedResults = {
     val parser = new QueryParser(defaultField, lucene.standardAnalyzer)
     val q = parser.parse(query)
     val sort = Sort.RELEVANCE   // TODO: support sorting

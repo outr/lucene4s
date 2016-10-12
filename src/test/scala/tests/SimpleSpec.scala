@@ -5,24 +5,24 @@ import org.scalatest.{Matchers, WordSpec}
 
 class SimpleSpec extends WordSpec with Matchers {
   val lucene = new Lucene()
+  val name = lucene.create.field[String]("name")
 
   "Simple Spec" should {
     "create a simple document" in {
-      lucene.doc().field("name", "John Doe").index()
+      lucene.doc().field(name("John Doe")).index()
     }
     "query for the index" in {
       val paged = lucene.query("name").search("john")
       paged.total should be(1)
       val results = paged.results
       results.length should be(1)
-      results(0).string("name") should be("John Doe")
+      results(0)(name) should be("John Doe")
     }
     "add a few more documents" in {
-      lucene.doc().field("name", "Jane Doe").index()
-      lucene.doc().field("name", "Andrew Anderson").index()
-      lucene.doc().field("name", "Billy Bob").index()
-      lucene.doc().field("name", "Carly Charles").index()
-      lucene.flush()
+      lucene.doc().field(name("Jane Doe")).index()
+      lucene.doc().field(name("Andrew Anderson")).index()
+      lucene.doc().field(name("Billy Bob")).index()
+      lucene.doc().field(name("Carly Charles")).index()
     }
     "query using pagination" in {
       val page1 = lucene.query("name").limit(2).search("*:*")
@@ -31,8 +31,8 @@ class SimpleSpec extends WordSpec with Matchers {
       page1.pageIndex should be(0)
       page1.pages should be(3)
       results1.length should be(2)
-      results1(0).string("name") should be("John Doe")
-      results1(1).string("name") should be("Jane Doe")
+      results1(0)(name) should be("John Doe")
+      results1(1)(name) should be("Jane Doe")
       page1.hasPreviousPage should be(false)
 
       val page2 = page1.nextPage().get
@@ -41,8 +41,8 @@ class SimpleSpec extends WordSpec with Matchers {
       page2.pageIndex should be(1)
       page2.pages should be(3)
       results2.length should be(2)
-      results2(0).string("name") should be("Andrew Anderson")
-      results2(1).string("name") should be("Billy Bob")
+      results2(0)(name) should be("Andrew Anderson")
+      results2(1)(name) should be("Billy Bob")
 
       val page3 = page2.nextPage().get
       page3.total should be(5)
@@ -50,7 +50,7 @@ class SimpleSpec extends WordSpec with Matchers {
       page3.pageIndex should be(2)
       page3.pages should be(3)
       results3.length should be(1)
-      results3(0).string("name") should be("Carly Charles")
+      results3(0)(name) should be("Carly Charles")
       page3.hasNextPage should be(false)
     }
     "dispose" in {

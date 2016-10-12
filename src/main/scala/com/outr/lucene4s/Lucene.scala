@@ -4,6 +4,8 @@ import java.nio.file.Path
 
 import akka.actor.ActorSystem
 import com.outr.lucene4s.document.DocumentBuilder
+import com.outr.lucene4s.field.{Field, FieldType}
+import com.outr.lucene4s.field.value.support.ValueSupport
 import com.outr.lucene4s.query.QueryBuilder
 import org.apache.lucene.analysis.standard.StandardAnalyzer
 import org.apache.lucene.document.Document
@@ -37,13 +39,19 @@ class Lucene(directory: Option[Path] = None, appendIfExists: Boolean = true) {
 
   private var currentIndexReader: Option[DirectoryReader] = None
 
+  object create {
+    def field[T](name: String, fieldType: FieldType = FieldType.Stored)(implicit support: ValueSupport[T]): Field[T] = {
+      new Field[T](name, fieldType, support)
+    }
+  }
+
   def doc(): DocumentBuilder = new DocumentBuilder(this)
 
   def query(defaultField: String): QueryBuilder = QueryBuilder(this, defaultField)
 
-  def flush(): Unit = {
-    indexWriter.flush()
+  def commit(): Unit = {
     indexWriter.commit()
+    taxonomyWriter.commit()
   }
 
   def dispose(): Unit = {
