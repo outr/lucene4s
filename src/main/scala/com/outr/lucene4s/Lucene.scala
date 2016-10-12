@@ -11,7 +11,7 @@ import com.outr.lucene4s.query.QueryBuilder
 import org.apache.lucene.analysis.standard.StandardAnalyzer
 import org.apache.lucene.document.Document
 import org.apache.lucene.facet.FacetsConfig
-import org.apache.lucene.facet.taxonomy.directory.DirectoryTaxonomyWriter
+import org.apache.lucene.facet.taxonomy.directory.{DirectoryTaxonomyReader, DirectoryTaxonomyWriter}
 import org.apache.lucene.index.IndexWriterConfig.OpenMode
 import org.apache.lucene.index.{DirectoryReader, IndexWriter, IndexWriterConfig}
 import org.apache.lucene.search.IndexSearcher
@@ -33,10 +33,15 @@ class Lucene(directory: Option[Path] = None, appendIfExists: Boolean = true) {
 
   private lazy val indexWriterConfig = new IndexWriterConfig(standardAnalyzer)
     .setOpenMode(if (appendIfExists) OpenMode.CREATE_OR_APPEND else OpenMode.CREATE)
-  private lazy val facetsConfig = new FacetsConfig
+  private[lucene4s] lazy val facetsConfig = new FacetsConfig
 
   private lazy val indexWriter = new IndexWriter(indexDirectory, indexWriterConfig)
   private lazy val taxonomyWriter = new DirectoryTaxonomyWriter(taxonomyDirectory)
+
+  private[lucene4s] lazy val taxonomyReader = {
+    taxonomyWriter.commit()
+    new DirectoryTaxonomyReader(taxonomyDirectory)
+  }
 
   private var currentIndexReader: Option[DirectoryReader] = None
 
@@ -57,7 +62,7 @@ class Lucene(directory: Option[Path] = None, appendIfExists: Boolean = true) {
 
   def doc(): DocumentBuilder = new DocumentBuilder(this)
 
-  def query(defaultField: String): QueryBuilder = QueryBuilder(this, defaultField)
+  def query(defaultField: Field[_]): QueryBuilder = QueryBuilder(this, defaultField.name)
 
   def commit(): Unit = {
     indexWriter.commit()

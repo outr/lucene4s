@@ -6,6 +6,8 @@ sbtVersion := "0.13.11"
 parallelExecution in Test := false
 fork := true
 
+libraryDependencies += "com.outr.scribe" %% "scribe-slf4j" % "1.2.5"
+
 libraryDependencies += "org.apache.lucene" % "lucene-core" % "6.2.1"
 libraryDependencies += "org.apache.lucene" % "lucene-analyzers-common" % "6.2.1"
 libraryDependencies += "org.apache.lucene" % "lucene-queryparser" % "6.2.1"

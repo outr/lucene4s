@@ -1,6 +1,7 @@
 package com.outr.lucene4s.query
 
 import com.outr.lucene4s.Lucene
+import com.outr.lucene4s.facet.FacetField
 
 class PagedResults private[lucene4s](val lucene: Lucene,
                                      val query: QueryBuilder,
@@ -14,6 +15,8 @@ class PagedResults private[lucene4s](val lucene: Lucene,
   def pageIndex: Int = offset / pageSize
   def pages: Int = math.ceil(total.toDouble / pageSize.toDouble).toInt
   def maxScore: Double = searchResults.topDocs.getMaxScore.toDouble
+
+  def facet(field: FacetField): Option[FacetResult] = searchResults.facetResults.get(field)
 
   def page(index: Int): PagedResults = query.offset(pageSize * index).search(queryString)
   def hasNextPage: Boolean = ((pageIndex + 1) * pageSize) < total
