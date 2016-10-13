@@ -1,6 +1,6 @@
 name := "lucene4s"
 organization := "com.outr"
-version := "1.0.0"
+version := "1.1.0-SNAPSHOT"
 scalaVersion := "2.11.8"
 sbtVersion := "0.13.11"
 parallelExecution in Test := false
@@ -17,3 +17,5 @@ libraryDependencies += "com.typesafe.akka" %% "akka-actor" % "2.4.11"
 
 libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.0" % "test"
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.0" % "test"
+
+testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-oF")
