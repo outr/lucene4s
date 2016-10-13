@@ -8,6 +8,7 @@ class SearchResult private[lucene4s](lucene: Lucene, search: PagedResults, score
   private lazy val doc = lucene.searcher.doc(scoreDoc.doc)
 
   def apply[T](field: Field[T]): T = field.support.fromLucene(doc.getField(field.name))
+  // TODO: create get[T](field: Field[T]): Option[T]
 
   def id: Int = scoreDoc.doc
   def score: Double = scoreDoc.score.toDouble
