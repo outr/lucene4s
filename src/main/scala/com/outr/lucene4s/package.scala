@@ -37,5 +37,5 @@ package object lucene4s {
     minimumNumberShouldMatch = minimumNumberShouldMatch,
     conditionalTerms = entries.toList
   )
-  def grouped(entries: (SearchTerm, Condition)*): GroupedSearchTerm = grouped(false, 1, entries: _*)
+  def grouped(entries: (SearchTerm, Condition)*): GroupedSearchTerm = grouped(false, 0, entries: _*)
 }

@@ -49,7 +49,7 @@ class GroupedSearchTerm(disableCoord: Boolean,
     val b = new BooleanQuery.Builder
     b.setDisableCoord(disableCoord)
     b.setMinimumNumberShouldMatch(minimumNumberShouldMatch)
-    conditionalTerms.map {
+    conditionalTerms.foreach {
       case (st, c) => b.add(st.toLucene(lucene), c.occur)
     }
     b.build()

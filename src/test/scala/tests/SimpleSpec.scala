@@ -1,7 +1,7 @@
 package tests
 
 import com.outr.lucene4s._
-import com.outr.lucene4s.query.Sort
+import com.outr.lucene4s.query.{Condition, Sort}
 import org.scalatest.{Matchers, WordSpec}
 
 class SimpleSpec extends WordSpec with Matchers {
@@ -98,6 +98,14 @@ class SimpleSpec extends WordSpec with Matchers {
       paged.results(0).score should be(1.0)
       paged.results(1)(name) should be("Johnny Bob")
       paged.results(1).score should be(1.0)
+    }
+    "query with two terms" in {
+      val paged = lucene.query().filter(grouped(
+        wildcard(name("john*")) -> Condition.Must,
+        term(name("doe")) -> Condition.MustNot
+      )).search()
+      paged.total should be(1)
+      paged.results(0)(name) should be("Johnny Bob")
     }
     "delete John Doe" in {
       lucene.query().search().results.length should be(6)
