@@ -16,8 +16,8 @@ Light-weight convenience wrapper around Lucene to simplify complex tasks and add
 * [X] Full-Text search functionality
 * [X] Query Builder to simplify querying against Lucene
 * [X] Solid test coverage
-* [ ] Updating and Deleting documents
-* [ ] Structured query terms builder
+* [X] Updating and Deleting documents
+* [X] Structured query terms builder
 
 ## Features for 1.1.0
 
@@ -81,7 +81,7 @@ lucene.doc().fields(name("Jane Doe"), address("123 Somewhere Rd.")).index()
 Querying documents is just as easy with the query builder:
 
 ```scala
-val paged = lucene.query(defaultField = name).sort(Sort(name)).search()
+val paged = lucene.query().sort(Sort(name)).search()
 paged.results.foreach { searchResult =>
   println(s"Name: ${searchResult(name)}, Address: ${searchResult(address)}")
 }

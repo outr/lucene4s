@@ -99,6 +99,11 @@ class SimpleSpec extends WordSpec with Matchers {
       paged.results(1)(name) should be("Johnny Bob")
       paged.results(1).score should be(1.0)
     }
+    "delete John Doe" in {
+      lucene.query().search().results.length should be(6)
+      lucene.delete(term(name("john")))
+      lucene.query().search().results.length should be(5)
+    }
     // TODO: storage and querying of Int, Long, Double, Boolean, Array[Byte]
     // TODO: storage and querying of multiple points
     // TODO: storage and querying of lat/long

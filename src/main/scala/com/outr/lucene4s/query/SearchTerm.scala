@@ -4,7 +4,7 @@ import com.outr.lucene4s.Lucene
 import com.outr.lucene4s.field.Field
 import org.apache.lucene.index.Term
 import org.apache.lucene.queryparser.classic.QueryParser
-import org.apache.lucene.search.{BooleanClause, BooleanQuery, FuzzyQuery, MatchAllDocsQuery, Query, RegexpQuery, TermQuery, WildcardQuery}
+import org.apache.lucene.search.{BooleanQuery, FuzzyQuery, MatchAllDocsQuery, Query, RegexpQuery, TermQuery, WildcardQuery}
 import org.apache.lucene.util.automaton.RegExp
 
 sealed trait SearchTerm {

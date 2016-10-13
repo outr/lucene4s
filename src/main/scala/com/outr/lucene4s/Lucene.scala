@@ -8,7 +8,7 @@ import com.outr.lucene4s.facet.FacetField
 import com.outr.lucene4s.field.value.FieldAndValue
 import com.outr.lucene4s.field.value.support.ValueSupport
 import com.outr.lucene4s.field.{Field, FieldType}
-import com.outr.lucene4s.query.QueryBuilder
+import com.outr.lucene4s.query.{QueryBuilder, SearchTerm}
 import org.apache.lucene.analysis.standard.StandardAnalyzer
 import org.apache.lucene.document.Document
 import org.apache.lucene.facet.FacetsConfig
@@ -68,6 +68,7 @@ class Lucene(directory: Option[Path] = None, appendIfExists: Boolean = true) {
 
   def doc(): DocumentBuilder = new DocumentBuilder(this, None)
   def update(fv: FieldAndValue[String]): DocumentBuilder = new DocumentBuilder(this, Some(fv))
+  def delete(term: SearchTerm): Unit = indexWriter.deleteDocuments(term.toLucene(this))
 
   def query(): QueryBuilder = QueryBuilder(this)
 
