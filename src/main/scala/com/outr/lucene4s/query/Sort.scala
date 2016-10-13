@@ -8,7 +8,9 @@ sealed trait Sort {
 }
 
 case class FieldSort[T](field: Field[T], reverse: Boolean) extends Sort {
-  override protected[lucene4s] def sortField(): SortField = new SortField(field.name, field.support.sortFieldType)
+  override protected[lucene4s] def sortField(): SortField = {
+    new SortField(field.name, field.support.sortFieldType, reverse)
+  }
 }
 
 object Sort {

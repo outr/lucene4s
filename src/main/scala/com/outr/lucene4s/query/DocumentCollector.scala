@@ -50,7 +50,8 @@ class DocumentCollector(lucene: Lucene, query: QueryBuilder) extends CollectorMa
         Option(facets.getTopChildren(fq.limit, fq.facet.name, fq.path: _*)) match {
           case Some(r) => {
             val values = if (r.childCount > 0) r.labelValues.toVector.map(lv => FacetResultValue(lv.label, lv.value.intValue())) else Vector.empty
-            val facetResult = FacetResult(fq.facet, values, r.childCount, r.value.intValue())
+            val totalCount = values.map(_.count).sum
+            val facetResult = FacetResult(fq.facet, values, r.childCount, totalCount)
             facetResults += fq.facet -> facetResult
           }
           case None => facetResults += fq.facet -> FacetResult(fq.facet, Vector.empty, 0, 0)
@@ -62,6 +63,6 @@ class DocumentCollector(lucene: Lucene, query: QueryBuilder) extends CollectorMa
   }
 }
 
-case class FacetResult(field: FacetField, values: Vector[FacetResultValue], childCount: Int, count: Int)
+case class FacetResult(field: FacetField, values: Vector[FacetResultValue], childCount: Int, totalCount: Int)
 
 case class FacetResultValue(value: String, count: Int)

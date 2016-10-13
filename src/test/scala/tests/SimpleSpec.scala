@@ -63,7 +63,15 @@ class SimpleSpec extends WordSpec with Matchers {
       paged.results(3)(name) should be("Jane Doe")
       paged.results(4)(name) should be("John Doe")
     }
-    // TODO: query testing sort
+    "query sorting by name reversed" in {
+      val paged = lucene.query(name).sort(Sort(name, reverse = true)).search()
+      paged.total should be(5)
+      paged.results(0)(name) should be("John Doe")
+      paged.results(1)(name) should be("Jane Doe")
+      paged.results(2)(name) should be("Carly Charles")
+      paged.results(3)(name) should be("Billy Bob")
+      paged.results(4)(name) should be("Andrew Anderson")
+    }
     // TODO: test multi-term querying
     // TODO: storage and querying of Int, Long, Double, Boolean, Array[Byte]
     // TODO: storage and querying of multiple points
