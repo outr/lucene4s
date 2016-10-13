@@ -5,6 +5,7 @@ import java.nio.file.Path
 import akka.actor.ActorSystem
 import com.outr.lucene4s.document.DocumentBuilder
 import com.outr.lucene4s.facet.FacetField
+import com.outr.lucene4s.field.value.FieldAndValue
 import com.outr.lucene4s.field.value.support.ValueSupport
 import com.outr.lucene4s.field.{Field, FieldType}
 import com.outr.lucene4s.query.QueryBuilder
@@ -35,8 +36,8 @@ class Lucene(directory: Option[Path] = None, appendIfExists: Boolean = true) {
     .setOpenMode(if (appendIfExists) OpenMode.CREATE_OR_APPEND else OpenMode.CREATE)
   private[lucene4s] lazy val facetsConfig = new FacetsConfig
 
-  private lazy val indexWriter = new IndexWriter(indexDirectory, indexWriterConfig)
-  private lazy val taxonomyWriter = new DirectoryTaxonomyWriter(taxonomyDirectory)
+  private[lucene4s] lazy val indexWriter = new IndexWriter(indexDirectory, indexWriterConfig)
+  private[lucene4s] lazy val taxonomyWriter = new DirectoryTaxonomyWriter(taxonomyDirectory)
 
   private[lucene4s] lazy val taxonomyReader = {
     taxonomyWriter.commit()
@@ -65,7 +66,8 @@ class Lucene(directory: Option[Path] = None, appendIfExists: Boolean = true) {
 
   lazy val fullText = create.field[String]("fullText", FieldType.NotStored)
 
-  def doc(): DocumentBuilder = new DocumentBuilder(this)
+  def doc(): DocumentBuilder = new DocumentBuilder(this, None)
+  def update(fv: FieldAndValue[String]): DocumentBuilder = new DocumentBuilder(this, Some(fv))
 
   def query(defaultField: Field[_] = fullText): QueryBuilder = QueryBuilder(this, defaultField.name)
 
@@ -100,8 +102,4 @@ class Lucene(directory: Option[Path] = None, appendIfExists: Boolean = true) {
   }
 
   private[lucene4s] def searcher: IndexSearcher = new IndexSearcher(indexReader)
-
-  private[lucene4s] def store(document: Document): Unit = {
-    indexWriter.addDocument(facetsConfig.build(taxonomyWriter, document))
-  }
 }

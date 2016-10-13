@@ -26,6 +26,7 @@ Light-weight convenience wrapper around Lucene to simplify complex tasks and add
 * [ ] Numeric storage and retrieval functionality
 * [ ] Range querying
 * [ ] Geospatial features
+* [ ] Complete ScalaDocing
 
 ## Setup
 
