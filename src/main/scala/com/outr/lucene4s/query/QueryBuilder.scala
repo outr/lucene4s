@@ -25,9 +25,12 @@ case class QueryBuilder private[lucene4s](lucene: Lucene,
 
   def scoreMax(b: Boolean = true): QueryBuilder = copy(scoreMax = b)
 
-  def sort(sort: Sort, append: Boolean = true): QueryBuilder = {
-    val updated = if (append) sort :: sorting else List(sort)
-    copy(sorting = updated)
+  def sort(sort: Sort*): QueryBuilder = {
+    copy(sorting = sorting ::: sort.toList)
+  }
+
+  def replaceSort(sort: Sort*): QueryBuilder = {
+    copy(sorting = sort.toList)
   }
 
   def leadingWildcardSupport(): QueryBuilder = copy(allowLeadingWildcard = true)

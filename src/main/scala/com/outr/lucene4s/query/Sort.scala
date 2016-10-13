@@ -18,20 +18,8 @@ object Sort {
     override protected[lucene4s] def sortField(): SortField = SortField.FIELD_SCORE
   }
 
-  case object ScoreReversed extends Sort {
-    private val sf = new SortField(null, SortField.Type.SCORE, true)
-
-    override protected[lucene4s] def sortField(): SortField = sf
-  }
-
   case object IndexOrder extends Sort {
     override protected[lucene4s] def sortField(): SortField = SortField.FIELD_DOC
-  }
-
-  case object IndexOrderReversed extends Sort {
-    private val sf = new SortField(null, SortField.Type.DOC, true)
-
-    override protected[lucene4s] def sortField(): SortField = sf
   }
 
   def apply[T](field: Field[T], reverse: Boolean = false): Sort = FieldSort[T](field, reverse)

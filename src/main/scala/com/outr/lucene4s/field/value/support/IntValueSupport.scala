@@ -5,6 +5,7 @@ import org.apache.lucene.document.{IntPoint, SortedDocValuesField, Field => Luce
 import org.apache.lucene.index.IndexableField
 import org.apache.lucene.search.SortField
 import org.apache.lucene.search.SortField.Type
+import org.apache.lucene.util.BytesRef
 
 // TODO: test this and implement sorted field
 object IntValueSupport extends ValueSupport[Int] {
@@ -12,7 +13,9 @@ object IntValueSupport extends ValueSupport[Int] {
     new IntPoint(field.name, value)
   }
 
-  override def toSortedField(field: Field[Int], value: Int): Option[SortedDocValuesField] = None
+  override def toSortedField(field: Field[Int], value: Int): Option[SortedDocValuesField] = {
+    Some(new SortedDocValuesField(field.name, new BytesRef(value.toString)))
+  }
 
   override def fromLucene(field: IndexableField): Int = field.numericValue().intValue()
 

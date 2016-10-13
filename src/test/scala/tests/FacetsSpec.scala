@@ -11,11 +11,11 @@ class FacetsSpec extends WordSpec with Matchers {
 
   "Facets" should {
     "create a few faceted documents" in {
-      lucene.doc().add(name("One")).add(author("Bob")).add(author("James")).add(publishDate("2010", "10", "15")).index()
-      lucene.doc().add(name("Two")).add(author("Lisa")).add(publishDate("2010", "10", "20")).index()
-      lucene.doc().add(name("Three")).add(author("Lisa")).add(publishDate("2012", "1", "1")).index()
-      lucene.doc().add(name("Four")).add(author("Susan")).add(publishDate("2012", "1", "7")).index()
-      lucene.doc().add(name("Five")).add(author("Frank")).add(publishDate("1999", "5", "5")).index()
+      lucene.doc().fields(name("One")).facets(author("Bob"), author("James"), publishDate("2010", "10", "15")).index()
+      lucene.doc().fields(name("Two")).facets(author("Lisa"), publishDate("2010", "10", "20")).index()
+      lucene.doc().fields(name("Three")).facets(author("Lisa"), publishDate("2012", "1", "1")).index()
+      lucene.doc().fields(name("Four")).facets(author("Susan"), publishDate("2012", "1", "7")).index()
+      lucene.doc().fields(name("Five")).facets(author("Frank"), publishDate("1999", "5", "5")).index()
     }
     "list all author facets" in {
       val page = lucene.query(name).limit(10).facet(author).search()

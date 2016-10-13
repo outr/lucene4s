@@ -6,15 +6,30 @@ import com.outr.lucene4s.field.value.FieldAndValue
 import org.apache.lucene.document.Document
 
 class DocumentBuilder(lucene: Lucene, document: Document = new Document) {
-  def add[T](fieldAndValue: FieldAndValue[T]): DocumentBuilder = {
-    fieldAndValue.write(document)
+  private var fullText = List.empty[String]
+
+  def fields(fieldAndValues: FieldAndValue[_]*): DocumentBuilder = {
+    fieldAndValues.foreach { fv =>
+      fv.write(document)
+      if (fv.field.fullTextSearchable) {
+        synchronized {
+          fullText = fv.value.toString :: fullText
+        }
+      }
+    }
     this
   }
 
-  def add(facetValue: FacetValue): DocumentBuilder = {
-    facetValue.write(document)
+  def facets(facetValues: FacetValue*): DocumentBuilder = {
+    facetValues.foreach(_.write(document))
     this
   }
 
-  def index(): Unit = lucene.store(document)
+  def index(): Unit = {
+    if (fullText.nonEmpty) {
+      val fullTextString = fullText.mkString(" ")
+      fields(lucene.fullText(fullTextString))
+    }
+    lucene.store(document)
+  }
 }

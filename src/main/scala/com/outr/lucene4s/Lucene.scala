@@ -46,8 +46,11 @@ class Lucene(directory: Option[Path] = None, appendIfExists: Boolean = true) {
   private var currentIndexReader: Option[DirectoryReader] = None
 
   object create {
-    def field[T](name: String, fieldType: FieldType = FieldType.Stored)(implicit support: ValueSupport[T]): Field[T] = {
-      new Field[T](name, fieldType, support)
+    def field[T](name: String,
+                 fieldType: FieldType = FieldType.Stored,
+                 fullTextSearchable: Boolean = false
+                )(implicit support: ValueSupport[T]): Field[T] = {
+      new Field[T](name, fieldType, support, fullTextSearchable)
     }
     def facet(name: String,
               hierarchical: Boolean = false,
@@ -60,9 +63,11 @@ class Lucene(directory: Option[Path] = None, appendIfExists: Boolean = true) {
     }
   }
 
+  lazy val fullText = create.field[String]("fullText", FieldType.NotStored)
+
   def doc(): DocumentBuilder = new DocumentBuilder(this)
 
-  def query(defaultField: Field[_]): QueryBuilder = QueryBuilder(this, defaultField.name)
+  def query(defaultField: Field[_] = fullText): QueryBuilder = QueryBuilder(this, defaultField.name)
 
   def commit(): Unit = {
     indexWriter.commit()
