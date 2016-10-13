@@ -72,11 +72,23 @@ class SimpleSpec extends WordSpec with Matchers {
       paged.results(3)(name) should be("Billy Bob")
       paged.results(4)(name) should be("Andrew Anderson")
     }
-    // TODO: test multi-term querying
+    "query by last name" in {
+      val paged = lucene.query(name).scoreDocs().sort(Sort.Score).search("doe")
+      paged.total should be(2)
+      paged.results(0)(name) should be("John Doe")
+      paged.results(0).score should be(0.7854939103126526)
+      paged.results(1)(name) should be("Jane Doe")
+      paged.results(1).score should be(0.7854939103126526)
+    }
+    "query by part of first name" in {
+      val paged = lucene.query(name).leadingWildcardSupport().scoreDocs().sort(Sort.Score).search("*ohn")
+      paged.total should be(1)
+      paged.results(0)(name) should be("John Doe")
+      paged.results(0).score should be(1.0)
+    }
     // TODO: storage and querying of Int, Long, Double, Boolean, Array[Byte]
     // TODO: storage and querying of multiple points
     // TODO: storage and querying of lat/long
-    // TODO: storage and querying of fullText
     "dispose" in {
       lucene.dispose()
     }

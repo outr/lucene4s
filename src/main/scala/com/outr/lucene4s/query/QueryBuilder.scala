@@ -14,7 +14,8 @@ case class QueryBuilder private[lucene4s](lucene: Lucene,
                                           limit: Int = 10,
                                           sorting: List[Sort] = Nil,
                                           scoreDocs: Boolean = false,
-                                          scoreMax: Boolean = false) {
+                                          scoreMax: Boolean = false,
+                                          allowLeadingWildcard: Boolean = false) {
   def offset(v: Int): QueryBuilder = copy(offset = v)
   def limit(v: Int): QueryBuilder = copy(limit = v)
 
@@ -29,8 +30,11 @@ case class QueryBuilder private[lucene4s](lucene: Lucene,
     copy(sorting = updated)
   }
 
+  def leadingWildcardSupport(): QueryBuilder = copy(allowLeadingWildcard = true)
+
   def search(query: String = "*:*"): PagedResults = {
     val parser = new QueryParser(defaultField, lucene.standardAnalyzer)
+    parser.setAllowLeadingWildcard(allowLeadingWildcard)
     val q: Query = parser.parse(query) match {
       case parsedQuery if facets.exists(_.path.nonEmpty) => {
         val drillDown = new DrillDownQuery(lucene.facetsConfig, parsedQuery)
