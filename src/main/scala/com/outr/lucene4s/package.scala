@@ -11,6 +11,8 @@ package object lucene4s {
   implicit def stringSupport: ValueSupport[String] = StringValueSupport
   implicit def intSupport: ValueSupport[Int] = IntValueSupport
 
+  implicit def string2ParsableSearchTerm(value: String): SearchTerm = parse(value)
+
   def parse(field: Field[_], value: String): ParsableSearchTerm = parse(field, value, allowLeadingWildcard = false)
   def parse(field: Field[_], value: String, allowLeadingWildcard: Boolean): ParsableSearchTerm = new ParsableSearchTerm(Some(field), value, allowLeadingWildcard)
   def parse(value: String): ParsableSearchTerm = parse(value, allowLeadingWildcard = false)

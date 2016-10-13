@@ -5,11 +5,11 @@ import com.outr.lucene4s.query.Sort
 import org.scalatest.{Matchers, WordSpec}
 
 class FullTextSpec extends WordSpec with Matchers {
-  val lucene = new Lucene()
-  val firstName = lucene.create.field[String]("firstName", fullTextSearchable = true)
-  val lastName = lucene.create.field[String]("lastName", fullTextSearchable = true)
-  val age = lucene.create.field[Int]("age", fullTextSearchable = true)
-  val company = lucene.create.field[String]("company", fullTextSearchable = true)
+  val lucene = new Lucene(defaultFullTextSearchable = true)   // Default all fields to be fullTextSearchable
+  val firstName = lucene.create.field[String]("firstName")
+  val lastName = lucene.create.field[String]("lastName")
+  val age = lucene.create.field[Int]("age")
+  val company = lucene.create.field[String]("company")
 
   "FullText" should {
     "index a few documents" in {
@@ -20,7 +20,7 @@ class FullTextSpec extends WordSpec with Matchers {
       lucene.doc().fields(firstName("Amy"), lastName("Ray"), age(29), company("Buymore")).index()
     }
     "search by last name" in {
-      val paged = lucene.query().filter(term("doe")).search()
+      val paged = lucene.query().filter("doe").search()
       paged.total should be(3)
     }
     // TODO: revisit this when we have support for more advanced querying: https://lucene.apache.org/core/6_1_0/core/org/apache/lucene/document/IntPoint.html

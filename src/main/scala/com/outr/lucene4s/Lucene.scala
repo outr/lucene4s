@@ -21,7 +21,7 @@ import org.apache.lucene.store.{FSDirectory, RAMDirectory}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
-class Lucene(directory: Option[Path] = None, appendIfExists: Boolean = true) {
+class Lucene(directory: Option[Path] = None, appendIfExists: Boolean = true, defaultFullTextSearchable: Boolean = false) {
   private[lucene4s] lazy val standardAnalyzer = new StandardAnalyzer
 
   private lazy val system = ActorSystem()
@@ -49,7 +49,7 @@ class Lucene(directory: Option[Path] = None, appendIfExists: Boolean = true) {
   object create {
     def field[T](name: String,
                  fieldType: FieldType = FieldType.Stored,
-                 fullTextSearchable: Boolean = false
+                 fullTextSearchable: Boolean = defaultFullTextSearchable
                 )(implicit support: ValueSupport[T]): Field[T] = {
       new Field[T](name, fieldType, support, fullTextSearchable)
     }
