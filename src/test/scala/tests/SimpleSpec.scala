@@ -13,7 +13,7 @@ class SimpleSpec extends WordSpec with Matchers {
       lucene.doc().fields(name("John Doe")).index()
     }
     "query for the index" in {
-      val paged = lucene.query(name).search("john")
+      val paged = lucene.query().search()
       paged.total should be(1)
       val results = paged.results
       results.length should be(1)
@@ -26,7 +26,7 @@ class SimpleSpec extends WordSpec with Matchers {
       lucene.doc().fields(name("Carly Charles")).index()
     }
     "query using pagination" in {
-      val page1 = lucene.query(name).limit(2).search("*:*")
+      val page1 = lucene.query().limit(2).search()
       page1.total should be(5)
       val results1 = page1.results
       page1.pageIndex should be(0)
@@ -55,7 +55,7 @@ class SimpleSpec extends WordSpec with Matchers {
       page3.hasNextPage should be(false)
     }
     "query sorting by name" in {
-      val paged = lucene.query(name).sort(Sort(name)).search()
+      val paged = lucene.query().sort(Sort(name)).search()
       paged.total should be(5)
       paged.results(0)(name) should be("Andrew Anderson")
       paged.results(1)(name) should be("Billy Bob")
@@ -64,7 +64,7 @@ class SimpleSpec extends WordSpec with Matchers {
       paged.results(4)(name) should be("John Doe")
     }
     "query sorting by name reversed" in {
-      val paged = lucene.query(name).sort(Sort(name, reverse = true)).search()
+      val paged = lucene.query().sort(Sort(name, reverse = true)).search()
       paged.total should be(5)
       paged.results(0)(name) should be("John Doe")
       paged.results(1)(name) should be("Jane Doe")
@@ -73,24 +73,26 @@ class SimpleSpec extends WordSpec with Matchers {
       paged.results(4)(name) should be("Andrew Anderson")
     }
     "query by last name" in {
-      val paged = lucene.query(name).scoreDocs().sort(Sort.Score).search("doe")
+      val paged = lucene.query().scoreDocs().sort(Sort.Score).filter(term(name("doe"))).search()
       paged.total should be(2)
       paged.results(0)(name) should be("John Doe")
       paged.results(0).score should be(0.7854939103126526)
       paged.results(1)(name) should be("Jane Doe")
       paged.results(1).score should be(0.7854939103126526)
     }
-    "query by part of first name" in {
-      val paged = lucene.query(name).leadingWildcardSupport().scoreDocs().sort(Sort.Score).search("*ohn")
-      paged.total should be(1)
+    "query fuzzy matching john and jane" in {
+      val paged = lucene.query().scoreDocs().sort(Sort.Score).filter(fuzzy(name("jhn"))).search()
+      paged.total should be(2)
       paged.results(0)(name) should be("John Doe")
-      paged.results(0).score should be(1.0)
+      paged.results(0).score should be(0.829213559627533)
+      paged.results(1)(name) should be("Jane Doe")
+      paged.results(1).score should be(0.4146067798137665)
     }
     "update 'Billy Bob' to 'Johnny Bob'" in {
       lucene.update(name("Billy Bob")).fields(name("Johnny Bob")).index()
     }
-    "query by part of first name again" in {
-      val paged = lucene.query(name).leadingWildcardSupport().scoreDocs().sort(Sort.Score).search("john*")
+    "query by part of first name with wildcard" in {
+      val paged = lucene.query().scoreDocs().sort(Sort.Score).filter(wildcard(name("john*"))).search()
       paged.total should be(2)
       paged.results(0)(name) should be("John Doe")
       paged.results(0).score should be(1.0)

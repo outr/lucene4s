@@ -5,7 +5,6 @@ import com.outr.lucene4s.facet.FacetField
 
 class PagedResults private[lucene4s](val lucene: Lucene,
                                      val query: QueryBuilder,
-                                     val queryString: String,
                                      val offset: Int,
                                      searchResults: SearchResults) {
   lazy val results: Vector[SearchResult] = searchResults.topDocs.scoreDocs.toVector.map(sd => new SearchResult(lucene, this, sd))
@@ -18,7 +17,7 @@ class PagedResults private[lucene4s](val lucene: Lucene,
 
   def facet(field: FacetField): Option[FacetResult] = searchResults.facetResults.get(field)
 
-  def page(index: Int): PagedResults = query.offset(pageSize * index).search(queryString)
+  def page(index: Int): PagedResults = query.offset(pageSize * index).search()
   def hasNextPage: Boolean = ((pageIndex + 1) * pageSize) < total
   def hasPreviousPage: Boolean = offset > 0
   def nextPage(): Option[PagedResults] = if (hasNextPage) {

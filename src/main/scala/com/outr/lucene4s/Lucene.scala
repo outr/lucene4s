@@ -69,7 +69,7 @@ class Lucene(directory: Option[Path] = None, appendIfExists: Boolean = true) {
   def doc(): DocumentBuilder = new DocumentBuilder(this, None)
   def update(fv: FieldAndValue[String]): DocumentBuilder = new DocumentBuilder(this, Some(fv))
 
-  def query(defaultField: Field[_] = fullText): QueryBuilder = QueryBuilder(this, defaultField.name)
+  def query(): QueryBuilder = QueryBuilder(this)
 
   def commit(): Unit = {
     indexWriter.commit()

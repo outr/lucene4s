@@ -1,6 +1,6 @@
 package tests
 
-import com.outr.lucene4s.Lucene
+import com.outr.lucene4s._
 import com.outr.lucene4s.query.Sort
 import org.scalatest.{Matchers, WordSpec}
 
@@ -20,7 +20,7 @@ class FullTextSpec extends WordSpec with Matchers {
       lucene.doc().fields(firstName("Amy"), lastName("Ray"), age(29), company("Buymore")).index()
     }
     "search by last name" in {
-      val paged = lucene.query(lastName).search("doe")
+      val paged = lucene.query().filter(term("doe")).search()
       paged.total should be(3)
     }
     // TODO: revisit this when we have support for more advanced querying: https://lucene.apache.org/core/6_1_0/core/org/apache/lucene/document/IntPoint.html
@@ -29,7 +29,7 @@ class FullTextSpec extends WordSpec with Matchers {
 //      paged.total should be(1)
 //    }
     "search full text for 'doe'" in {
-      val paged = lucene.query().sort(Sort.Score).search("doe*")
+      val paged = lucene.query().sort(Sort.Score).filter(wildcard("doe*")).search()
       paged.total should be(4)
       paged.results(0)(firstName) should be("John")
       paged.results(1)(firstName) should be("Jane")
@@ -37,7 +37,7 @@ class FullTextSpec extends WordSpec with Matchers {
       paged.results(3)(firstName) should be("James")
     }
     "search full text for '21'" in {
-      val paged = lucene.query().search("21")
+      val paged = lucene.query().filter(term("21")).search()
       paged.total should be(1)
       paged.results(0)(firstName) should be("Jane")
     }

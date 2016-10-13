@@ -62,7 +62,3 @@ class DocumentCollector(lucene: Lucene, query: QueryBuilder) extends CollectorMa
     SearchResults(topFieldDocs, facetResults)
   }
 }
-
-case class FacetResult(field: FacetField, values: Vector[FacetResultValue], childCount: Int, totalCount: Int)
-
-case class FacetResultValue(value: String, count: Int)
