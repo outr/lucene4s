@@ -8,6 +8,7 @@ import com.outr.lucene4s.facet.FacetField
 import com.outr.lucene4s.field.value.FieldAndValue
 import com.outr.lucene4s.field.value.support.ValueSupport
 import com.outr.lucene4s.field.{Field, FieldType}
+import com.outr.lucene4s.mapper.{BaseSearchable, Searchable, SearchableMacro}
 import com.outr.lucene4s.query.{QueryBuilder, SearchTerm}
 import org.apache.lucene.analysis.standard.StandardAnalyzer
 import org.apache.lucene.document.Document
@@ -20,8 +21,9 @@ import org.apache.lucene.store.{FSDirectory, RAMDirectory}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
+import scala.language.experimental.macros
 
-class Lucene(directory: Option[Path] = None, appendIfExists: Boolean = true, defaultFullTextSearchable: Boolean = false) {
+class Lucene(val directory: Option[Path] = None, val appendIfExists: Boolean = true, val defaultFullTextSearchable: Boolean = false) {
   private[lucene4s] lazy val standardAnalyzer = new StandardAnalyzer
 
   private lazy val system = ActorSystem()
@@ -46,28 +48,15 @@ class Lucene(directory: Option[Path] = None, appendIfExists: Boolean = true, def
 
   private var currentIndexReader: Option[DirectoryReader] = None
 
-  object create {
-    def field[T](name: String,
-                 fieldType: FieldType = FieldType.Stored,
-                 fullTextSearchable: Boolean = defaultFullTextSearchable
-                )(implicit support: ValueSupport[T]): Field[T] = {
-      new Field[T](name, fieldType, support, fullTextSearchable)
-    }
-    def facet(name: String,
-              hierarchical: Boolean = false,
-              multiValued: Boolean = false,
-              requireDimCount: Boolean = false): FacetField = {
-      facetsConfig.setHierarchical(name, hierarchical)
-      facetsConfig.setMultiValued(name, multiValued)
-      facetsConfig.setRequireDimCount(name, requireDimCount)
-      FacetField(name, hierarchical, multiValued, requireDimCount)
-    }
-  }
+  val create = new LuceneCreate(this)
 
   lazy val fullText = create.field[String]("fullText", FieldType.NotStored)
 
-  def doc(): DocumentBuilder = new DocumentBuilder(this, None)
-  def update(fv: FieldAndValue[String]): DocumentBuilder = new DocumentBuilder(this, Some(fv))
+  def doc(): DocumentBuilder = new DocumentBuilder(this, Nil)
+  def update(matching: FieldAndValue[_]*): DocumentBuilder = {
+    assert(matching.nonEmpty, "At least one matching criteria must be supplied in order to update a document.")
+    new DocumentBuilder(this, matching.toList)
+  }
   def delete(term: SearchTerm): Unit = indexWriter.deleteDocuments(term.toLucene(this))
 
   def query(): QueryBuilder = QueryBuilder(this)
@@ -103,4 +92,23 @@ class Lucene(directory: Option[Path] = None, appendIfExists: Boolean = true, def
   }
 
   private[lucene4s] def searcher: IndexSearcher = new IndexSearcher(indexReader)
+}
+
+class LuceneCreate(val lucene: Lucene) {
+  def field[T](name: String,
+               fieldType: FieldType = FieldType.Stored,
+               fullTextSearchable: Boolean = lucene.defaultFullTextSearchable
+              )(implicit support: ValueSupport[T]): Field[T] = {
+    new Field[T](name, fieldType, support, fullTextSearchable)
+  }
+  def facet(name: String,
+            hierarchical: Boolean = false,
+            multiValued: Boolean = false,
+            requireDimCount: Boolean = false): FacetField = {
+    lucene.facetsConfig.setHierarchical(name, hierarchical)
+    lucene.facetsConfig.setMultiValued(name, multiValued)
+    lucene.facetsConfig.setRequireDimCount(name, requireDimCount)
+    FacetField(name, hierarchical, multiValued, requireDimCount)
+  }
+  def searchable[S <: BaseSearchable]: S = macro SearchableMacro.generate[S]
 }

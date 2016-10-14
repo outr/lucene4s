@@ -7,33 +7,26 @@
 
 Light-weight convenience wrapper around Lucene to simplify complex tasks and add Scala sugar.
 
-## Features for 1.0.0
-
-* [X] Simplified set up of readers, writers, facets, etc. all under `Lucene`
-* [X] DSL for inserting documents in a type-safe way
-* [X] DSL for querying documents in a type-safe way
-* [X] Facet searching support
-* [X] Full-Text search functionality
-* [X] Query Builder to simplify querying against Lucene
-* [X] Solid test coverage
-* [X] Updating and Deleting documents
-* [X] Structured query terms builder
-
-## Features for 1.1.0
-
-* [ ] Asynchronous features via Akka Futures
-* [ ] Support for storing and retrieving case classes as documents
-* [ ] Numeric storage and retrieval functionality
-* [ ] Range querying
-* [ ] Geospatial features
-* [ ] Complete ScalaDocing
-
 ## Setup
 
-lucene4s is publish to Sonatype OSS and Maven Central currently supporting Scala 2.11:
+lucene4s is published to Sonatype OSS and Maven Central currently supporting Scala 2.11.
+
+Configuring the dependency in SBT simply requires:
 
 ```
 libraryDependencies += "com.outr" %% "lucene4s" % "1.0.0"
+```
+
+You can also check-out the latest SNAPSHOT:
+
+```
+libraryDependencies += "com.outr" %% "lucene4s" % "1.1.0-SNAPSHOT"
+```
+
+Make sure you have the Sonatype Snapshots Resolver configured in SBT:
+
+```
+Resolver.sonatypeRepo("releases")
 ```
 
 ## Using
@@ -104,3 +97,31 @@ See https://github.com/outr/lucene4s/blob/master/src/test/scala/tests/FacetsSpec
 ### Full-Text Searching
 
 See https://github.com/outr/lucene4s/blob/master/src/test/scala/tests/FullTextSpec.scala
+
+### Case Class Support
+
+See https://github.com/outr/lucene4s/blob/master/src/test/scala/tests/SearchableSpec.scala
+
+## Versions
+
+### Features for 1.1.0 (In-Progress)
+
+* [X] Better field integrations and convenience implicits
+* [X] Support for storing and retrieving case classes as documents via compile-time Macro
+* [ ] Asynchronous features via Akka Futures
+* [ ] Numeric storage and retrieval functionality
+* [ ] Range querying
+* [ ] Geospatial features
+* [ ] Complete ScalaDocing
+
+### Features for 1.0.0 (Released 2016.10.13)
+
+* [X] Simplified set up of readers, writers, facets, etc. all under `Lucene`
+* [X] DSL for inserting documents in a type-safe way
+* [X] DSL for querying documents in a type-safe way
+* [X] Facet searching support
+* [X] Full-Text search functionality
+* [X] Query Builder to simplify querying against Lucene
+* [X] Solid test coverage
+* [X] Updating and Deleting documents
+* [X] Structured query terms builder
