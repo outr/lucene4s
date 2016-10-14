@@ -8,7 +8,7 @@ import org.apache.lucene.search.SortField
 trait ValueSupport[T] {
   def toLucene(field: Field[T], value: T): IndexableField
 
-  def toSortedField(field: Field[T], value: T): Option[SortedDocValuesField]
+  def toSortedField(field: Field[T], value: T): Option[IndexableField]
 
   def fromLucene(field: IndexableField): T
 

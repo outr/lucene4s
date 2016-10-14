@@ -1,20 +1,18 @@
 package com.outr.lucene4s.field.value.support
 
 import com.outr.lucene4s.field.Field
-import org.apache.lucene.document.{IntPoint, SortedDocValuesField, Field => LuceneField}
+import org.apache.lucene.document.{IntPoint, StoredField}
 import org.apache.lucene.index.IndexableField
 import org.apache.lucene.search.SortField
 import org.apache.lucene.search.SortField.Type
-import org.apache.lucene.util.BytesRef
 
-// TODO: test this and implement sorted field
 object IntValueSupport extends ValueSupport[Int] {
   override def toLucene(field: Field[Int], value: Int): IndexableField = {
-    new IntPoint(field.name, value)
+    new StoredField(field.name, value)
   }
 
-  override def toSortedField(field: Field[Int], value: Int): Option[SortedDocValuesField] = {
-    Some(new SortedDocValuesField(field.name, new BytesRef(value.toString)))
+  override def toSortedField(field: Field[Int], value: Int): Option[IndexableField] = {
+    Some(new IntPoint(field.name, value))
   }
 
   override def fromLucene(field: IndexableField): Int = field.numericValue().intValue()

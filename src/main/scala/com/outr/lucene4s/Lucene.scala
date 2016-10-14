@@ -52,11 +52,8 @@ class Lucene(val directory: Option[Path] = None, val appendIfExists: Boolean = t
 
   lazy val fullText = create.field[String]("fullText", FieldType.NotStored)
 
-  def doc(): DocumentBuilder = new DocumentBuilder(this, Nil)
-  def update(matching: FieldAndValue[_]*): DocumentBuilder = {
-    assert(matching.nonEmpty, "At least one matching criteria must be supplied in order to update a document.")
-    new DocumentBuilder(this, matching.toList)
-  }
+  def doc(): DocumentBuilder = new DocumentBuilder(this, None)
+  def update(searchTerm: SearchTerm): DocumentBuilder = new DocumentBuilder(this, Some(searchTerm))
   def delete(term: SearchTerm): Unit = indexWriter.deleteDocuments(term.toLucene(this))
 
   def query(): QueryBuilder = QueryBuilder(this)

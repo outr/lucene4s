@@ -108,10 +108,12 @@ See https://github.com/outr/lucene4s/blob/master/src/test/scala/tests/Searchable
 
 * [X] Better field integrations and convenience implicits
 * [X] Support for storing and retrieving case classes as documents via compile-time Macro
+* [X] Numeric storage and retrieval functionality
+* [ ] Support for docType on Searchable to provide multiple Searchable implementation in a single index
 * [ ] Asynchronous features via Akka Futures
-* [ ] Numeric storage and retrieval functionality
-* [ ] Range querying
+* [ ] Range inserting and querying
 * [ ] Geospatial features
+* [ ] Dates
 * [ ] Complete ScalaDocing
 
 ### Features for 1.0.0 (Released 2016.10.13)

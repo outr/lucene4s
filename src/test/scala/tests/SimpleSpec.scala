@@ -7,10 +7,13 @@ import org.scalatest.{Matchers, WordSpec}
 class SimpleSpec extends WordSpec with Matchers {
   val lucene = new Lucene()
   val name = lucene.create.field[String]("name")
+  val age = lucene.create.field[Int]("age")
+  val progress = lucene.create.field[Double]("progress")
+  val bytes = lucene.create.field[Long]("bytes")
 
   "Simple Spec" should {
     "create a simple document" in {
-      lucene.doc().fields(name("John Doe")).index()
+      lucene.doc().fields(name("John Doe"), age(23), progress(0.123), bytes(123456789L)).index()
     }
     "query for the index" in {
       val paged = lucene.query().search()
@@ -18,6 +21,9 @@ class SimpleSpec extends WordSpec with Matchers {
       val results = paged.results
       results.length should be(1)
       results(0)(name) should be("John Doe")
+      results(0)(age) should be(23)
+      results(0)(progress) should be(0.123)
+      results(0)(bytes) should be(123456789L)
     }
     "add a few more documents" in {
       lucene.doc().fields(name("Jane Doe")).index()
@@ -80,6 +86,21 @@ class SimpleSpec extends WordSpec with Matchers {
       paged.results(1)(name) should be("Jane Doe")
       paged.results(1).score should be(0.7854939103126526)
     }
+    "query by age" in {
+      val paged = lucene.query().filter(exact(age(23))).search()
+      paged.total should be(1)
+      paged.results(0)(name) should be("John Doe")
+    }
+    "query by progress" in {
+      val paged = lucene.query().filter(exact(progress(0.123))).search()
+      paged.total should be(1)
+      paged.results(0)(name) should be("John Doe")
+    }
+    "query by bytes" in {
+      val paged = lucene.query().filter(exact(bytes(123456789L))).search()
+      paged.total should be(1)
+      paged.results(0)(name) should be("John Doe")
+    }
     "query fuzzy matching john and jane" in {
       val paged = lucene.query().scoreDocs().sort(Sort.Score).filter(fuzzy(name("jhn"))).search()
       paged.total should be(2)
@@ -89,7 +110,7 @@ class SimpleSpec extends WordSpec with Matchers {
       paged.results(1).score should be(0.4146067798137665)
     }
     "update 'Billy Bob' to 'Johnny Bob'" in {
-      lucene.update(name("Billy Bob")).fields(name("Johnny Bob")).index()
+      lucene.update(term(name("Billy Bob"))).fields(name("Johnny Bob")).index()
     }
     "query by part of first name with wildcard" in {
       val paged = lucene.query().scoreDocs().sort(Sort.Score).filter(wildcard(name("john*"))).search()
@@ -115,6 +136,8 @@ class SimpleSpec extends WordSpec with Matchers {
     // TODO: storage and querying of Int, Long, Double, Boolean, Array[Byte]
     // TODO: storage and querying of multiple points
     // TODO: storage and querying of lat/long
+    // TODO: querying ranges
+    // TODO: storage and querying of dates
     "dispose" in {
       lucene.dispose()
     }

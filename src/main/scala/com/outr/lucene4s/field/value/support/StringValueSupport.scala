@@ -12,7 +12,7 @@ object StringValueSupport extends ValueSupport[String] {
     new LuceneField(field.name, value, field.fieldType.lucene())
   }
 
-  override def toSortedField(field: Field[String], value: String): Option[SortedDocValuesField] = {
+  override def toSortedField(field: Field[String], value: String): Option[IndexableField] = {
     Some(new SortedDocValuesField(field.name, new BytesRef(value)))
   }
 
