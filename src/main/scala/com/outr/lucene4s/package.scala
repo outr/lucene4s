@@ -22,6 +22,8 @@ package object lucene4s {
   implicit val doubleFieldValue2SearchTerm = (fv: FieldAndValue[Double]) => new ExactDoubleSearchTerm(fv.field, fv.value)
   implicit val stringFieldValue2SearchTerm = (fv: FieldAndValue[String]) => new TermSearchTerm(Some(fv.field), s""""${fv.value.toLowerCase}"""")
 
+  def matchAll(): SearchTerm = MatchAllSearchTerm
+
   def parse(field: Field[String], value: String): ParsableSearchTerm = parse(field, value, allowLeadingWildcard = false)
   def parse(field: Field[String], value: String, allowLeadingWildcard: Boolean): ParsableSearchTerm = new ParsableSearchTerm(Some(field), value, allowLeadingWildcard)
   def parse(value: String): ParsableSearchTerm = parse(value, allowLeadingWildcard = false)
