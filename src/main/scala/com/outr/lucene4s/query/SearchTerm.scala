@@ -36,6 +36,12 @@ class TermSearchTerm(field: Option[Field[String]], value: String) extends Search
   override def toString: String = s"term(${field.map(_.name)} = $value)"
 }
 
+class ExactBooleanSearchTerm(field: Field[Boolean], value: Boolean) extends SearchTerm {
+  override protected[lucene4s] def toLucene(lucene: Lucene): Query = IntPoint.newExactQuery(field.name, if (value) 1 else 0)
+
+  override def toString: String = s"term(${field.name} = $value)"
+}
+
 class ExactIntSearchTerm(field: Field[Int], value: Int) extends SearchTerm {
   override protected[lucene4s] def toLucene(lucene: Lucene): Query = IntPoint.newExactQuery(field.name, value)
 

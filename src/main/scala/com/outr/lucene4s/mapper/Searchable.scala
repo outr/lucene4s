@@ -10,6 +10,8 @@ import scala.reflect.macros.blackbox
 
 sealed trait BaseSearchable
 
+// TODO: Break this into two traits to make it easier to implement idSearchTerm only
+// TODO: realize the calling method would need to take [T, S <: Searchable[T]]
 trait Searchable[T] extends BaseSearchable {
   def lucene: Lucene
 

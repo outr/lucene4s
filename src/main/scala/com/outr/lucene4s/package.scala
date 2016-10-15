@@ -9,12 +9,14 @@ import scala.language.implicitConversions
 
 package object lucene4s {
   implicit def stringSupport: ValueSupport[String] = StringValueSupport
+  implicit def booleanSupport: ValueSupport[Boolean] = BooleanValueSupport
   implicit def intSupport: ValueSupport[Int] = IntValueSupport
   implicit def longSupport: ValueSupport[Long] = LongValueSupport
   implicit def doubleSupport: ValueSupport[Double] = DoubleValueSupport
 
   implicit def string2ParsableSearchTerm(value: String): SearchTerm = parse(value)
 
+  implicit val booleanFieldValue2SearchTerm = (fv: FieldAndValue[Boolean]) => new ExactBooleanSearchTerm(fv.field, fv.value)
   implicit val intFieldValue2SearchTerm = (fv: FieldAndValue[Int]) => new ExactIntSearchTerm(fv.field, fv.value)
   implicit val longFieldValue2SearchTerm = (fv: FieldAndValue[Long]) => new ExactLongSearchTerm(fv.field, fv.value)
   implicit val doubleFieldValue2SearchTerm = (fv: FieldAndValue[Double]) => new ExactDoubleSearchTerm(fv.field, fv.value)
