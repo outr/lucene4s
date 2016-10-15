@@ -63,6 +63,11 @@ class Lucene(val directory: Option[Path] = None, val appendIfExists: Boolean = t
     taxonomyWriter.commit()
   }
 
+  /**
+    * Deletes all documents in the index.
+    */
+  def deleteAll(): Unit = indexWriter.deleteAll()
+
   def dispose(): Unit = {
     currentIndexReader.foreach(_.close())
     indexWriter.close()

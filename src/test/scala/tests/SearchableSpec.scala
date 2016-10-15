@@ -8,6 +8,10 @@ import org.scalatest.{Matchers, WordSpec}
 
 class SearchableSpec extends WordSpec with Matchers {
   "Searchable" should {
+    "validate the generated docType" in {
+      lucene.person.docTypeName should be("tests.SearchableSpec.Person")
+      lucene.person.docType shouldNot be(null)
+    }
     "insert a Person" in {
       val john = Person("John", "Doe", 23, "123 Somewhere Rd.", "Lalaland", "California", "12345")
       lucene.person.insert(john).facets(

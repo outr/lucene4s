@@ -2,6 +2,7 @@ package com.outr.lucene4s.mapper
 
 import com.outr.lucene4s.Lucene
 import com.outr.lucene4s.document.DocumentBuilder
+import com.outr.lucene4s.field.Field
 import com.outr.lucene4s.query.{SearchResult, SearchTerm}
 import com.outr.scribe.Logging
 
@@ -14,6 +15,13 @@ sealed trait BaseSearchable
 // TODO: realize the calling method would need to take [T, S <: Searchable[T]]
 trait Searchable[T] extends BaseSearchable {
   def lucene: Lucene
+
+  /**
+    * The document type name. Automatically generated if not defined.
+    */
+  val docTypeName: String
+
+  val docType: Field[String]
 
   /**
     * Generates a search term to find the supplied value. This is used by update and delete to make sure the right value
@@ -66,6 +74,11 @@ object SearchableMacro extends Logging {
     val values = s.tpe.decls.collect {
       case symbol if symbol.toString.startsWith("value ") => symbol.name.toString.trim
     }.toSet
+    val docTypeName = if (values.contains("docTypeName")) {
+      q""
+    } else {
+      q"override val docTypeName: String = ${t.typeSymbol.fullName}"
+    }
 
     val fieldInstances = fieldNames.zip(fieldTypes).collect {
       case (n, t) if !values.contains(n) => {
@@ -89,6 +102,12 @@ object SearchableMacro extends Logging {
       q"""
          new $s {
             override def lucene = $luceneCreate.lucene
+
+            $docTypeName
+
+            override val docType = lucene.create.field[String](docTypeName)
+
+            // TODO: create query() that includes docType
 
             override def apply(result: com.outr.lucene4s.query.SearchResult) = $result2T
 
