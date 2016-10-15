@@ -5,13 +5,11 @@ import java.nio.file.Path
 import akka.actor.ActorSystem
 import com.outr.lucene4s.document.DocumentBuilder
 import com.outr.lucene4s.facet.FacetField
-import com.outr.lucene4s.field.value.FieldAndValue
 import com.outr.lucene4s.field.value.support.ValueSupport
 import com.outr.lucene4s.field.{Field, FieldType}
-import com.outr.lucene4s.mapper.{BaseSearchable, Searchable, SearchableMacro}
-import com.outr.lucene4s.query.{QueryBuilder, SearchTerm}
+import com.outr.lucene4s.mapper.{BaseSearchable, SearchableMacro}
+import com.outr.lucene4s.query.{GroupedSearchTerm, QueryBuilder, SearchResult, SearchTerm}
 import org.apache.lucene.analysis.standard.StandardAnalyzer
-import org.apache.lucene.document.Document
 import org.apache.lucene.facet.FacetsConfig
 import org.apache.lucene.facet.taxonomy.directory.{DirectoryTaxonomyReader, DirectoryTaxonomyWriter}
 import org.apache.lucene.index.IndexWriterConfig.OpenMode
@@ -54,9 +52,16 @@ class Lucene(val directory: Option[Path] = None, val appendIfExists: Boolean = t
 
   def doc(): DocumentBuilder = new DocumentBuilder(this, None)
   def update(searchTerm: SearchTerm): DocumentBuilder = new DocumentBuilder(this, Some(searchTerm))
-  def delete(term: SearchTerm): Unit = indexWriter.deleteDocuments(term.toLucene(this))
+  def delete(term: SearchTerm): Unit = {
+    // TODO: figure out why grouped terms don't seem to work in delete
+    val terms: List[SearchTerm] = term match {
+      case GroupedSearchTerm(disableCoord, minimumNumberShouldMatch, conditionalTerms) => conditionalTerms.map(_._1)
+      case _ => List(term)
+    }
+    indexWriter.deleteDocuments(terms.map(_.toLucene(this)): _*)
+  }
 
-  def query(): QueryBuilder = QueryBuilder(this)
+  def query(): QueryBuilder[SearchResult] = QueryBuilder(this, conversion = sr => sr)
 
   def commit(): Unit = {
     indexWriter.commit()

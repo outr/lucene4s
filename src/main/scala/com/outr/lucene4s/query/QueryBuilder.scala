@@ -1,40 +1,48 @@
 package com.outr.lucene4s.query
 
-import com.outr.lucene4s.Lucene
+import com.outr.lucene4s._
 import com.outr.lucene4s.facet.FacetField
 import org.apache.lucene.facet.DrillDownQuery
 
-case class QueryBuilder private[lucene4s](lucene: Lucene,
-                                          facets: Set[FacetQuery] = Set.empty,
-                                          offset: Int = 0,
-                                          limit: Int = 10,
-                                          sorting: List[Sort] = Nil,
-                                          scoreDocs: Boolean = false,
-                                          scoreMax: Boolean = false,
-                                          searchTerm: SearchTerm = MatchAllSearchTerm) {
-  def offset(v: Int): QueryBuilder = copy(offset = v)
-  def limit(v: Int): QueryBuilder = copy(limit = v)
+case class QueryBuilder[T] private[lucene4s](lucene: Lucene,
+                                             facets: Set[FacetQuery] = Set.empty,
+                                             offset: Int = 0,
+                                             limit: Int = 10,
+                                             sorting: List[Sort] = Nil,
+                                             scoreDocs: Boolean = false,
+                                             scoreMax: Boolean = false,
+                                             searchTerms: List[SearchTerm] = Nil,
+                                             conversion: SearchResult => T) {
+  def offset(v: Int): QueryBuilder[T] = copy(offset = v)
+  def limit(v: Int): QueryBuilder[T] = copy(limit = v)
 
-  def facet(field: FacetField, limit: Int = 10, path: List[String] = Nil): QueryBuilder = copy(facets = facets + FacetQuery(field, limit, path))
+  def convert[V](conversion: SearchResult => V): QueryBuilder[V] = copy[V](conversion = conversion)
 
-  def scoreDocs(b: Boolean = true): QueryBuilder = copy(scoreDocs = b)
+  def facet(field: FacetField, limit: Int = 10, path: List[String] = Nil): QueryBuilder[T] = copy(facets = facets + FacetQuery(field, limit, path))
 
-  def scoreMax(b: Boolean = true): QueryBuilder = copy(scoreMax = b)
+  def scoreDocs(b: Boolean = true): QueryBuilder[T] = copy(scoreDocs = b)
 
-  def filter(searchTerm: SearchTerm): QueryBuilder = copy(searchTerm = searchTerm)
+  def scoreMax(b: Boolean = true): QueryBuilder[T] = copy(scoreMax = b)
 
-  def sort(sort: Sort*): QueryBuilder = {
+  def filter(searchTerms: SearchTerm*): QueryBuilder[T] = copy(searchTerms = this.searchTerms ::: searchTerms.toList)
+
+  def sort(sort: Sort*): QueryBuilder[T] = {
     copy(sorting = sorting ::: sort.toList)
   }
 
-  def replaceSort(sort: Sort*): QueryBuilder = {
+  def replaceSort(sort: Sort*): QueryBuilder[T] = {
     copy(sorting = sort.toList)
   }
 
-  def search(): PagedResults = {
-    val q = searchTerm.toLucene(lucene) match {
-      case parsedQuery if facets.exists(_.path.nonEmpty) => {
-        val drillDown = new DrillDownQuery(lucene.facetsConfig, parsedQuery)
+  def search(): PagedResults[T] = {
+    val baseQuery = searchTerms match {
+      case Nil => MatchAllSearchTerm
+      case st :: Nil => st
+      case _ => grouped(searchTerms.map(_ -> Condition.Must): _*)
+    }
+    val q = baseQuery.toLucene(lucene) match {
+      case query if facets.exists(_.path.nonEmpty) => {
+        val drillDown = new DrillDownQuery(lucene.facetsConfig, query)
         facets.foreach { fq =>
           if (fq.path.nonEmpty) {
             drillDown.add(fq.facet.name, fq.path: _*)

@@ -79,7 +79,7 @@ class FuzzySearchTerm(field: Option[Field[String]], value: String) extends Searc
   override def toString: String = s"fuzzy(${field.map(_.name)}, value: $value)"
 }
 
-class GroupedSearchTerm(disableCoord: Boolean,
+case class GroupedSearchTerm(disableCoord: Boolean,
                         minimumNumberShouldMatch: Int,
                         conditionalTerms: List[(SearchTerm, Condition)]) extends SearchTerm {
   override protected[lucene4s] def toLucene(lucene: Lucene): Query = {

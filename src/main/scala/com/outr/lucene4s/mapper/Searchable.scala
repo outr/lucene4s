@@ -1,9 +1,9 @@
 package com.outr.lucene4s.mapper
 
-import com.outr.lucene4s.Lucene
+import com.outr.lucene4s._
 import com.outr.lucene4s.document.DocumentBuilder
 import com.outr.lucene4s.field.Field
-import com.outr.lucene4s.query.{SearchResult, SearchTerm}
+import com.outr.lucene4s.query.{Condition, QueryBuilder, SearchResult, SearchTerm}
 import com.outr.scribe.Logging
 
 import scala.annotation.compileTimeOnly
@@ -16,12 +16,22 @@ sealed trait BaseSearchable
 trait Searchable[T] extends BaseSearchable {
   def lucene: Lucene
 
+  protected def idAndDocSearchTerm(t: T): SearchTerm = grouped(
+    idSearchTerm(t) -> Condition.Must,
+    term(docType(docTypeName)) -> Condition.Must
+  )
+
   /**
     * The document type name. Automatically generated if not defined.
     */
   val docTypeName: String
 
   val docType: Field[String]
+
+  /**
+    * Creates a query that filters to only this document type and automatically supports conversion to T.
+    */
+  def query(): QueryBuilder[T]
 
   /**
     * Generates a search term to find the supplied value. This is used by update and delete to make sure the right value
@@ -94,9 +104,9 @@ object SearchableMacro extends Logging {
       q"$tn = result($tn)"
     }
     val result2T = q"new $t(..$fromDocument)"
-    val insertDocument = q"lucene.doc().fields(..$searchFields)"
-    val updateDocument = q"lucene.update(idSearchTerm(value)).fields(..$searchFields)"
-    val deleteDocument = q"lucene.delete(idSearchTerm(value))"
+    val insertDocument = q"lucene.doc().fields(..$searchFields).fields(docType(docTypeName))"
+    val updateDocument = q"lucene.update(idAndDocSearchTerm(value)).fields(..$searchFields)"
+    val deleteDocument = q"lucene.delete(idAndDocSearchTerm(value))"
 
     c.Expr[S](
       q"""
@@ -105,9 +115,11 @@ object SearchableMacro extends Logging {
 
             $docTypeName
 
-            override val docType = lucene.create.field[String](docTypeName)
+            override val docType = lucene.create.field[String]("docType")
 
-            // TODO: create query() that includes docType
+            override def query(): com.outr.lucene4s.query.QueryBuilder[$t] = {
+              lucene.query().filter(term(docType(docTypeName))).convert[$t](apply)
+            }
 
             override def apply(result: com.outr.lucene4s.query.SearchResult) = $result2T
 
