@@ -100,7 +100,93 @@ See https://github.com/outr/lucene4s/blob/master/src/test/scala/tests/FullTextSp
 
 ### Case Class Support
 
-See https://github.com/outr/lucene4s/blob/master/src/test/scala/tests/SearchableSpec.scala
+lucene4s provides a powerful Macro-based system to generate two-way mappings between case classes and Lucene fields at
+compile-time. This is accomplished through the use of `Searchable`.  The setup is pretty simple.
+
+#### Setup
+
+First we need to define a case class to model the data in the index:
+
+```scala
+case class Person(id: Int, firstName: String, lastName: String, age: Int, address: String, city: String, state: String, zip: String)
+```
+
+As you can see, this is a bare-bones case class with nothing special about it.
+
+Next we need to define a `Searchable` trait the defines the unique identification for update and delete:
+
+```scala
+trait SearchablePerson extends Searchable[Person] {
+  // This is necessary for update and delete to reference the correct document.
+  override def idSearchTerm(person: Person): SearchTerm = exact(id(person.id))
+  
+  /*
+    Though at compile-time all fields will be generated from the params in `Person`, for code-completion we can define
+    an unimplemented method in order to properly reference the field. This will still compile without this definition,
+    but most IDEs will complain.
+   */
+  def id: Field[Int]
+}
+```
+
+As the last part of our set up we simply need to generate it from our `Lucene` instance:
+
+```scala
+val people = lucene.create.searchable[SearchablePerson]
+```
+
+#### Inserting
+
+Now that we've configured everything inserting a person is trivial:
+
+```scala
+people.insert(Person(1, "John", "Doe", 23, "123 Somewhere Rd.", "Lalaland", "California", "12345")).index()
+```
+
+Notice that we still have to call `index()` at the end for it to actually invoke. This allows us to do more advanced
+tasks like adding facets, adding non-Searchable fields, etc. before actually inserting.
+
+#### Updating
+
+Now lets try updating our `Person`:
+
+```scala
+people.update(Person(1, "John", "Doe", 23, "321 Nowhere St.", "Lalaland", "California", "12345")).index()
+```
+
+As you can see here, the signature is quite similar to `insert`. Internally this will utilize `idSearchTerm` as we
+declared previously to apply the update. In this case that means as long as we don't change the id (1) then calls to
+update will replace an existing record if one exists.
+
+#### Querying
+
+Querying works very much the same as in the previous examples, except we get our `QueryBuilder` from our `people`
+instance:
+
+```scala
+val paged = people.query().search()
+paged.entries.foreach { person =>
+  println(s"Person: $person")
+}
+```
+
+Note that instead of calling `paged.results` we call `paged.entries` as it represents the conversion to `Person`. We can
+still use `paged.results` if we want access to the `SearchResult` like before.
+
+#### Deleting
+
+Deleting is just as easy as inserting and updating:
+
+```scala
+people.delete(Person(1, "John", "Doe", 23, "321 Nowhere St.", "Lalaland", "California", "12345"))
+```
+
+#### Additional Information
+
+All `Searchable` implementations automatically define a `docType` field that is used to uniquely separate different
+`Searchable` instances so you don't have to worry about multiple different instances overlapping.
+
+For more examples see https://github.com/outr/lucene4s/blob/master/src/test/scala/tests/SearchableSpec.scala
 
 ## Versions
 
