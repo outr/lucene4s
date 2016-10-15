@@ -1,7 +1,7 @@
 package com.outr.lucene4s.mapper
 
 import com.outr.lucene4s.Lucene
-import com.outr.lucene4s.field.Field
+import com.outr.lucene4s.document.DocumentBuilder
 import com.outr.lucene4s.query.{SearchResult, SearchTerm}
 import com.outr.scribe.Logging
 
@@ -30,18 +30,18 @@ trait Searchable[T] extends BaseSearchable {
   def apply(result: SearchResult): T
 
   /**
-    * Inserts a new document built from T
+    * Creates a DocumentBuilder to insert `value` into Lucene.
     *
     * @param value the value to insert
     */
-  def insert(value: T): Unit
+  def insert(value: T): DocumentBuilder
 
   /**
-    * Replaces the current instance of this value with the supplied one.
+    * Creates a DocumentBuilder to update `value` into Lucene.
     *
     * @param value the updated value to replace what is currently indexed
     */
-  def update(value: T): Unit
+  def update(value: T): DocumentBuilder
 
   /**
     * Deletes the value from the index.
@@ -81,8 +81,8 @@ object SearchableMacro extends Logging {
       q"$tn = result($tn)"
     }
     val result2T = q"new $t(..$fromDocument)"
-    val insertDocument = q"lucene.doc().fields(..$searchFields).index()"
-    val updateDocument = q"lucene.update(idSearchTerm(value)).fields(..$searchFields).index()"
+    val insertDocument = q"lucene.doc().fields(..$searchFields)"
+    val updateDocument = q"lucene.update(idSearchTerm(value)).fields(..$searchFields)"
     val deleteDocument = q"lucene.delete(idSearchTerm(value))"
 
     c.Expr[S](

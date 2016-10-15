@@ -15,7 +15,8 @@ class PagedResults private[lucene4s](val lucene: Lucene,
   def pages: Int = math.ceil(total.toDouble / pageSize.toDouble).toInt
   def maxScore: Double = searchResults.topDocs.getMaxScore.toDouble
 
-  def facet(field: FacetField): Option[FacetResult] = searchResults.facetResults.get(field)
+  def facets: Map[FacetField, FacetResult] = searchResults.facetResults
+  def facet(field: FacetField): Option[FacetResult] = facets.get(field)
 
   def page(index: Int): PagedResults = query.offset(pageSize * index).search()
   def hasNextPage: Boolean = ((pageIndex + 1) * pageSize) < total
