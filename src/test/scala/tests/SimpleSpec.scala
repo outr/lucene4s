@@ -80,6 +80,26 @@ class SimpleSpec extends WordSpec with Matchers {
       paged.results(3)(name) should be("Billy Bob")
       paged.results(4)(name) should be("Andrew Anderson")
     }
+    "query sorting by age" in {
+      val paged = lucene.query().sort(Sort(age, reverse = true)).search()
+      paged.total should be(5)
+      paged.results(0)(name) should be("John Doe")
+    }
+    "query sorting by progress" in {
+      val paged = lucene.query().sort(Sort(progress, reverse = true)).search()
+      paged.total should be(5)
+      paged.results(0)(name) should be("John Doe")
+    }
+    "query sorting by bytes" in {
+      val paged = lucene.query().sort(Sort(bytes, reverse = true)).search()
+      paged.total should be(5)
+      paged.results(0)(name) should be("John Doe")
+    }
+    "query sorting by enabled" in {
+      val paged = lucene.query().sort(Sort(enabled, reverse = true)).search()
+      paged.total should be(5)
+      paged.results(0)(name) should be("John Doe")
+    }
     "query by last name" in {
       val paged = lucene.query().scoreDocs().sort(Sort.Score).filter(term(name("doe"))).search()
       paged.total should be(2)

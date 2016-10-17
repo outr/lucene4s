@@ -105,7 +105,7 @@ object SearchableMacro extends Logging {
     }
     val result2T = q"new $t(..$fromDocument)"
     val insertDocument = q"lucene.doc().fields(..$searchFields).fields(docType(docTypeName))"
-    val updateDocument = q"lucene.update(idAndDocSearchTerm(value)).fields(..$searchFields)"
+    val updateDocument = q"lucene.update(idAndDocSearchTerm(value)).fields(..$searchFields).fields(docType(docTypeName))"
     val deleteDocument = q"lucene.delete(idAndDocSearchTerm(value))"
 
     c.Expr[S](
@@ -118,7 +118,7 @@ object SearchableMacro extends Logging {
             override val docType = lucene.create.field[String]("docType")
 
             override def query(): com.outr.lucene4s.query.QueryBuilder[$t] = {
-              lucene.query().filter(term(docType(docTypeName))).convert[$t](apply)
+              lucene.query().filter(term(docType(docTypeName.toLowerCase))).convert[$t](apply)
             }
 
             override def apply(result: com.outr.lucene4s.query.SearchResult) = $result2T

@@ -53,12 +53,7 @@ class Lucene(val directory: Option[Path] = None, val appendIfExists: Boolean = t
   def doc(): DocumentBuilder = new DocumentBuilder(this, None)
   def update(searchTerm: SearchTerm): DocumentBuilder = new DocumentBuilder(this, Some(searchTerm))
   def delete(term: SearchTerm): Unit = {
-    // TODO: figure out why grouped terms don't seem to work in delete
-    val terms: List[SearchTerm] = term match {
-      case GroupedSearchTerm(disableCoord, minimumNumberShouldMatch, conditionalTerms) => conditionalTerms.map(_._1)
-      case _ => List(term)
-    }
-    indexWriter.deleteDocuments(terms.map(_.toLucene(this)): _*)
+    indexWriter.deleteDocuments(term.toLucene(this))
   }
 
   def query(): QueryBuilder[SearchResult] = QueryBuilder(this, conversion = sr => sr)

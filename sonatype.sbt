@@ -1,7 +1,7 @@
 sonatypeProfileName := "com.outr"
 
 pomExtra in Global := {
-  <url>https://github.com/outr/neo4akka</url>
+  <url>https://github.com/outr/lucene4s</url>
     <licenses>
       <license>
         <name>MIT</name>
