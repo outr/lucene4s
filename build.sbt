@@ -1,6 +1,6 @@
 name := "lucene4s"
 organization := "com.outr"
-version := "1.1.0-SNAPSHOT"
+version := "1.1.0"
 scalaVersion := "2.11.8"
 sbtVersion := "0.13.11"
 parallelExecution in Test := false

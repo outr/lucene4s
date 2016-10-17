@@ -190,18 +190,21 @@ For more examples see https://github.com/outr/lucene4s/blob/master/src/test/scal
 
 ## Versions
 
-### Features for 1.1.0 (In-Progress)
+### Features for 1.2.0 (In-Progress)
+
+* [ ] Range inserting and querying
+* [ ] Dates
+* [ ] Geospatial features
+* [ ] Asynchronous features via Akka Futures
+* [ ] Complete ScalaDocing
+
+### Features for 1.1.0 (Released 2016.10.17)
 
 * [X] Better field integrations and convenience implicits
 * [X] Support for storing and retrieving case classes as documents via compile-time Macro
 * [X] Numeric storage and retrieval functionality (Boolean, Int, Long, and Double)
 * [X] Facets support in Searchable
 * [X] Support for docType on Searchable to provide multiple Searchable implementation in a single index
-* [ ] Range inserting and querying
-* [ ] Dates
-* [ ] Geospatial features
-* [ ] Asynchronous features via Akka Futures
-* [ ] Complete ScalaDocing
 
 ### Features for 1.0.0 (Released 2016.10.13)
 
