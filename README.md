@@ -90,6 +90,24 @@ Name: John Doe, Address: 123 Somewhere Rd.
 Name: Jane Doe, Address: 123 Somewhere Rd.
 ```
 
+### Highlighting Results
+
+Though querying is nice, we may want to stylize the output to show the matched results. This is pretty simple:
+
+```scala
+val paged = lucene.query().sort(Sort(name)).filter(fuzzy(name("jhn"))).highlight().search()
+paged.results.foreach { searchResult =>
+  println(s"Highlighted: ${searchResult.highlighting(name).head}")
+}
+```
+
+The above code will output:
+
+```
+Highlighted: <em>John</em> Doe
+Highlighted: <em>Jane</em> Doe
+```
+
 ### Faceted Searching
 
 See https://github.com/outr/lucene4s/blob/master/src/test/scala/tests/FacetsSpec.scala
@@ -190,13 +208,18 @@ For more examples see https://github.com/outr/lucene4s/blob/master/src/test/scal
 
 ## Versions
 
-### Features for 1.2.0 (In-Progress)
+### Features for 1.3.0 (In-Progress)
 
 * [ ] Range inserting and querying
 * [ ] Dates
 * [ ] Geospatial features
 * [ ] Asynchronous features via Akka Futures
 * [ ] Complete ScalaDocing
+
+### Features for 1.2.0 (Released 2016.11.23)
+
+* [X] Highlighting support
+* [X] Code Cleanup and Optimizations
 
 ### Features for 1.1.0 (Released 2016.10.17)
 
