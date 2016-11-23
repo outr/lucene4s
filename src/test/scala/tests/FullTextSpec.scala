@@ -23,11 +23,10 @@ class FullTextSpec extends WordSpec with Matchers {
       val paged = lucene.query().filter("doe").search()
       paged.total should be(3)
     }
-    // TODO: revisit this when we have support for more advanced querying: https://lucene.apache.org/core/6_1_0/core/org/apache/lucene/document/IntPoint.html
-//    "search by age" in {
-//      val paged = lucene.query(age).search("21")
-//      paged.total should be(1)
-//    }
+    "search by age" in {
+      val paged = lucene.query().filter(age(21)).search()
+      paged.total should be(1)
+    }
     "search full text for 'doe'" in {
       val paged = lucene.query().sort(Sort.Score).filter(wildcard("doe*")).search()
       paged.total should be(4)

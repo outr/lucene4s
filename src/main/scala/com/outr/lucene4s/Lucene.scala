@@ -48,7 +48,7 @@ class Lucene(val directory: Option[Path] = None, val appendIfExists: Boolean = t
 
   val create = new LuceneCreate(this)
 
-  lazy val fullText = create.field[String]("fullText", FieldType.NotStored)
+  lazy val fullText = create.field[String]("fullText")
 
   def doc(): DocumentBuilder = new DocumentBuilder(this, None)
   def update(searchTerm: SearchTerm): DocumentBuilder = new DocumentBuilder(this, Some(searchTerm))

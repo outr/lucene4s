@@ -3,6 +3,7 @@ package com.outr.lucene4s.query
 import com.outr.lucene4s._
 import com.outr.lucene4s.facet.FacetField
 import org.apache.lucene.facet.DrillDownQuery
+import org.apache.lucene.search.highlight.{Highlighter, QueryScorer, SimpleHTMLFormatter}
 
 case class QueryBuilder[T] private[lucene4s](lucene: Lucene,
                                              facets: Set[FacetQuery] = Set.empty,
@@ -12,7 +13,8 @@ case class QueryBuilder[T] private[lucene4s](lucene: Lucene,
                                              scoreDocs: Boolean = false,
                                              scoreMax: Boolean = false,
                                              searchTerms: List[SearchTerm] = Nil,
-                                             conversion: SearchResult => T) {
+                                             conversion: SearchResult => T,
+                                             highlighting: Option[Highlighting] = None) {
   def offset(v: Int): QueryBuilder[T] = copy(offset = v)
   def limit(v: Int): QueryBuilder[T] = copy(limit = v)
 
@@ -25,6 +27,8 @@ case class QueryBuilder[T] private[lucene4s](lucene: Lucene,
   def scoreMax(b: Boolean = true): QueryBuilder[T] = copy(scoreMax = b)
 
   def filter(searchTerms: SearchTerm*): QueryBuilder[T] = copy(searchTerms = this.searchTerms ::: searchTerms.toList)
+
+  def highlight(preTag: String = "<em>", postTag: String = "</em>"): QueryBuilder[T] = copy(highlighting = Some(Highlighting(preTag, postTag)))
 
   def sort(sort: Sort*): QueryBuilder[T] = {
     copy(sorting = sorting ::: sort.toList)
@@ -56,6 +60,14 @@ case class QueryBuilder[T] private[lucene4s](lucene: Lucene,
 
     val manager = new DocumentCollector(lucene, this)
     val searchResults = lucene.searcher.search(q, manager)
-    new PagedResults(lucene, this, offset, searchResults)
+    val highlighter = highlighting.map {
+      case Highlighting(preTag, postTag) => {
+        val highlightFormatter = new SimpleHTMLFormatter(preTag, postTag)
+        new Highlighter(highlightFormatter, new QueryScorer(q))
+      }
+    }
+    new PagedResults(lucene, this, offset, searchResults, highlighter)
   }
 }
+
+case class Highlighting(preTag: String, postTag: String)

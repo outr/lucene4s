@@ -29,7 +29,7 @@ class DocumentBuilder(lucene: Lucene, update: Option[SearchTerm], document: Docu
 
   def index(): Unit = {
     if (fullText.nonEmpty) {
-      val fullTextString = fullText.mkString(" ")
+      val fullTextString = fullText.mkString("\n")
       fields(lucene.fullText(fullTextString))
     }
     val doc = lucene.facetsConfig.build(lucene.taxonomyWriter, document)

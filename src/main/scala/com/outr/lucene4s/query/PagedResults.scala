@@ -2,11 +2,13 @@ package com.outr.lucene4s.query
 
 import com.outr.lucene4s.Lucene
 import com.outr.lucene4s.facet.FacetField
+import org.apache.lucene.search.highlight.Highlighter
 
 class PagedResults[T] private[lucene4s](val lucene: Lucene,
-                                     val query: QueryBuilder[T],
-                                     val offset: Int,
-                                     searchResults: SearchResults) {
+                                        val query: QueryBuilder[T],
+                                        val offset: Int,
+                                        searchResults: SearchResults,
+                                        val highlighter: Option[Highlighter]) {
   lazy val results: Vector[SearchResult] = searchResults.topDocs.scoreDocs.toVector.map(sd => new SearchResult(lucene, this, sd))
   lazy val entries: Vector[T] = results.map(query.conversion)
 
