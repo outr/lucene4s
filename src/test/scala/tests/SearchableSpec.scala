@@ -20,7 +20,7 @@ class SearchableSpec extends WordSpec with Matchers {
       ).index()
     }
     "verify the record exists" in {
-      val paged = lucene.query().facet(lucene.person.tags).search()
+      val paged = lucene.query().facet(lucene.person.tags, limit = 10).search()
       paged.total should be(1)
       val result = paged.results.head
       result(lucene.person.firstName) should be("John")

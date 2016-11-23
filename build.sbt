@@ -8,10 +8,10 @@ fork := true
 
 libraryDependencies += "com.outr.scribe" %% "scribe-slf4j" % "1.2.5"
 
-libraryDependencies += "org.apache.lucene" % "lucene-core" % "6.2.1"
-libraryDependencies += "org.apache.lucene" % "lucene-analyzers-common" % "6.2.1"
-libraryDependencies += "org.apache.lucene" % "lucene-queryparser" % "6.2.1"
-libraryDependencies += "org.apache.lucene" % "lucene-facet" % "6.2.1"
+libraryDependencies += "org.apache.lucene" % "lucene-core" % "6.3.0"
+libraryDependencies += "org.apache.lucene" % "lucene-analyzers-common" % "6.3.0"
+libraryDependencies += "org.apache.lucene" % "lucene-queryparser" % "6.3.0"
+libraryDependencies += "org.apache.lucene" % "lucene-facet" % "6.3.0"
 
 libraryDependencies += "com.typesafe.akka" %% "akka-actor" % "2.4.11"
 
