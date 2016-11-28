@@ -9,24 +9,12 @@ Light-weight convenience wrapper around Lucene to simplify complex tasks and add
 
 ## Setup
 
-lucene4s is published to Sonatype OSS and Maven Central currently supporting Scala 2.11.
+lucene4s is published to Sonatype OSS and Maven Central currently supporting Scala 2.11 and 2.12.
 
 Configuring the dependency in SBT simply requires:
 
 ```
-libraryDependencies += "com.outr" %% "lucene4s" % "1.0.0"
-```
-
-You can also check-out the latest SNAPSHOT:
-
-```
-libraryDependencies += "com.outr" %% "lucene4s" % "1.1.0-SNAPSHOT"
-```
-
-Make sure you have the Sonatype Snapshots Resolver configured in SBT:
-
-```
-Resolver.sonatypeRepo("releases")
+libraryDependencies += "com.outr" %% "lucene4s" % "1.3.0"
 ```
 
 ## Using
@@ -97,15 +85,16 @@ Though querying is nice, we may want to stylize the output to show the matched r
 ```scala
 val paged = lucene.query().sort(Sort(name)).filter(fuzzy(name("jhn"))).highlight().search()
 paged.results.foreach { searchResult =>
-  println(s"Highlighted: ${searchResult.highlighting(name).head}")
+  val highlighting = searchResult.highlighting(name).head
+  println(s"Fragment: ${higlighting.fragment}, Word: ${highlighting.word}")
 }
 ```
 
 The above code will output:
 
 ```
-Highlighted: <em>John</em> Doe
-Highlighted: <em>Jane</em> Doe
+Fragment: <em>John</em> Doe, Word: John
+Fragment: <em>Jane</em> Doe, Word: Jane
 ```
 
 ### Faceted Searching
@@ -210,6 +199,8 @@ For more examples see https://github.com/outr/lucene4s/blob/master/src/test/scal
 
 ### Features for 1.3.0 (In-Progress)
 
+* [X] Better Highlighting support
+* [X] Add Scala 2.12 support
 * [ ] Range inserting and querying
 * [ ] Dates
 * [ ] Geospatial features

@@ -8,7 +8,7 @@ import org.apache.lucene.facet.FacetsCollector
 import org.apache.lucene.facet.taxonomy.FastTaxonomyFacetCounts
 import org.apache.lucene.search.{CollectorManager, Sort => LuceneSort, TopDocs, TopFieldCollector}
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 class DocumentCollector(lucene: Lucene, query: QueryBuilder[_]) extends CollectorManager[Collectors, SearchResults] {
   val sort = if (query.sorting.nonEmpty) {
@@ -28,10 +28,10 @@ class DocumentCollector(lucene: Lucene, query: QueryBuilder[_]) extends Collecto
   }
 
   override def reduce(collectors: util.Collection[Collectors]): SearchResults = {
-    val topDocs = collectors.collect {
+    val topDocs = collectors.asScala.collect {
       case Collectors(tfc, _) => tfc.topDocs()
     }.toArray
-    val facetsCollector = collectors.head.facetsCollector
+    val facetsCollector = collectors.asScala.head.facetsCollector
 
     val docMax = math.max(1, lucene.indexReader.maxDoc())
     val docLimit = math.min(query.offset + query.limit, docMax)

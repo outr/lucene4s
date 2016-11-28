@@ -144,13 +144,15 @@ class SimpleSpec extends WordSpec with Matchers {
       paged.results(0).score should be(0.829213559627533)
       val highlightsJohn = paged.results(0).highlighting(name)
       highlightsJohn.length should be(1)
-      highlightsJohn.head should be("<em>John</em> Doe")
+      highlightsJohn.head.fragment should be("<em>John</em> Doe")
+      highlightsJohn.head.word should be("John")
 
       paged.results(1)(name) should be("Jane Doe")
       paged.results(1).score should be(0.4146067798137665)
       val highlightsJane = paged.results(1).highlighting(name)
       highlightsJane.length should be(1)
-      highlightsJane.head should be("<em>Jane</em> Doe")
+      highlightsJane.head.fragment should be("<em>Jane</em> Doe")
+      highlightsJane.head.word should be("Jane")
     }
     "query fuzzy matching john and jane with highlighting in full text search" in {
       val paged = lucene.query().scoreDocs().sort(Sort.Score).filter(fuzzy(lucene.fullText("jhn"))).highlight().search()
@@ -159,13 +161,15 @@ class SimpleSpec extends WordSpec with Matchers {
       paged.results(0).score should be(0.5670366883277893)
       val highlightsJohn = paged.results(0).highlighting(name)
       highlightsJohn.length should be(1)
-      highlightsJohn.head should be("<em>John</em> Doe")
+      highlightsJohn.head.fragment should be("<em>John</em> Doe")
+      highlightsJohn.head.word should be("John")
 
       paged.results(1)(name) should be("Jane Doe")
       paged.results(1).score should be(0.47889038920402527)
       val highlightsJane = paged.results(1).highlighting(name)
       highlightsJane.length should be(1)
-      highlightsJane.head should be("<em>Jane</em> Doe")
+      highlightsJane.head.fragment should be("<em>Jane</em> Doe")
+      highlightsJane.head.word should be("Jane")
     }
     "update 'Billy Bob' to 'Johnny Bob'" in {
       lucene.update(term(name("Billy Bob"))).fields(name("Johnny Bob")).index()
