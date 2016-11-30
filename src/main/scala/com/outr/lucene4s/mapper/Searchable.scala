@@ -115,7 +115,7 @@ object SearchableMacro extends Logging {
 
             $docTypeName
 
-            override val docType = lucene.create.field[String]("docType")
+            override val docType = lucene.create.field[String]("docType", fullTextSearchable = false)
 
             override def query(): com.outr.lucene4s.query.QueryBuilder[$t] = {
               lucene.query().filter(term(docType(docTypeName.toLowerCase))).convert[$t](apply)

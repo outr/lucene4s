@@ -31,9 +31,11 @@ class SearchResult private[lucene4s](lucene: Lucene, search: PagedResults[_], sc
 
 case class HighlightedResult(content: String, score: Double) {
   lazy val fragment: String = content.split('\n').find(_.indexOf("<em>") != -1).getOrElse(content)
-  lazy val word: String = HighlightedResult.WordExtractionRegex.findFirstMatchIn(fragment).map(_.group(1)).getOrElse(fragment)
-}
-
-object HighlightedResult {
-  private val WordExtractionRegex = """[<]em[>](.+)[<][/]em[>]""".r
+  lazy val word: String = {
+    val start = fragment.indexOf("<em>")
+    val end = fragment.indexOf("</em>", start + 4)
+    assert(start != -1, s"Unable to find emphasis start tag in fragment ($fragment).")
+    assert(end != -1, s"Unable to find emphasis end tag in fragment ($fragment).")
+    fragment.substring(start + 4, end)
+  }
 }
