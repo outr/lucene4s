@@ -7,6 +7,7 @@ import com.outr.lucene4s.document.DocumentBuilder
 import com.outr.lucene4s.facet.FacetField
 import com.outr.lucene4s.field.value.support.ValueSupport
 import com.outr.lucene4s.field.{Field, FieldType}
+import com.outr.lucene4s.keyword.KeywordIndexing
 import com.outr.lucene4s.mapper.{BaseSearchable, SearchableMacro}
 import com.outr.lucene4s.query.{GroupedSearchTerm, QueryBuilder, SearchResult, SearchTerm}
 import org.apache.lucene.analysis.standard.StandardAnalyzer
@@ -21,10 +22,13 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.language.experimental.macros
 
-class Lucene(val directory: Option[Path] = None, val appendIfExists: Boolean = true, val defaultFullTextSearchable: Boolean = false) {
+class Lucene(val directory: Option[Path] = None,
+             val appendIfExists: Boolean = true,
+             val defaultFullTextSearchable: Boolean = false,
+             val enableKeywordIndexing: Boolean = false) {
   private[lucene4s] lazy val standardAnalyzer = new StandardAnalyzer
 
-  private lazy val system = ActorSystem()
+  private[lucene4s] lazy val system = ActorSystem()
 
   private lazy val indexPath = directory.map(_.resolve("index"))
   private lazy val taxonomyPath = directory.map(_.resolve("taxonomy"))
@@ -47,8 +51,9 @@ class Lucene(val directory: Option[Path] = None, val appendIfExists: Boolean = t
   private var currentIndexReader: Option[DirectoryReader] = None
 
   val create = new LuceneCreate(this)
+  val keywords = new KeywordIndexing(this)
 
-  lazy val fullText = create.field[String]("fullText")
+  lazy val fullText: Field[String] = create.field[String]("fullText")
 
   def doc(): DocumentBuilder = new DocumentBuilder(this, None)
   def update(searchTerm: SearchTerm): DocumentBuilder = new DocumentBuilder(this, Some(searchTerm))

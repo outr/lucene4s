@@ -31,6 +31,7 @@ class DocumentBuilder(lucene: Lucene, update: Option[SearchTerm], document: Docu
     if (fullText.nonEmpty) {
       val fullTextString = fullText.mkString("\n")
       fields(lucene.fullText(fullTextString))
+      lucene.keywords.index(fullText)
     }
     val doc = lucene.facetsConfig.build(lucene.taxonomyWriter, document)
 

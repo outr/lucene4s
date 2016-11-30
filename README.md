@@ -103,7 +103,41 @@ See https://github.com/outr/lucene4s/blob/master/src/test/scala/tests/FacetsSpec
 
 ### Full-Text Searching
 
-See https://github.com/outr/lucene4s/blob/master/src/test/scala/tests/FullTextSpec.scala
+In lucene4s the `Lucene` instance holds a `fullText` `Field` that contains a concatenation of all the fields that
+are configured as `fullTextSearchable`.  This defaults to `Lucene.defaultFullTextSearchable` which defaults to false.
+
+The `fullText` field is the default field used for searches if it's not specified in the `SearchTerm`. Let's see an example:
+
+```
+val paged = lucene.query().filter(wildcard("doe*")).search()
+paged.total should be(4)
+paged.results(0)(firstName) should be("John")
+paged.results(1)(firstName) should be("Jane")
+paged.results(2)(firstName) should be("Baby")
+paged.results(3)(firstName) should be("James")
+```
+
+For a complete example, see: https://github.com/outr/lucene4s/blob/master/src/test/scala/tests/FullTextSpec.scala
+
+### Keyword Searching
+
+As we saw previously, the `fullText` field provides us with a concatenation of all fields configured to be `fullTextSearchable`.
+In addition, if keyword indexing is enabled (`Lucene.enableKeywordIndexing`), whenever the `fullText` field of a document
+is being written, it will also break the text into words and store them as keywords. This enables us to search for keyword
+matches for autocompletion purposes. For example:
+
+```
+val keywords = lucene.keywords.search("do*")
+println("Keywords: ${keywords.results.map(_.word).mkString(", ")}")
+```
+
+The above code would output:
+
+```
+Keywords: Doe
+```
+
+For the complete example see: https://github.com/outr/lucene4s/blob/master/src/test/scala/tests/SimpleSpec.scala
 
 ### Case Class Support
 
@@ -201,6 +235,7 @@ For more examples see https://github.com/outr/lucene4s/blob/master/src/test/scal
 
 * [X] Better Highlighting support
 * [X] Add Scala 2.12 support
+* [X] Keyword indexing / autocomplete support
 * [ ] Range inserting and querying
 * [ ] Dates
 * [ ] Geospatial features
