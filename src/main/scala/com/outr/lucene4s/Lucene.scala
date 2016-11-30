@@ -71,7 +71,12 @@ class Lucene(val directory: Option[Path] = None,
   /**
     * Deletes all documents in the index.
     */
-  def deleteAll(): Unit = indexWriter.deleteAll()
+  def deleteAll(): Unit = {
+    indexWriter.deleteAll()
+    if (enableKeywordIndexing) {
+      keywords.deleteAll()
+    }
+  }
 
   def dispose(): Unit = {
     currentIndexReader.foreach(_.close())

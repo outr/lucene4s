@@ -2,12 +2,11 @@ package com.outr.lucene4s.keyword
 
 import com.outr.lucene4s._
 import com.outr.lucene4s.field.FieldType
-import com.outr.lucene4s.query.{Condition, MatchAllSearchTerm, SearchTerm}
 import com.outr.scribe.Logging
 import org.apache.lucene.document.{Document, Field}
-import org.apache.lucene.index.{DirectoryReader, IndexWriter, IndexWriterConfig, Term}
+import org.apache.lucene.index.{DirectoryReader, IndexWriter, IndexWriterConfig}
 import org.apache.lucene.queryparser.classic.QueryParser
-import org.apache.lucene.search.{IndexSearcher, MatchAllDocsQuery, TermQuery}
+import org.apache.lucene.search.{IndexSearcher, MatchAllDocsQuery}
 import org.apache.lucene.store.{FSDirectory, RAMDirectory}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -15,6 +14,7 @@ import scala.concurrent.duration._
 
 class KeywordIndexing(lucene: Lucene) extends Logging {
   var stopWords: Set[String] = KeywordIndexing.DefaultStopWords
+  var wordMatcherRegex: String = """[a-zA-Z0-9.]{2,}"""
 
   // Write support
   private lazy val indexPath = lucene.directory.map(_.resolve("keywords"))
@@ -43,14 +43,18 @@ class KeywordIndexing(lucene: Lucene) extends Logging {
   private def searcher: IndexSearcher = new IndexSearcher(indexReader)
 
   def index(words: List[String]): Unit = if (lucene.enableKeywordIndexing) {
-    val indexableWords = words.flatMap(_.split("""\s+""")).filterNot(stopWords.contains)
-    indexableWords.foreach { word =>
-      val doc = new Document
-      doc.add(new Field("keyword", word, FieldType.Stored.lucene()))
-      val parser = new QueryParser("keyword", lucene.standardAnalyzer)
-      val query = parser.parse(word)
-      indexWriter.deleteDocuments(query)
-      indexWriter.addDocument(doc)
+    val indexableWords = words.flatMap(_.split("""\s+""")).map(_.trim).filterNot(stopWords.contains)
+    indexableWords.foreach {
+      case word if word.matches(wordMatcherRegex) => {
+        val doc = new Document
+        doc.add(new Field("keyword", word, FieldType.Stored.lucene()))
+        val parser = new QueryParser("keyword", lucene.standardAnalyzer)
+        val query = parser.parse(word)
+        indexWriter.deleteDocuments(query)
+        indexWriter.addDocument(doc)
+        indexWriter.commit()
+      }
+      case _ => // Ignore empty words
     }
   }
 
@@ -71,6 +75,10 @@ class KeywordIndexing(lucene: Lucene) extends Logging {
       KeywordResult(word, scoreDoc.score.toDouble)
     }.toList
     KeywordResults(keywords, searchResults.totalHits, searchResults.getMaxScore)
+  }
+
+  def deleteAll(): Unit = {
+    indexWriter.deleteAll()
   }
 }
 
