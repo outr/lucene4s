@@ -2,6 +2,7 @@ package tests
 
 import com.outr.lucene4s._
 import com.outr.lucene4s.field.Field
+import com.outr.lucene4s.keyword.KeywordIndexing
 import com.outr.lucene4s.mapper.Searchable
 import com.outr.lucene4s.query.{Condition, SearchTerm}
 import org.scalatest.{Matchers, WordSpec}
@@ -47,6 +48,27 @@ class SearchableSpec extends WordSpec with Matchers {
       val john = paged.entries.head
       john should be(Person(1, "John", "Doe", 23, "123 Somewhere Rd.", "Lalaland", "California", "12345"))
     }
+    "insert another Person" in {
+      val jane = Person(2, "Jane", "Doe", 21, "123 Somewhere Rd.", "Lalaland", "California", "12345")
+      lucene.person.insert(jane).facets(
+        lucene.person.tags("cheetah"),
+        lucene.person.tags("dolphin")
+      ).index()
+    }
+    "query back last name removing duplicates" in {
+      val lastNames = lucene.lastNameKeywords.search("doe")
+      lastNames.results.map(_.word) should be(List("Doe"))
+      lastNames.total should be(1)
+      lastNames.maxScore should be(0.28768208622932434)
+    }
+    "verify only last names in keywords" in {
+      val lastNames = lucene.lastNameKeywords.search("john")
+      lastNames.total should be(0)
+    }
+    "delete the new record" in {
+      val jane = Person(2, "Jane", "Doe", 21, "321 Nowhere St.", "Lalaland", "California", "12345")
+      lucene.person.delete(jane)
+    }
     "update the record" in {
       val john = Person(1, "John", "Doe", 23, "321 Nowhere St.", "Lalaland", "California", "12345")
       lucene.person.update(john).index()
@@ -69,7 +91,13 @@ class SearchableSpec extends WordSpec with Matchers {
   }
 
   object lucene extends Lucene {
-    val person = create.searchable[SearchablePerson]
+    val person: SearchablePerson = create.searchable[SearchablePerson]
+    val lastNameKeywords: KeywordIndexing = KeywordIndexing(
+      lucene = this,
+      directoryName = "lastNames",
+      wordsFromBuilder = KeywordIndexing.FieldFromBuilder(person.lastName),
+      splitRegex = None
+    )
   }
 
   trait SearchablePerson extends Searchable[Person] {

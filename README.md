@@ -122,12 +122,13 @@ For a complete example, see: https://github.com/outr/lucene4s/blob/master/src/te
 ### Keyword Searching
 
 As we saw previously, the `fullText` field provides us with a concatenation of all fields configured to be `fullTextSearchable`.
-In addition, if keyword indexing is enabled (`Lucene.enableKeywordIndexing`), whenever the `fullText` field of a document
-is being written, it will also break the text into words and store them as keywords. This enables us to search for keyword
-matches for autocompletion purposes. For example:
+In addition, if you create an instance of `KeywordIndexing` you can query against a no-duplicates index of keywords for
+the `fullText` (although you can override defaults to apply keyword indexing to any field). All we have to do is create
+and instance referencing the `Lucene` instance and the name (used for storage purposes):
 
 ```
-val keywords = lucene.keywords.search("do*")
+val keywordIndexing = KeywordIndexing(lucene, "keywords")
+val keywords = keywordIndexing.search("do*")
 println("Keywords: ${keywords.results.map(_.word).mkString(", ")}")
 ```
 

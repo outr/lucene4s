@@ -1,11 +1,13 @@
 package tests
 
 import com.outr.lucene4s._
+import com.outr.lucene4s.keyword.KeywordIndexing
 import com.outr.lucene4s.query.{Condition, Sort}
 import org.scalatest.{Matchers, WordSpec}
 
 class SimpleSpec extends WordSpec with Matchers {
-  val lucene = new Lucene(defaultFullTextSearchable = true, enableKeywordIndexing = true)
+  val lucene = new Lucene(defaultFullTextSearchable = true)
+  val keywordIndexing = KeywordIndexing(lucene, "keywords")
   val name = lucene.create.field[String]("name")
   val age = lucene.create.field[Int]("age")
   val progress = lucene.create.field[Double]("progress")
@@ -172,14 +174,14 @@ class SimpleSpec extends WordSpec with Matchers {
       highlightsJane.head.word should be("Jane")
     }
     "query all keywords from keyword indexing" in {
-      val keywords = lucene.keywords.search(limit = 20)
+      val keywords = keywordIndexing.search(limit = 20)
       keywords.results.map(_.word) should be(List("123456789", "Anderson", "Andrew", "0.123", "true", "John", "Jane", "Doe", "23", "Billy", "Bob", "Carly", "Charles"))
       keywords.total should be(13)
       keywords.maxScore should be(1.0)
       keywords.results.length should be(13)
     }
     "query keywords filtered by 'doe'" in {
-      val keywords = lucene.keywords.search("do*")
+      val keywords = keywordIndexing.search("do*")
       keywords.results.map(_.word) should be(List("Doe"))
       keywords.total should be(1)
       keywords.maxScore should be(1.0)

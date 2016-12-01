@@ -11,7 +11,7 @@ import org.apache.lucene.search.{CollectorManager, Sort => LuceneSort, TopDocs, 
 import scala.collection.JavaConverters._
 
 class DocumentCollector(lucene: Lucene, query: QueryBuilder[_]) extends CollectorManager[Collectors, SearchResults] {
-  val sort = if (query.sorting.nonEmpty) {
+  val sort: LuceneSort = if (query.sorting.nonEmpty) {
     new LuceneSort(query.sorting.map(_.sortField()): _*)
   } else {
     LuceneSort.RELEVANCE

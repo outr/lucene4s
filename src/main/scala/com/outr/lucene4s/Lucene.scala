@@ -24,8 +24,7 @@ import scala.language.experimental.macros
 
 class Lucene(val directory: Option[Path] = None,
              val appendIfExists: Boolean = true,
-             val defaultFullTextSearchable: Boolean = false,
-             val enableKeywordIndexing: Boolean = false) {
+             val defaultFullTextSearchable: Boolean = false) {
   private[lucene4s] lazy val standardAnalyzer = new StandardAnalyzer
 
   private[lucene4s] lazy val system = ActorSystem()
@@ -50,8 +49,9 @@ class Lucene(val directory: Option[Path] = None,
 
   private var currentIndexReader: Option[DirectoryReader] = None
 
+  private var listeners: List[LuceneListener] = Nil
+
   val create = new LuceneCreate(this)
-  val keywords = new KeywordIndexing(this)
 
   lazy val fullText: Field[String] = create.field[String]("fullText")
 
@@ -63,6 +63,10 @@ class Lucene(val directory: Option[Path] = None,
 
   def query(): QueryBuilder[SearchResult] = QueryBuilder(this, conversion = sr => sr)
 
+  def listen(listener: LuceneListener): Unit = synchronized {
+    listeners = listeners ::: List(listener)
+  }
+
   def commit(): Unit = {
     indexWriter.commit()
     taxonomyWriter.commit()
@@ -73,9 +77,7 @@ class Lucene(val directory: Option[Path] = None,
     */
   def deleteAll(): Unit = {
     indexWriter.deleteAll()
-    if (enableKeywordIndexing) {
-      keywords.deleteAll()
-    }
+    listeners.foreach(_.delete())
   }
 
   def dispose(): Unit = {
@@ -101,6 +103,10 @@ class Lucene(val directory: Option[Path] = None,
     }
     currentIndexReader = Some(reader)
     reader
+  }
+
+  private[lucene4s] def indexed(builder: DocumentBuilder): Unit = synchronized {
+    listeners.foreach(_.indexed(builder))
   }
 
   private[lucene4s] def searcher: IndexSearcher = new IndexSearcher(indexReader)

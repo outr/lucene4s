@@ -7,8 +7,8 @@ import com.outr.lucene4s.query.SearchTerm
 import org.apache.lucene.document.Document
 import org.apache.lucene.index.Term
 
-class DocumentBuilder(lucene: Lucene, update: Option[SearchTerm], document: Document = new Document) {
-  private var fullText = List.empty[String]
+class DocumentBuilder(lucene: Lucene, update: Option[SearchTerm], val document: Document = new Document) {
+  var fullText: List[String] = List.empty[String]
 
   def fields(fieldAndValues: FieldAndValue[_]*): DocumentBuilder = {
     fieldAndValues.foreach { fv =>
@@ -29,9 +29,8 @@ class DocumentBuilder(lucene: Lucene, update: Option[SearchTerm], document: Docu
 
   def index(): Unit = {
     if (fullText.nonEmpty) {
-      val fullTextString = fullText.mkString("\n")
+      val fullTextString: String = fullText.mkString("\n")
       fields(lucene.fullText(fullTextString))
-      lucene.keywords.index(fullText)
     }
     val doc = lucene.facetsConfig.build(lucene.taxonomyWriter, document)
 
@@ -40,5 +39,6 @@ class DocumentBuilder(lucene: Lucene, update: Option[SearchTerm], document: Docu
       lucene.delete(searchTerm)
     }
     lucene.indexWriter.addDocument(doc)
+    lucene.indexed(this)
   }
 }
