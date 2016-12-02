@@ -30,7 +30,7 @@ case class KeywordIndexing(lucene: Lucene,
                            wordsFromBuilder: DocumentBuilder => List[String] = KeywordIndexing.DefaultWordsFromBuilder,
                            includeFields: List[com.outr.lucene4s.field.Field[_]] = Nil,
                            stopWords: Set[String] = KeywordIndexing.DefaultStopWords,
-                           wordMatcherRegex: String = """[a-zA-Z0-9.]{2,}""") extends LuceneListener with Logging {
+                           wordMatcherRegex: String = """[a-zA-Z0-9. ]{2,}""") extends LuceneListener with Logging {
   // Write support
   private lazy val indexPath = lucene.directory.map(_.resolve(directoryName))
   private lazy val indexDirectory = indexPath.map(FSDirectory.open).getOrElse(new RAMDirectory)
@@ -84,9 +84,9 @@ case class KeywordIndexing(lucene: Lucene,
           doc.add(new Field(fv.field.name, fv.value.toString, FieldType.Stored.lucene()))
         }
         val parser = new QueryParser("keyword", lucene.standardAnalyzer)
-        val queryString = new StringBuilder(s"+$word")
+        val queryString = new StringBuilder(s""""$word"""")
         additionalValues.foreach { fv =>
-          queryString.append(s" +${fv.field.name}:${fv.value.toString}")
+          queryString.append(s" AND ${fv.field.name}:${fv.value.toString}")
         }
         val query = parser.parse(queryString.toString)
         indexWriter.deleteDocuments(query)
@@ -119,7 +119,7 @@ case class KeywordIndexing(lucene: Lucene,
   }
 }
 
-object KeywordIndexing {
+object KeywordIndexing extends Logging {
   val DefaultStopWords: Set[String] = Set(
     "a", "an", "and", "are", "as", "at", "be", "but", "by", "for", "i", "if", "in", "into", "is",
     "no", "not", "of", "on", "or", "s", "such", "t", "that", "the", "their", "then", "there", "these",
@@ -129,7 +129,12 @@ object KeywordIndexing {
   val DefaultWordsFromBuilder: (DocumentBuilder) => List[String] = (builder: DocumentBuilder) => builder.fullText.flatMap(_.split(DefaultSplitRegex))
 
   def FieldFromBuilder[T](field: com.outr.lucene4s.field.Field[T]): (DocumentBuilder) => List[String] = (builder: DocumentBuilder) => {
-    List(builder.document.get(field.name))
+    val text = Option(builder.document.get(field.name)).map(_.trim).getOrElse("")
+    if (text.isEmpty) {
+      Nil
+    } else {
+      List(text)
+    }
   }
   def FieldWordsFromBuilder[T](field: com.outr.lucene4s.field.Field[T]): (DocumentBuilder) => List[String] = (builder: DocumentBuilder) => {
     builder.document.get(field.name).split(DefaultSplitRegex).toList
@@ -138,6 +143,10 @@ object KeywordIndexing {
 
 case class KeywordResults(results: List[KeywordResult], total: Int, maxScore: Double) {
   lazy val words: List[String] = results.map(_.word)
+}
+
+object KeywordResults {
+  lazy val empty: KeywordResults = KeywordResults(Nil, 0, 0.0)
 }
 
 case class KeywordResult(word: String, score: Double, additionalFields: Map[String, String])
