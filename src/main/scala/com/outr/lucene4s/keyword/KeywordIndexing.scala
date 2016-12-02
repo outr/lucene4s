@@ -3,6 +3,7 @@ package com.outr.lucene4s.keyword
 import com.outr.lucene4s._
 import com.outr.lucene4s.document.DocumentBuilder
 import com.outr.lucene4s.field.FieldType
+import com.outr.lucene4s.field.value.FieldAndValue
 import com.outr.scribe.Logging
 import org.apache.lucene.document.{Document, Field}
 import org.apache.lucene.index.{DirectoryReader, IndexWriter, IndexWriterConfig}
@@ -13,9 +14,22 @@ import org.apache.lucene.store.{FSDirectory, RAMDirectory}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
+/**
+  * KeywordIndexing allows the automatic generation of another index specifically for keyword searching without
+  * duplicates.
+  *
+  * @param lucene the Lucene instance to apply to
+  * @param directoryName the directory name to derive the storage location from the existing index
+  * @param wordsFromBuilder the function that extracts the words from the DocumentBuilder for inclusion
+  * @param includeFields a list of additional fields to include from the DocumentBuilder during indexing
+  * @param stopWords a list of exclusion words not to be indexed
+  * @param splitRegex an optional regular expression of how to split words received from `wordsFromBuilder`
+  * @param wordMatcherRegex a regular expression to limit the type of words included in the index
+  */
 case class KeywordIndexing(lucene: Lucene,
                            directoryName: String,
                            wordsFromBuilder: DocumentBuilder => List[String] = KeywordIndexing.DefaultWordsFromBuilder,
+                           includeFields: List[com.outr.lucene4s.field.Field[_]] = Nil,
                            stopWords: Set[String] = KeywordIndexing.DefaultStopWords,
                            splitRegex: Option[String] = Some(KeywordIndexing.DefaultSplitRegex),
                            wordMatcherRegex: String = """[a-zA-Z0-9.]{2,}""") extends LuceneListener with Logging {
@@ -50,14 +64,17 @@ case class KeywordIndexing(lucene: Lucene,
   private def searcher: IndexSearcher = new IndexSearcher(indexReader)
 
   override def indexed(builder: DocumentBuilder): Unit = {
-    index(wordsFromBuilder(builder))
+    val additionalValues = includeFields.flatMap { field =>
+      builder.valueForName(field.name)
+    }
+    index(wordsFromBuilder(builder), additionalValues)
   }
 
   override def delete(): Unit = {
     indexWriter.deleteAll()
   }
 
-  def index(words: List[String]): Unit = if (words.nonEmpty) {
+  def index(words: List[String], additionalValues: List[FieldAndValue[_]]): Unit = if (words.nonEmpty) {
     val unfilteredWords = splitRegex match {
       case Some(r) => words.flatMap(_.split(r))
       case None => words
@@ -67,8 +84,15 @@ case class KeywordIndexing(lucene: Lucene,
       case word if word.matches(wordMatcherRegex) => {
         val doc = new Document
         doc.add(new Field("keyword", word, FieldType.Stored.lucene()))
+        additionalValues.foreach { fv =>
+          fv.write(doc)
+        }
         val parser = new QueryParser("keyword", lucene.standardAnalyzer)
-        val query = parser.parse(word)
+        val queryString = new StringBuilder(word)
+        additionalValues.foreach { fv =>
+          queryString.append(s" +${fv.field.name}:${fv.value.toString}")
+        }
+        val query = parser.parse(queryString.toString)
         indexWriter.deleteDocuments(query)
         indexWriter.addDocument(doc)
         indexWriter.commit()
