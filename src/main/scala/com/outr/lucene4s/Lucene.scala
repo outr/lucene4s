@@ -70,6 +70,7 @@ class Lucene(val directory: Option[Path] = None,
   def commit(): Unit = {
     indexWriter.commit()
     taxonomyWriter.commit()
+    listeners.foreach(_.commit())
   }
 
   /**

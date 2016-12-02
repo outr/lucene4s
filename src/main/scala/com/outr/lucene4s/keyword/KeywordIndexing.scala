@@ -23,7 +23,6 @@ import scala.concurrent.duration._
   * @param wordsFromBuilder the function that extracts the words from the DocumentBuilder for inclusion
   * @param includeFields a list of additional fields to include from the DocumentBuilder during indexing
   * @param stopWords a list of exclusion words not to be indexed
-  * @param splitRegex an optional regular expression of how to split words received from `wordsFromBuilder`
   * @param wordMatcherRegex a regular expression to limit the type of words included in the index
   */
 case class KeywordIndexing(lucene: Lucene,
@@ -31,7 +30,6 @@ case class KeywordIndexing(lucene: Lucene,
                            wordsFromBuilder: DocumentBuilder => List[String] = KeywordIndexing.DefaultWordsFromBuilder,
                            includeFields: List[com.outr.lucene4s.field.Field[_]] = Nil,
                            stopWords: Set[String] = KeywordIndexing.DefaultStopWords,
-                           splitRegex: Option[String] = Some(KeywordIndexing.DefaultSplitRegex),
                            wordMatcherRegex: String = """[a-zA-Z0-9.]{2,}""") extends LuceneListener with Logging {
   // Write support
   private lazy val indexPath = lucene.directory.map(_.resolve(directoryName))
@@ -70,32 +68,29 @@ case class KeywordIndexing(lucene: Lucene,
     index(wordsFromBuilder(builder), additionalValues)
   }
 
+  override def commit(): Unit = indexWriter.commit()
+
   override def delete(): Unit = {
     indexWriter.deleteAll()
   }
 
   def index(words: List[String], additionalValues: List[FieldAndValue[_]]): Unit = if (words.nonEmpty) {
-    val unfilteredWords = splitRegex match {
-      case Some(r) => words.flatMap(_.split(r))
-      case None => words
-    }
-    val indexableWords = unfilteredWords.filterNot(stopWords.contains)
+    val indexableWords = words.filterNot(stopWords.contains)
     indexableWords.foreach {
       case word if word.matches(wordMatcherRegex) => {
         val doc = new Document
         doc.add(new Field("keyword", word, FieldType.Stored.lucene()))
         additionalValues.foreach { fv =>
-          fv.write(doc)
+          doc.add(new Field(fv.field.name, fv.value.toString, FieldType.Stored.lucene()))
         }
         val parser = new QueryParser("keyword", lucene.standardAnalyzer)
-        val queryString = new StringBuilder(word)
+        val queryString = new StringBuilder(s"+$word")
         additionalValues.foreach { fv =>
           queryString.append(s" +${fv.field.name}:${fv.value.toString}")
         }
         val query = parser.parse(queryString.toString)
         indexWriter.deleteDocuments(query)
         indexWriter.addDocument(doc)
-        indexWriter.commit()
       }
       case _ => // Ignore empty words
     }
@@ -115,7 +110,10 @@ case class KeywordIndexing(lucene: Lucene,
     val keywords = searchResults.scoreDocs.map { scoreDoc =>
       val doc = searcher.doc(scoreDoc.doc)
       val word = doc.get("keyword")
-      KeywordResult(word, scoreDoc.score.toDouble)
+      val additionalFields = includeFields.flatMap { f =>
+        Option(f.name -> doc.get(f.name))
+      }.toMap
+      KeywordResult(word, scoreDoc.score.toDouble, additionalFields)
     }.toList
     KeywordResults(keywords, searchResults.totalHits, searchResults.getMaxScore)
   }
@@ -128,7 +126,7 @@ object KeywordIndexing {
     "they", "this", "to", "was", "will", "with"
   )
   val DefaultSplitRegex: String = """\s+"""
-  val DefaultWordsFromBuilder: (DocumentBuilder) => List[String] = (builder: DocumentBuilder) => builder.fullText
+  val DefaultWordsFromBuilder: (DocumentBuilder) => List[String] = (builder: DocumentBuilder) => builder.fullText.flatMap(_.split(DefaultSplitRegex))
 
   def FieldFromBuilder[T](field: com.outr.lucene4s.field.Field[T]): (DocumentBuilder) => List[String] = (builder: DocumentBuilder) => {
     List(builder.document.get(field.name))
@@ -138,6 +136,8 @@ object KeywordIndexing {
   }
 }
 
-case class KeywordResults(results: List[KeywordResult], total: Int, maxScore: Double)
+case class KeywordResults(results: List[KeywordResult], total: Int, maxScore: Double) {
+  lazy val words: List[String] = results.map(_.word)
+}
 
-case class KeywordResult(word: String, score: Double)
+case class KeywordResult(word: String, score: Double, additionalFields: Map[String, String])

@@ -175,7 +175,7 @@ class SimpleSpec extends WordSpec with Matchers {
     }
     "query all keywords from keyword indexing" in {
       val keywords = keywordIndexing.search(limit = 20)
-      keywords.results.map(_.word) should be(List("123456789", "Anderson", "Andrew", "0.123", "true", "John", "Jane", "Doe", "23", "Billy", "Bob", "Carly", "Charles"))
+      keywords.results.map(_.word) should be(List("true", "123456789", "0.123", "23", "John", "Jane", "Doe", "Andrew", "Anderson", "Billy", "Bob", "Carly", "Charles"))
       keywords.total should be(13)
       keywords.maxScore should be(1.0)
       keywords.results.length should be(13)

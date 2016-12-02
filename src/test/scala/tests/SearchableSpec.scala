@@ -59,7 +59,6 @@ class SearchableSpec extends WordSpec with Matchers {
       val lastNames = lucene.lastNameKeywords.search("doe")
       lastNames.results.map(_.word) should be(List("Doe"))
       lastNames.total should be(1)
-      lastNames.maxScore should be(0.28768208622932434)
     }
     "verify only last names in keywords" in {
       val lastNames = lucene.lastNameKeywords.search("john")
@@ -95,8 +94,7 @@ class SearchableSpec extends WordSpec with Matchers {
     val lastNameKeywords: KeywordIndexing = KeywordIndexing(
       lucene = this,
       directoryName = "lastNames",
-      wordsFromBuilder = KeywordIndexing.FieldFromBuilder(person.lastName),
-      splitRegex = None
+      wordsFromBuilder = KeywordIndexing.FieldFromBuilder(person.lastName)
     )
   }
 

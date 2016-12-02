@@ -4,5 +4,6 @@ import com.outr.lucene4s.document.DocumentBuilder
 
 trait LuceneListener {
   def indexed(builder: DocumentBuilder): Unit
+  def commit(): Unit
   def delete(): Unit
 }
