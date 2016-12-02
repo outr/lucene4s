@@ -1,7 +1,7 @@
 package com.outr.lucene4s.document
 
 import com.outr.lucene4s._
-import com.outr.lucene4s.facet.FacetValue
+import com.outr.lucene4s.facet.{FacetField, FacetValue}
 import com.outr.lucene4s.field.Field
 import com.outr.lucene4s.field.value.FieldAndValue
 import com.outr.lucene4s.query.SearchTerm
@@ -16,11 +16,17 @@ class DocumentBuilder(lucene: Lucene,
   var fullText: List[String] = List.empty[String]
 
   private val _values = ListBuffer.empty[FieldAndValue[_]]
+  private val _facetValues = ListBuffer.empty[FacetValue]
+
   def values: List[FieldAndValue[_]] = _values.toList
   def valueForField[T](field: Field[T]): Option[FieldAndValue[T]] = {
     values.find(_.field.name == field.name).asInstanceOf[Option[FieldAndValue[T]]]
   }
   def valueForName(name: String): Option[FieldAndValue[_]] = values.find(_.field.name == name)
+
+  def facetValues: List[FacetValue] = _facetValues.toList
+  def facetsForField(field: FacetField): List[FacetValue] = facetValues.filter(_.field.name == field.name)
+  def facetsForName(name: String): List[FacetValue] = facetValues.filter(_.field.name == name)
 
   def fields(fieldAndValues: FieldAndValue[_]*): DocumentBuilder = synchronized {
     fieldAndValues.foreach { fv =>
@@ -33,8 +39,11 @@ class DocumentBuilder(lucene: Lucene,
     this
   }
 
-  def facets(facetValues: FacetValue*): DocumentBuilder = {
-    facetValues.foreach(_.write(document))
+  def facets(facetValues: FacetValue*): DocumentBuilder = synchronized {
+    facetValues.foreach { fv =>
+      fv.write(document)
+      _facetValues += fv
+    }
     this
   }
 

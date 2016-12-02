@@ -2,6 +2,7 @@ package com.outr.lucene4s.keyword
 
 import com.outr.lucene4s._
 import com.outr.lucene4s.document.DocumentBuilder
+import com.outr.lucene4s.facet.FacetField
 import com.outr.lucene4s.field.FieldType
 import com.outr.lucene4s.field.value.FieldAndValue
 import com.outr.scribe.Logging
@@ -11,6 +12,7 @@ import org.apache.lucene.queryparser.classic.QueryParser
 import org.apache.lucene.search.{IndexSearcher, MatchAllDocsQuery}
 import org.apache.lucene.store.{FSDirectory, RAMDirectory}
 
+import scala.annotation.tailrec
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
@@ -23,19 +25,28 @@ import scala.concurrent.duration._
   * @param wordsFromBuilder the function that extracts the words from the DocumentBuilder for inclusion
   * @param includeFields a list of additional fields to include from the DocumentBuilder during indexing
   * @param stopWords a list of exclusion words not to be indexed
-  * @param wordMatcherRegex a regular expression to limit the type of words included in the index
+  * @param allowedCharacters a String containing all the characters allowed. This defaults to a-z, A-Z, 0-9,
+  *                          period and space. Keywords are filtered to remove any characters not allowed.
+  * @param removeEndsWithCharacters removes any of these characters found at the end of the keyword. Primarily
+  *                                 useful for removing punctuation. Defaults to ",.?!;".
+  * @param minimumLength the minimum length of keywords to be included. defaults to 2.
   */
 case class KeywordIndexing(lucene: Lucene,
                            directoryName: String,
                            wordsFromBuilder: DocumentBuilder => List[String] = KeywordIndexing.DefaultWordsFromBuilder,
                            includeFields: List[com.outr.lucene4s.field.Field[_]] = Nil,
                            stopWords: Set[String] = KeywordIndexing.DefaultStopWords,
-                           wordMatcherRegex: String = """[a-zA-Z0-9. ]{2,}""") extends LuceneListener with Logging {
+                           allowedCharacters: String = KeywordIndexing.DefaultAllowedCharacters,
+                           removeEndsWithCharacters: String = KeywordIndexing.DefaultRemoveEndsWithCharacters,
+                           minimumLength: Int = 2) extends LuceneListener with Logging {
   // Write support
   private lazy val indexPath = lucene.directory.map(_.resolve(directoryName))
   private lazy val indexDirectory = indexPath.map(FSDirectory.open).getOrElse(new RAMDirectory)
   private lazy val indexWriterConfig = new IndexWriterConfig(lucene.standardAnalyzer)
   private lazy val indexWriter = new IndexWriter(indexDirectory, indexWriterConfig)
+
+  private lazy val allowedCharactersSet = allowedCharacters.toCharArray.toSet
+  private lazy val removeEndsWithCharactersSet = removeEndsWithCharacters.toCharArray.toSet
 
   // Read support
   private var currentIndexReader: Option[DirectoryReader] = None
@@ -76,8 +87,9 @@ case class KeywordIndexing(lucene: Lucene,
 
   def index(words: List[String], additionalValues: List[FieldAndValue[_]]): Unit = if (words.nonEmpty) {
     val indexableWords = words.filterNot(stopWords.contains)
-    indexableWords.foreach {
-      case word if word.matches(wordMatcherRegex) => {
+    indexableWords.foreach { unfilteredWord =>
+      val word = removeEndsWith(unfilteredWord.filter(allowedCharactersSet.contains).trim)
+      if (word.length >= minimumLength) {
         val doc = new Document
         doc.add(new Field("keyword", word, FieldType.Stored.lucene()))
         additionalValues.foreach { fv =>
@@ -92,7 +104,15 @@ case class KeywordIndexing(lucene: Lucene,
         indexWriter.deleteDocuments(query)
         indexWriter.addDocument(doc)
       }
-      case _ => // Ignore empty words
+    }
+  }
+
+  @tailrec
+  private def removeEndsWith(word: String): String = {
+    if (word.isEmpty || !removeEndsWithCharactersSet.contains(word.charAt(word.length - 1))) {
+      word
+    } else {
+      removeEndsWith(word.substring(0, word.length - 1))
     }
   }
 
@@ -127,6 +147,8 @@ object KeywordIndexing extends Logging {
   )
   val DefaultSplitRegex: String = """\s+"""
   val DefaultWordsFromBuilder: (DocumentBuilder) => List[String] = (builder: DocumentBuilder) => builder.fullText.flatMap(_.split(DefaultSplitRegex))
+  val DefaultAllowedCharacters: String = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789. "
+  val DefaultRemoveEndsWithCharacters: String = ",.?!;"
 
   def FieldFromBuilder[T](field: com.outr.lucene4s.field.Field[T]): (DocumentBuilder) => List[String] = (builder: DocumentBuilder) => {
     val text = Option(builder.document.get(field.name)).map(_.trim).getOrElse("")
@@ -138,6 +160,14 @@ object KeywordIndexing extends Logging {
   }
   def FieldWordsFromBuilder[T](field: com.outr.lucene4s.field.Field[T]): (DocumentBuilder) => List[String] = (builder: DocumentBuilder) => {
     builder.document.get(field.name).split(DefaultSplitRegex).toList
+  }
+  def FacetFromBuilder(field: FacetField, pathSeparator: Option[String] = None): (DocumentBuilder) => List[String] = (builder: DocumentBuilder) => {
+    builder.facetsForField(field).map { fv =>
+      pathSeparator match {
+        case Some(ps) => fv.path.mkString(ps)
+        case None => fv.path.head
+      }
+    }
   }
 }
 
