@@ -3,6 +3,8 @@ package com.outr.lucene4s.query
 import com.outr.lucene4s._
 import com.outr.lucene4s.facet.FacetField
 import org.apache.lucene.facet.DrillDownQuery
+import org.apache.lucene.search.BooleanClause.Occur
+import org.apache.lucene.search.{BooleanQuery, BoostQuery, TermQuery}
 import org.apache.lucene.search.highlight.{Highlighter, QueryScorer, SimpleHTMLFormatter}
 
 case class QueryBuilder[T] private[lucene4s](lucene: Lucene,
@@ -20,7 +22,7 @@ case class QueryBuilder[T] private[lucene4s](lucene: Lucene,
 
   def convert[V](conversion: SearchResult => V): QueryBuilder[V] = copy[V](conversion = conversion)
 
-  def facet(field: FacetField, limit: Int = 10, path: List[String] = Nil): QueryBuilder[T] = copy(facets = facets + FacetQuery(field, limit, path))
+  def facet(field: FacetField, limit: Int = 10, path: List[String] = Nil, condition: Condition = Condition.Must): QueryBuilder[T] = copy(facets = facets + FacetQuery(field, limit, path, condition))
 
   def scoreDocs(b: Boolean = true): QueryBuilder[T] = copy(scoreDocs = b)
 
@@ -44,18 +46,15 @@ case class QueryBuilder[T] private[lucene4s](lucene: Lucene,
       case st :: Nil => st
       case _ => grouped(searchTerms.map(_ -> Condition.Must): _*)
     }
-    val q = baseQuery.toLucene(lucene) match {
-      case query if facets.exists(_.path.nonEmpty) => {
-        val drillDown = new DrillDownQuery(lucene.facetsConfig, query)
-        facets.foreach { fq =>
-          if (fq.path.nonEmpty) {
-            drillDown.add(fq.facet.name, fq.path: _*)
-          }
-        }
-        drillDown
+    val qb = new BooleanQuery.Builder
+    qb.add(baseQuery.toLucene(lucene), Occur.MUST)
+    facets.foreach { fq =>
+      if (fq.path.nonEmpty) {
+        val indexedField = lucene.facetsConfig.getDimConfig(fq.facet.name).indexFieldName
+        qb.add(new BoostQuery(new TermQuery(DrillDownQuery.term(indexedField, fq.facet.name, fq.path: _*)), 0.0f), fq.condition.occur)
       }
-      case parsedQuery => parsedQuery
     }
+    val q = qb.build()
     // TODO: support really high offsets via multiple jumps via searchAfter to avoid memory issues
 
     val manager = new DocumentCollector(lucene, this)

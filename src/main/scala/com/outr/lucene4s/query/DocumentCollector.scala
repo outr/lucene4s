@@ -47,7 +47,8 @@ class DocumentCollector(lucene: Lucene, query: QueryBuilder[_]) extends Collecto
     if (query.facets.nonEmpty) {
       val facets = new FastTaxonomyFacetCounts(lucene.taxonomyReader, lucene.facetsConfig, facetsCollector)
       query.facets.foreach { fq =>
-        Option(facets.getTopChildren(fq.limit, fq.facet.name, fq.path: _*)) match {
+        val path = if (fq.condition == Condition.MustNot) Nil else fq.path
+        Option(facets.getTopChildren(fq.limit, fq.facet.name, path: _*)) match {
           case Some(r) => {
             val values = if (r.childCount > 0) r.labelValues.toVector.map(lv => FacetResultValue(lv.label, lv.value.intValue())) else Vector.empty
             val totalCount = values.map(_.count).sum

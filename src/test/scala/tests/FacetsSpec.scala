@@ -1,6 +1,7 @@
 package tests
 
 import com.outr.lucene4s._
+import com.outr.lucene4s.query.Condition
 import org.scalatest.{Matchers, WordSpec}
 
 class FacetsSpec extends WordSpec with Matchers {
@@ -50,6 +51,20 @@ class FacetsSpec extends WordSpec with Matchers {
       publishResult.values.map(_.value) should be(Vector("10"))
       publishResult.values.map(_.count) should be(Vector(2))
       page.results.map(_(name)) should be(Vector("One", "Two"))
+    }
+    "exclude all results for 2010" in {
+      val page = lucene.query().limit(10).facet(author, limit = 10).facet(publishDate, limit = 10, path = List("2010"), condition = Condition.MustNot).search()
+      val authorResult = page.facet(author).get
+      authorResult.childCount should be(3)
+      authorResult.totalCount should be(3)
+      authorResult.values.map(_.value) should be(Vector("Lisa", "Susan", "Frank"))
+      authorResult.values.map(_.count) should be(Vector(1, 1, 1))
+      val publishResult = page.facet(publishDate).get
+      publishResult.childCount should be(2)
+      publishResult.totalCount should be(3)
+      publishResult.values.map(_.value) should be(Vector("2012", "1999"))
+      publishResult.values.map(_.count) should be(Vector(2, 1))
+      page.results.map(_(name)) should be(Vector("Three", "Four", "Five"))
     }
     "list all results for 2010/10" in {
       val page = lucene.query().limit(10).facet(author, limit = 10).facet(publishDate, limit = 10, path = List("2010", "10")).search()
