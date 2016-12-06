@@ -236,9 +236,10 @@ For more examples see https://github.com/outr/lucene4s/blob/master/src/test/scal
 
 * [ ] Scala.js support for Query parsing and URL mapping (QueryURL)
 * [ ] Geospatial features
+* [ ] Numeric Seq support
 * [ ] Complete ScalaDocing
 
-### Features for 1.3.0 (In-Progress)
+### Features for 1.3.0 (Released 2016.12.06)
 
 * [X] Better Highlighting support
 * [X] Add Scala 2.12 support
