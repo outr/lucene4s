@@ -33,6 +33,9 @@ package object lucene4s {
   def term(value: String): TermSearchTerm = new TermSearchTerm(None, value)
 
   def exact[T](fv: FieldAndValue[T])(implicit fv2SearchTerm: FieldAndValue[T] => SearchTerm): SearchTerm = fv2SearchTerm(fv)
+  def intRange(field: Field[Int], start: Int, end: Int): SearchTerm = new RangeIntSearchTerm(field, start, end)
+  def longRange(field: Field[Long], start: Long, end: Long): SearchTerm = new RangeLongSearchTerm(field, start, end)
+  def doubleRange(field: Field[Double], start: Double, end: Double): SearchTerm = new RangeDoubleSearchTerm(field, start, end)
 
   def regexp(fv: FieldAndValue[String]): RegexpSearchTerm = new RegexpSearchTerm(Some(fv.field), fv.value.toString)
   def regexp(value: String): RegexpSearchTerm = new RegexpSearchTerm(None, value)

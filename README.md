@@ -232,16 +232,18 @@ For more examples see https://github.com/outr/lucene4s/blob/master/src/test/scal
 
 ## Versions
 
+### Features for 1.4.0 (Future)
+
+* [ ] Geospatial features
+* [ ] Complete ScalaDocing
+
 ### Features for 1.3.0 (In-Progress)
 
 * [X] Better Highlighting support
 * [X] Add Scala 2.12 support
 * [X] Keyword indexing / autocomplete support
-* [ ] Range inserting and querying
-* [ ] Dates
-* [ ] Geospatial features
-* [ ] Asynchronous features via Akka Futures
-* [ ] Complete ScalaDocing
+* [X] Add support for FacetQuery Conditions (MustNot and Should support)
+* [X] Range querying
 
 ### Features for 1.2.0 (Released 2016.11.23)
 

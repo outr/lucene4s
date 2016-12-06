@@ -30,10 +30,10 @@ class SimpleSpec extends WordSpec with Matchers {
       results(0)(enabled) should be(true)
     }
     "add a few more documents" in {
-      lucene.doc().fields(name("Jane Doe")).index()
-      lucene.doc().fields(name("Andrew Anderson")).index()
-      lucene.doc().fields(name("Billy Bob")).index()
-      lucene.doc().fields(name("Carly Charles")).index()
+      lucene.doc().fields(name("Jane Doe"), age(21)).index()
+      lucene.doc().fields(name("Andrew Anderson"), age(31)).index()
+      lucene.doc().fields(name("Billy Bob"), age(25)).index()
+      lucene.doc().fields(name("Carly Charles"), age(19)).index()
     }
     "query using pagination" in {
       val page1 = lucene.query().limit(2).search()
@@ -85,7 +85,14 @@ class SimpleSpec extends WordSpec with Matchers {
     "query sorting by age" in {
       val paged = lucene.query().sort(Sort(age, reverse = true)).search()
       paged.total should be(5)
-      paged.results(0)(name) should be("John Doe")
+      paged.results(0)(name) should be("Andrew Anderson")
+    }
+    "query by age range" in {
+      val paged = lucene.query().filter(intRange(age, 21, 25)).sort(Sort(age)).search()
+      paged.total should be(3)
+      paged.results(0)(name) should be("Jane Doe")
+      paged.results(1)(name) should be("John Doe")
+      paged.results(2)(name) should be("Billy Bob")
     }
     "query sorting by progress" in {
       val paged = lucene.query().sort(Sort(progress, reverse = true)).search()
@@ -160,14 +167,14 @@ class SimpleSpec extends WordSpec with Matchers {
       val paged = lucene.query().scoreDocs().sort(Sort.Score).filter(fuzzy(lucene.fullText("jhn"))).highlight().search()
       paged.total should be(2)
       paged.results(0)(name) should be("John Doe")
-      paged.results(0).score should be(0.5670366883277893)
+      paged.results(0).score should be(0.6606168150901794)
       val highlightsJohn = paged.results(0).highlighting(name)
       highlightsJohn.length should be(1)
       highlightsJohn.head.fragment should be("<em>John</em> Doe")
       highlightsJohn.head.word should be("John")
 
       paged.results(1)(name) should be("Jane Doe")
-      paged.results(1).score should be(0.47889038920402527)
+      paged.results(1).score should be(0.4420068562030792)
       val highlightsJane = paged.results(1).highlighting(name)
       highlightsJane.length should be(1)
       highlightsJane.head.fragment should be("<em>Jane</em> Doe")
@@ -175,10 +182,10 @@ class SimpleSpec extends WordSpec with Matchers {
     }
     "query all keywords from keyword indexing" in {
       val keywords = keywordIndexing.search(limit = 20)
-      keywords.results.map(_.word) should be(List("true", "123456789", "0.123", "23", "John", "Jane", "Doe", "Andrew", "Anderson", "Billy", "Bob", "Carly", "Charles"))
-      keywords.total should be(13)
+      keywords.results.map(_.word) should be(List("true", "123456789", "0.123", "23", "John", "21", "Jane", "Doe", "31", "Andrew", "Anderson", "25", "Billy", "Bob", "19", "Carly", "Charles"))
+      keywords.total should be(17)
       keywords.maxScore should be(1.0)
-      keywords.results.length should be(13)
+      keywords.results.length should be(17)
     }
     "query keywords filtered by 'doe'" in {
       val keywords = keywordIndexing.search("do*")

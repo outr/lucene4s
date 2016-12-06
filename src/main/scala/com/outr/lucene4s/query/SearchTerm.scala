@@ -60,6 +60,24 @@ class ExactDoubleSearchTerm(field: Field[Double], value: Double) extends SearchT
   override def toString: String = s"term(${field.name} = $value)"
 }
 
+class RangeIntSearchTerm(field: Field[Int], start: Int, end: Int) extends SearchTerm {
+  override protected[lucene4s] def toLucene(lucene: Lucene): Query = IntPoint.newRangeQuery(field.name, start, end)
+
+  override def toString: String = s"range(${field.name}, start: $start, end: $end)"
+}
+
+class RangeLongSearchTerm(field: Field[Long], start: Long, end: Long) extends SearchTerm {
+  override protected[lucene4s] def toLucene(lucene: Lucene): Query = LongPoint.newRangeQuery(field.name, start, end)
+
+  override def toString: String = s"range(${field.name}, start: $start, end: $end)"
+}
+
+class RangeDoubleSearchTerm(field: Field[Double], start: Double, end: Double) extends SearchTerm {
+  override protected[lucene4s] def toLucene(lucene: Lucene): Query = DoublePoint.newRangeQuery(field.name, start, end)
+
+  override def toString: String = s"range(${field.name}, start: $start, end: $end)"
+}
+
 class RegexpSearchTerm(field: Option[Field[String]], value: String) extends SearchTerm {
   // TODO: add support for regular expression flags
   override protected[lucene4s] def toLucene(lucene: Lucene): Query = new RegexpQuery(new Term(field.getOrElse(lucene.fullText).name, value), RegExp.ALL)
