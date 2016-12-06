@@ -234,6 +234,7 @@ For more examples see https://github.com/outr/lucene4s/blob/master/src/test/scal
 
 ### Features for 1.4.0 (Future)
 
+* [ ] Scala.js support for Query parsing and URL mapping (QueryURL)
 * [ ] Geospatial features
 * [ ] Complete ScalaDocing
 

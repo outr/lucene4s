@@ -16,9 +16,11 @@ case class QueryBuilder[T] private[lucene4s](lucene: Lucene,
                                              scoreMax: Boolean = false,
                                              searchTerms: List[SearchTerm] = Nil,
                                              conversion: SearchResult => T,
-                                             highlighting: Option[Highlighting] = None) {
+                                             highlighting: Option[Highlighting] = None,
+                                             minimumShouldMatch: Int = 0) {
   def offset(v: Int): QueryBuilder[T] = copy(offset = v)
   def limit(v: Int): QueryBuilder[T] = copy(limit = v)
+  def minimumShouldMatch(v: Int): QueryBuilder[T] = copy(minimumShouldMatch = v)
 
   def convert[V](conversion: SearchResult => V): QueryBuilder[V] = copy[V](conversion = conversion)
 
@@ -47,6 +49,7 @@ case class QueryBuilder[T] private[lucene4s](lucene: Lucene,
       case _ => grouped(searchTerms.map(_ -> Condition.Must): _*)
     }
     val qb = new BooleanQuery.Builder
+    qb.setMinimumNumberShouldMatch(minimumShouldMatch)
     qb.add(baseQuery.toLucene(lucene), Occur.MUST)
     facets.foreach { fq =>
       if (fq.path.nonEmpty) {
