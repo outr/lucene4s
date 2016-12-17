@@ -1,9 +1,10 @@
 package com.outr
 
 import com.outr.lucene4s.field.Field
-import com.outr.lucene4s.field.value.FieldAndValue
+import com.outr.lucene4s.field.value.{FieldAndValue, SpatialPoint}
 import com.outr.lucene4s.field.value.support._
 import com.outr.lucene4s.query._
+import squants.space._
 
 import scala.language.implicitConversions
 
@@ -13,6 +14,7 @@ package object lucene4s {
   implicit def intSupport: ValueSupport[Int] = IntValueSupport
   implicit def longSupport: ValueSupport[Long] = LongValueSupport
   implicit def doubleSupport: ValueSupport[Double] = DoubleValueSupport
+  implicit def spatialPointSupport: ValueSupport[SpatialPoint] = SpatialPointValueSupport
 
   implicit def string2ParsableSearchTerm(value: String): SearchTerm = parse(value)
 
@@ -45,6 +47,12 @@ package object lucene4s {
 
   def fuzzy(value: String): FuzzySearchTerm = new FuzzySearchTerm(None, value)
   def fuzzy(fv: FieldAndValue[String]): FuzzySearchTerm = new FuzzySearchTerm(Some(fv.field), fv.value.toString)
+
+  def spatialBox(field: Field[SpatialPoint], minLatitude: Double, maxLatitude: Double, minLongitude: Double, maxLongitude: Double): SpatialBoxTerm = new SpatialBoxTerm(field, minLatitude, maxLatitude, minLongitude, maxLongitude)
+
+  def spatialDistance(field: Field[SpatialPoint], point: SpatialPoint, radius: Length): SpatialDistanceTerm = new SpatialDistanceTerm(field, point, radius)
+
+  def spatialPolygon(field: Field[SpatialPoint], polygons: SpatialPolygon*): SpatialPolygonTerm = new SpatialPolygonTerm(field, polygons.toList)
 
   def grouped(disableCoord: Boolean,
               minimumNumberShouldMatch: Int,

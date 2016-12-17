@@ -14,7 +14,7 @@ lucene4s is published to Sonatype OSS and Maven Central currently supporting Sca
 Configuring the dependency in SBT simply requires:
 
 ```
-libraryDependencies += "com.outr" %% "lucene4s" % "1.3.0"
+libraryDependencies += "com.outr" %% "lucene4s" % "1.4.0"
 ```
 
 ## Using
@@ -230,14 +230,57 @@ All `Searchable` implementations automatically define a `docType` field that is 
 
 For more examples see https://github.com/outr/lucene4s/blob/master/src/test/scala/tests/SearchableSpec.scala
 
+### Geospatial Support
+
+One of the great features of Lucene is geospatial querying and what Lucene wrapper would be complete without it?
+
+#### Creating a Spatial Field
+
+In order to create a stored, queryable, filterable, and sortable latitude and longitude you need only create a
+`SpatialPoint` field:
+
+```scala
+val location: Field[SpatialPoint] = lucene.create.field[SpatialPoint]("location")
+```
+
+#### Sorting Nearest a Point
+
+Most of the time it's most useful to take an existing latitude and longitude and sort your results returning the
+nearest documents to that location:
+
+```scala
+val paged = lucene.query().sort(Sort.nearest(location, SpatialPoint(40.7142, -74.0119))).search()
+```
+
+#### Filtering by Distance
+
+If you want to filter your results to only include entries within a certain range of a location:
+
+```scala
+import squants.space.LengthConversions._
+
+val newYorkCity = SpatialPoint(40.7142, -74.0119)
+val paged = lucene
+  .query()
+  .sort(Sort.nearest(location, newYorkCity))
+  .filter(spatialDistance(location, newYorkCity, 50.miles))
+  .search()
+```
+
+Note the import from `squants`.  We use Squants (https://github.com/typelevel/squants) for distance representations so
+that you can use `miles`, `meters`, or whatever measurement of distance desirable.
+
 ## Versions
 
-### Features for 1.4.0 (Future)
+### Features for 1.5.0 (In-Progress)
 
 * [ ] Scala.js support for Query parsing and URL mapping (QueryURL)
-* [ ] Geospatial features
 * [ ] Numeric Seq support
 * [ ] Complete ScalaDocing
+
+### Features for 1.4.0 (Released 2016.12.17)
+
+* [X] Geospatial features
 
 ### Features for 1.3.0 (Released 2016.12.06)
 

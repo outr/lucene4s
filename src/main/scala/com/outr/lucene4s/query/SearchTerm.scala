@@ -2,11 +2,14 @@ package com.outr.lucene4s.query
 
 import com.outr.lucene4s.Lucene
 import com.outr.lucene4s.field.Field
-import org.apache.lucene.document.{DoublePoint, IntPoint, LongPoint}
+import com.outr.lucene4s.field.value.SpatialPoint
+import org.apache.lucene.document.{DoublePoint, IntPoint, LatLonPoint, LongPoint}
+import org.apache.lucene.geo.Polygon
 import org.apache.lucene.index.Term
 import org.apache.lucene.queryparser.classic.QueryParser
 import org.apache.lucene.search.{BooleanQuery, FuzzyQuery, MatchAllDocsQuery, Query, RegexpQuery, TermQuery, WildcardQuery}
 import org.apache.lucene.util.automaton.RegExp
+import squants.space._
 
 sealed trait SearchTerm {
   protected[lucene4s] def toLucene(lucene: Lucene): Query
@@ -95,6 +98,32 @@ class FuzzySearchTerm(field: Option[Field[String]], value: String) extends Searc
   override protected[lucene4s] def toLucene(lucene: Lucene): Query = new FuzzyQuery(new Term(field.getOrElse(lucene.fullText).name, value))
 
   override def toString: String = s"fuzzy(${field.map(_.name)}, value: $value)"
+}
+
+class SpatialBoxTerm(field: Field[SpatialPoint], minLatitude: Double, maxLatitude: Double, minLongitude: Double, maxLongitude: Double) extends SearchTerm {
+  override protected[lucene4s] def toLucene(lucene: Lucene): Query = LatLonPoint.newBoxQuery(field.name, minLatitude, maxLatitude, minLongitude, maxLongitude)
+
+  override def toString: String = s"spatialBox(${field.name}, minLatitude: $minLatitude, maxLatitude: $maxLatitude, minLongitude: $minLongitude, maxLongitude: $maxLongitude)"
+}
+
+class SpatialDistanceTerm(field: Field[SpatialPoint], point: SpatialPoint, radius: Length) extends SearchTerm {
+  override protected[lucene4s] def toLucene(lucene: Lucene): Query = LatLonPoint.newDistanceQuery(field.name, point.latitude, point.longitude, radius.toMeters)
+
+  override def toString: String = s"spatialDistance(${field.name}, latitude: ${point.latitude}, longitude: ${point.longitude}, radius: $radius)"
+}
+
+class SpatialPolygonTerm(field: Field[SpatialPoint], polygons: List[SpatialPolygon]) extends SearchTerm {
+  override protected[lucene4s] def toLucene(lucene: Lucene): Query = LatLonPoint.newPolygonQuery(field.name, polygons.map(_.toLucene): _*)
+
+  override def toString: String = s"spatialPolygon(${field.name}, polygons: ${polygons.mkString("[", ", ", "]")})"
+}
+
+case class SpatialPolygon(points: List[SpatialPoint], holes: List[SpatialPolygon] = Nil) {
+  private[lucene4s] def toLucene: Polygon = {
+    val lats = points.map(_.latitude).toArray
+    val lons = points.map(_.longitude).toArray
+    new Polygon(lats, lons, holes.map(_.toLucene): _*)
+  }
 }
 
 case class GroupedSearchTerm(disableCoord: Boolean,
