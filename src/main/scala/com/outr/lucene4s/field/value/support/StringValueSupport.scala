@@ -1,7 +1,7 @@
 package com.outr.lucene4s.field.value.support
 
 import com.outr.lucene4s.field.Field
-import org.apache.lucene.document.{Document, SortedDocValuesField, Field => LuceneField}
+import org.apache.lucene.document.{Document, SortedDocValuesField, StringField, Field => LuceneField}
 import org.apache.lucene.index.IndexableField
 import org.apache.lucene.search.SortField
 import org.apache.lucene.search.SortField.Type

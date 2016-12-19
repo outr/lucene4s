@@ -7,7 +7,7 @@ import org.apache.lucene.document.{DoublePoint, IntPoint, LatLonPoint, LongPoint
 import org.apache.lucene.geo.Polygon
 import org.apache.lucene.index.Term
 import org.apache.lucene.queryparser.classic.QueryParser
-import org.apache.lucene.search.{BooleanQuery, FuzzyQuery, MatchAllDocsQuery, Query, RegexpQuery, TermQuery, WildcardQuery}
+import org.apache.lucene.search.{BooleanQuery, FuzzyQuery, MatchAllDocsQuery, PhraseQuery, Query, RegexpQuery, TermQuery, WildcardQuery}
 import org.apache.lucene.util.automaton.RegExp
 import squants.space._
 
@@ -31,6 +31,10 @@ class ParsableSearchTerm(field: Option[Field[String]], value: String, allowLeadi
   }
 
   override def toString: String = s"parse($field, value: $value, allowLeadingWildcard: $allowLeadingWildcard)"
+}
+
+class PhraseSearchTerm(field: Option[Field[String]], value: String) extends SearchTerm {
+  override protected[lucene4s] def toLucene(lucene: Lucene): Query = new PhraseQuery(field.getOrElse(lucene.fullText).name, value.split(' ').map(_.toLowerCase): _*)
 }
 
 class TermSearchTerm(field: Option[Field[String]], value: String) extends SearchTerm {

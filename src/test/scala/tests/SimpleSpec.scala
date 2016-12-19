@@ -35,6 +35,13 @@ class SimpleSpec extends WordSpec with Matchers {
       lucene.doc().fields(name("Billy Bob"), age(25)).index()
       lucene.doc().fields(name("Carly Charles"), age(19)).index()
     }
+    "query by an exact name" in {
+      val page = lucene.query().filter(exact(name("John Doe"))).search()
+      page.total should be(1)
+      val result = page.results.head
+      result(name) should be("John Doe")
+      result(age) should be(23)
+    }
     "query using pagination" in {
       val page1 = lucene.query().limit(2).search()
       page1.total should be(5)
