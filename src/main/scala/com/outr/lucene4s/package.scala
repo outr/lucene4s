@@ -41,6 +41,38 @@ package object lucene4s {
   def parse(field: Field[String], value: String, allowLeadingWildcard: Boolean): ParsableSearchTerm = new ParsableSearchTerm(Some(field), value, allowLeadingWildcard)
   def parse(value: String): ParsableSearchTerm = parse(value, allowLeadingWildcard = false)
   def parse(value: String, allowLeadingWildcard: Boolean): ParsableSearchTerm = new ParsableSearchTerm(None, value, allowLeadingWildcard)
+  def parseQuery(text: String,
+                 field: Option[Field[String]] = None,
+                 allowLeadingWildcard: Boolean = false,
+                 includeFuzzy: Boolean = false): ParsableSearchTerm = {
+    val queryText = text.split(' ').map {
+      case word if Lucene.isLuceneWord(word) => word
+      case word if !allowLeadingWildcard && !includeFuzzy => s"$word*"
+      case word => {
+        val b = new StringBuilder("(")
+        // Starts with, boosted
+        b.append(word)
+        b.append("*^4")
+
+        if (allowLeadingWildcard) {
+          // Leading wildcard
+          b.append(" OR *")
+          b.append(word)
+          b.append("*")
+        }
+        if (includeFuzzy) {
+          // Fuzzy matches
+          b.append(" OR ")
+          b.append(word)
+          b.append("~")
+        }
+
+        b.append(")")
+        b.toString()
+      }
+    }.mkString("(", " ", ")")
+    new ParsableSearchTerm(field, queryText, allowLeadingWildcard)
+  }
 
   def term(fv: FieldAndValue[String]): TermSearchTerm = new TermSearchTerm(Some(fv.field), fv.value.toString.toLowerCase)
   def term(value: String): TermSearchTerm = new TermSearchTerm(None, value)

@@ -225,11 +225,18 @@ class SimpleSpec extends WordSpec with Matchers {
       lucene.delete(term(name("john")))
       lucene.query().search().results.length should be(5)
     }
-    // TODO: storage and querying of Int, Long, Double, Boolean, Array[Byte]
+    "update Jane Doe with name and age" in {
+      lucene.query().search().results.length should be(5)
+      lucene.update(grouped(
+        exact(name("Jane Doe")) -> Condition.Must,
+        exact(age(21)) -> Condition.Must
+      )).fields(name("Janie Doe")).index()
+      lucene.query().search().results.length should be(5)
+      val results = lucene.query().filter(exact(name("Janie Doe"))).search()
+      results.total should be(1)
+    }
+    // TODO: storage and querying of Array[Byte]
     // TODO: storage and querying of multiple points
-    // TODO: storage and querying of lat/long
-    // TODO: querying ranges
-    // TODO: storage and querying of dates
     "dispose" in {
       lucene.dispose()
     }

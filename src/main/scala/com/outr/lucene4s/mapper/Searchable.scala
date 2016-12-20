@@ -11,33 +11,31 @@ import scala.reflect.macros.blackbox
 
 sealed trait BaseSearchable
 
-// TODO: Break this into two traits to make it easier to implement idSearchTerm only
-// TODO: realize the calling method would need to take [T, S <: Searchable[T]]
 trait Searchable[T] extends BaseSearchable {
   def lucene: Lucene
 
-  protected def idAndDocSearchTerm(t: T): SearchTerm = grouped(
-    idSearchTerm(t) -> Condition.Must,
-    term(docType(docTypeName)) -> Condition.Must
-  )
+  protected def idAndDocSearchTerm(t: T): SearchTerm = {
+    val terms = idSearchTerms(t) ::: List(exact(docType(docTypeName)))
+    grouped(terms.map(_ -> Condition.Must): _*)
+  }
 
   /**
     * The document type name. Automatically generated if not defined.
     */
   val docTypeName: String
 
-  val docType: Field[String]
+  val docType: Field[String] = lucene.create.field[String]("docType", fullTextSearchable = false)
 
   /**
     * Creates a query that filters to only this document type and automatically supports conversion to T.
     */
-  def query(): QueryBuilder[T]
+  def query(): QueryBuilder[T] = lucene.query().filter(term(docType(docTypeName.toLowerCase))).convert[T](apply)
 
   /**
-    * Generates a search term to find the supplied value. This is used by update and delete to make sure the right value
-    * is replaced or removed.
+    * Generates a list of search terms to find the supplied value. This is used by update and delete to make sure the
+    * right value is replaced or removed.
     */
-  def idSearchTerm(t: T): SearchTerm
+  def idSearchTerms(t: T): List[SearchTerm]
 
   /**
     * Converts the SearchResult into and instance of T
@@ -45,28 +43,28 @@ trait Searchable[T] extends BaseSearchable {
     * @param result the search result
     * @return T
     */
-  def apply(result: SearchResult): T
+  def apply(result: SearchResult): T = throw new UnsupportedOperationException("Should be supplied by Macro!")
 
   /**
     * Creates a DocumentBuilder to insert `value` into Lucene.
     *
     * @param value the value to insert
     */
-  def insert(value: T): DocumentBuilder
+  def insert(value: T): DocumentBuilder = throw new UnsupportedOperationException("Should be supplied by Macro!")
 
   /**
     * Creates a DocumentBuilder to update `value` into Lucene.
     *
     * @param value the updated value to replace what is currently indexed
     */
-  def update(value: T): DocumentBuilder
+  def update(value: T): DocumentBuilder = throw new UnsupportedOperationException("Should be supplied by Macro!")
 
   /**
     * Deletes the value from the index.
     *
     * @param value the value to delete
     */
-  def delete(value: T): Unit
+  def delete(value: T): Unit = throw new UnsupportedOperationException("Should be supplied by Macro!")
 }
 
 @compileTimeOnly("Enable macro paradise to expand macro annotations")
@@ -87,7 +85,7 @@ object SearchableMacro extends Logging {
     val docTypeName = if (values.contains("docTypeName")) {
       q""
     } else {
-      q"override val docTypeName: String = ${t.typeSymbol.fullName}"
+      q"override val docTypeName: String = ${t.typeSymbol.fullName.replaceAllLiterally(".", "").replaceAllLiterally("$", "")}"
     }
 
     val fieldInstances = fieldNames.zip(fieldTypes).collect {
@@ -114,12 +112,6 @@ object SearchableMacro extends Logging {
             override def lucene = $luceneCreate.lucene
 
             $docTypeName
-
-            override val docType = lucene.create.field[String]("docType", fullTextSearchable = false)
-
-            override def query(): com.outr.lucene4s.query.QueryBuilder[$t] = {
-              lucene.query().filter(term(docType(docTypeName.toLowerCase))).convert[$t](apply)
-            }
 
             override def apply(result: com.outr.lucene4s.query.SearchResult) = $result2T
 

@@ -131,3 +131,9 @@ class LuceneCreate(val lucene: Lucene) {
   }
   def searchable[S <: BaseSearchable]: S = macro SearchableMacro.generate[S]
 }
+
+object Lucene {
+  private val luceneCharacters = Set('~', '*', '?', '^', ':')
+
+  def isLuceneWord(word: String): Boolean = luceneCharacters.exists(c => word.contains(c))
+}

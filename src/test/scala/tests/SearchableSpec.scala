@@ -10,7 +10,7 @@ import org.scalatest.{Matchers, WordSpec}
 class SearchableSpec extends WordSpec with Matchers {
   "Searchable" should {
     "validate the generated docType" in {
-      lucene.person.docTypeName should be("tests.SearchableSpec.Person")
+      lucene.person.docTypeName should be("testsSearchableSpecPerson")
       lucene.person.docType shouldNot be(null)
     }
     "insert a Person" in {
@@ -100,7 +100,7 @@ class SearchableSpec extends WordSpec with Matchers {
 
   trait SearchablePerson extends Searchable[Person] {
     // We must implement the criteria for updating and deleting
-    override def idSearchTerm(t: Person): SearchTerm = exact(id(t.id))
+    override def idSearchTerms(t: Person): List[SearchTerm] = List(exact(id(t.id)))
 
     // Create method stubs for code completion
     def id: Field[Int]
