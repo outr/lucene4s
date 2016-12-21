@@ -51,6 +51,7 @@ class Lucene(val directory: Option[Path] = None,
   )
 
   private[lucene4s] def withSearcherAndTaxonomy[R](f: SearcherAndTaxonomy => R): R = {
+    searcherTaxonomyManager.maybeRefreshBlocking()
     val instance = searcherTaxonomyManager.acquire()
     try {
       f(instance)
