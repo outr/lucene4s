@@ -6,7 +6,7 @@ import com.outr.lucene4s.query.{Condition, Sort}
 import org.scalatest.{Matchers, WordSpec}
 
 class SimpleSpec extends WordSpec with Matchers {
-  val lucene = new Lucene(defaultFullTextSearchable = true)
+  val lucene = new Lucene(defaultFullTextSearchable = true, autoCommit = true)
   val keywordIndexing = KeywordIndexing(lucene, "keywords")
   val name = lucene.create.field[String]("name")
   val age = lucene.create.field[Int]("age")

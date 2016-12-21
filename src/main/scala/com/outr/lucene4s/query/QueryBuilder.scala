@@ -61,14 +61,16 @@ case class QueryBuilder[T] private[lucene4s](lucene: Lucene,
     // TODO: support really high offsets via multiple jumps via searchAfter to avoid memory issues
 
     val manager = new DocumentCollector(lucene, this)
-    val searchResults = lucene.searcher.search(q, manager)
-    val highlighter = highlighting.map {
-      case Highlighting(preTag, postTag) => {
-        val highlightFormatter = new SimpleHTMLFormatter(preTag, postTag)
-        new Highlighter(highlightFormatter, new QueryScorer(q))
+    lucene.withSearcherAndTaxonomy { instance =>
+      val searchResults = instance.searcher.search(q, manager)
+      val highlighter = highlighting.map {
+        case Highlighting(preTag, postTag) => {
+          val highlightFormatter = new SimpleHTMLFormatter(preTag, postTag)
+          new Highlighter(highlightFormatter, new QueryScorer(q))
+        }
       }
+      new PagedResults(lucene, this, offset, searchResults, highlighter)
     }
-    new PagedResults(lucene, this, offset, searchResults, highlighter)
   }
 }
 

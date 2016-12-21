@@ -71,6 +71,7 @@ class SearchableSpec extends WordSpec with Matchers {
     "update the record" in {
       val john = Person(1, "John", "Doe", 23, "321 Nowhere St.", "Lalaland", "California", "12345")
       lucene.person.update(john).index()
+      lucene.commit()
     }
     "query back the record as a Person verifying the update" in {
       val paged = lucene.query().search()
@@ -82,6 +83,7 @@ class SearchableSpec extends WordSpec with Matchers {
     "delete the record" in {
       val john = Person(1, "John", "Doe", 23, "321 Nowhere St.", "Lalaland", "California", "12345")
       lucene.person.delete(john)
+      lucene.commit()
     }
     "query and make sure the record was deleted" in {
       val paged = lucene.query().search()

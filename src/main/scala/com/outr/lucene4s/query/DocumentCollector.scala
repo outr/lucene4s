@@ -18,7 +18,7 @@ class DocumentCollector(lucene: Lucene, query: QueryBuilder[_]) extends Collecto
   }
 
   override def newCollector(): Collectors = {
-    val docMax = math.max(1, lucene.indexReader.maxDoc())
+    val docMax = math.max(1, lucene.withSearcherAndTaxonomy(_.searcher.getIndexReader.maxDoc()))
     val docLimit = math.min(query.offset + query.limit, docMax)
 
     val fillFields = true
@@ -33,7 +33,7 @@ class DocumentCollector(lucene: Lucene, query: QueryBuilder[_]) extends Collecto
     }.toArray
     val facetsCollector = collectors.asScala.head.facetsCollector
 
-    val docMax = math.max(1, lucene.indexReader.maxDoc())
+    val docMax = math.max(1, lucene.withSearcherAndTaxonomy(_.searcher.getIndexReader.maxDoc()))
     val docLimit = math.min(query.offset + query.limit, docMax)
 
     val topFieldDocs = TopDocs.merge(sort, docLimit, topDocs) match {
@@ -45,17 +45,19 @@ class DocumentCollector(lucene: Lucene, query: QueryBuilder[_]) extends Collecto
 
     var facetResults = Map.empty[FacetField, FacetResult]
     if (query.facets.nonEmpty) {
-      val facets = new FastTaxonomyFacetCounts(lucene.taxonomyReader, lucene.facetsConfig, facetsCollector)
-      query.facets.foreach { fq =>
-        val path = if (fq.condition == Condition.MustNot) Nil else fq.path
-        Option(facets.getTopChildren(fq.limit, fq.facet.name, path: _*)) match {
-          case Some(r) => {
-            val values = if (r.childCount > 0) r.labelValues.toVector.map(lv => FacetResultValue(lv.label, lv.value.intValue())) else Vector.empty
-            val totalCount = values.map(_.count).sum
-            val facetResult = FacetResult(fq.facet, values, r.childCount, totalCount)
-            facetResults += fq.facet -> facetResult
+      lucene.withSearcherAndTaxonomy { instance =>
+        val facets = new FastTaxonomyFacetCounts(instance.taxonomyReader, lucene.facetsConfig, facetsCollector)
+        query.facets.foreach { fq =>
+          val path = if (fq.condition == Condition.MustNot) Nil else fq.path
+          Option(facets.getTopChildren(fq.limit, fq.facet.name, path: _*)) match {
+            case Some(r) => {
+              val values = if (r.childCount > 0) r.labelValues.toVector.map(lv => FacetResultValue(lv.label, lv.value.intValue())) else Vector.empty
+              val totalCount = values.map(_.count).sum
+              val facetResult = FacetResult(fq.facet, values, r.childCount, totalCount)
+              facetResults += fq.facet -> facetResult
+            }
+            case None => facetResults += fq.facet -> FacetResult(fq.facet, Vector.empty, 0, 0)
           }
-          case None => facetResults += fq.facet -> FacetResult(fq.facet, Vector.empty, 0, 0)
         }
       }
     }

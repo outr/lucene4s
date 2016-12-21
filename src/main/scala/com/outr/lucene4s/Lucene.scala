@@ -12,10 +12,12 @@ import com.outr.lucene4s.mapper.{BaseSearchable, SearchableMacro}
 import com.outr.lucene4s.query.{GroupedSearchTerm, QueryBuilder, SearchResult, SearchTerm}
 import org.apache.lucene.analysis.standard.StandardAnalyzer
 import org.apache.lucene.facet.FacetsConfig
+import org.apache.lucene.facet.taxonomy.SearcherTaxonomyManager
+import org.apache.lucene.facet.taxonomy.SearcherTaxonomyManager.SearcherAndTaxonomy
 import org.apache.lucene.facet.taxonomy.directory.{DirectoryTaxonomyReader, DirectoryTaxonomyWriter}
 import org.apache.lucene.index.IndexWriterConfig.OpenMode
 import org.apache.lucene.index.{DirectoryReader, IndexWriter, IndexWriterConfig}
-import org.apache.lucene.search.IndexSearcher
+import org.apache.lucene.search.{IndexSearcher, SearcherFactory}
 import org.apache.lucene.store.{FSDirectory, RAMDirectory}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -24,7 +26,8 @@ import scala.language.experimental.macros
 
 class Lucene(val directory: Option[Path] = None,
              val appendIfExists: Boolean = true,
-             val defaultFullTextSearchable: Boolean = false) {
+             val defaultFullTextSearchable: Boolean = false,
+             val autoCommit: Boolean = false) {
   private[lucene4s] lazy val standardAnalyzer = new StandardAnalyzer
 
   private[lucene4s] lazy val system = ActorSystem()
@@ -41,13 +44,20 @@ class Lucene(val directory: Option[Path] = None,
 
   private[lucene4s] lazy val indexWriter = new IndexWriter(indexDirectory, indexWriterConfig)
   private[lucene4s] lazy val taxonomyWriter = new DirectoryTaxonomyWriter(taxonomyDirectory)
+  private[lucene4s] lazy val searcherTaxonomyManager = new SearcherTaxonomyManager(
+    indexWriter,
+    new SearcherFactory,
+    taxonomyWriter
+  )
 
-  private[lucene4s] lazy val taxonomyReader = {
-    taxonomyWriter.commit()
-    new DirectoryTaxonomyReader(taxonomyDirectory)
+  private[lucene4s] def withSearcherAndTaxonomy[R](f: SearcherAndTaxonomy => R): R = {
+    val instance = searcherTaxonomyManager.acquire()
+    try {
+      f(instance)
+    } finally {
+      searcherTaxonomyManager.release(instance)
+    }
   }
-
-  private var currentIndexReader: Option[DirectoryReader] = None
 
   private var listeners: List[LuceneListener] = Nil
 
@@ -59,6 +69,9 @@ class Lucene(val directory: Option[Path] = None,
   def update(searchTerm: SearchTerm): DocumentBuilder = new DocumentBuilder(this, Some(searchTerm))
   def delete(term: SearchTerm): Unit = {
     indexWriter.deleteDocuments(term.toLucene(this))
+    if (autoCommit) {
+      commit()
+    }
   }
 
   def query(): QueryBuilder[SearchResult] = QueryBuilder(this, conversion = sr => sr)
@@ -70,6 +83,7 @@ class Lucene(val directory: Option[Path] = None,
   def commit(): Unit = {
     indexWriter.commit()
     taxonomyWriter.commit()
+    searcherTaxonomyManager.maybeRefresh()
     listeners.foreach(_.commit())
   }
 
@@ -82,35 +96,21 @@ class Lucene(val directory: Option[Path] = None,
   }
 
   def dispose(): Unit = {
-    currentIndexReader.foreach(_.close())
+    withSearcherAndTaxonomy { instance =>
+      instance.searcher.getIndexReader.close()
+    }
     indexWriter.close()
     taxonomyWriter.close()
     indexDirectory.close()
     taxonomyDirectory.close()
   }
 
-  private[lucene4s] def indexReader: DirectoryReader = synchronized {
-    val reader = currentIndexReader match {
-      case Some(r) => Option(DirectoryReader.openIfChanged(r, indexWriter, true)) match {
-        case Some(updated) if updated ne r => {         // New reader was assigned
-          system.scheduler.scheduleOnce(30.seconds) {
-            r.close()
-          }
-          updated
-        }
-        case _ => r                                     // null was returned
-      }
-      case None => DirectoryReader.open(indexWriter, true, true)
-    }
-    currentIndexReader = Some(reader)
-    reader
-  }
-
   private[lucene4s] def indexed(builder: DocumentBuilder): Unit = synchronized {
     listeners.foreach(_.indexed(builder))
+    if (autoCommit) {
+      commit()
+    }
   }
-
-  private[lucene4s] def searcher: IndexSearcher = new IndexSearcher(indexReader)
 }
 
 class LuceneCreate(val lucene: Lucene) {
