@@ -1,6 +1,6 @@
 name := "lucene4s"
 organization := "com.outr"
-version := "1.4.5-SNAPSHOT"
+version := "1.4.5"
 scalaVersion := "2.12.1"
 crossScalaVersions := List("2.12.1", "2.11.8")
 sbtVersion := "0.13.13"
