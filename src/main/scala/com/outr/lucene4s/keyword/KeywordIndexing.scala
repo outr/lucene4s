@@ -5,7 +5,6 @@ import com.outr.lucene4s.document.DocumentBuilder
 import com.outr.lucene4s.facet.FacetField
 import com.outr.lucene4s.field.FieldType
 import com.outr.lucene4s.field.value.FieldAndValue
-import com.outr.scribe.Logging
 import org.apache.lucene.document.{Document, Field}
 import org.apache.lucene.index.{DirectoryReader, IndexWriter, IndexWriterConfig}
 import org.apache.lucene.queryparser.classic.QueryParser
@@ -38,7 +37,7 @@ case class KeywordIndexing(lucene: Lucene,
                            stopWords: Set[String] = KeywordIndexing.DefaultStopWords,
                            allowedCharacters: String = KeywordIndexing.DefaultAllowedCharacters,
                            removeEndsWithCharacters: String = KeywordIndexing.DefaultRemoveEndsWithCharacters,
-                           minimumLength: Int = 2) extends LuceneListener with Logging {
+                           minimumLength: Int = 2) extends LuceneListener {
   // Write support
   private lazy val indexPath = lucene.directory.map(_.resolve(directoryName))
   private lazy val indexDirectory = indexPath.map(FSDirectory.open).getOrElse(new RAMDirectory)
@@ -139,7 +138,7 @@ case class KeywordIndexing(lucene: Lucene,
   }
 }
 
-object KeywordIndexing extends Logging {
+object KeywordIndexing {
   val DefaultStopWords: Set[String] = Set(
     "a", "an", "and", "are", "as", "at", "be", "but", "by", "for", "i", "if", "in", "into", "is",
     "no", "not", "of", "on", "or", "s", "such", "t", "that", "the", "their", "then", "there", "these",

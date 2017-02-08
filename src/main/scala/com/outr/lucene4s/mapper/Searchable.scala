@@ -4,7 +4,6 @@ import com.outr.lucene4s._
 import com.outr.lucene4s.document.DocumentBuilder
 import com.outr.lucene4s.field.Field
 import com.outr.lucene4s.query.{Condition, QueryBuilder, SearchResult, SearchTerm}
-import com.outr.scribe.Logging
 
 import scala.annotation.compileTimeOnly
 import scala.reflect.macros.blackbox
@@ -68,7 +67,7 @@ trait Searchable[T] extends BaseSearchable {
 }
 
 @compileTimeOnly("Enable macro paradise to expand macro annotations")
-object SearchableMacro extends Logging {
+object SearchableMacro {
   def generate[S <: BaseSearchable](c: blackbox.Context)(implicit s: c.WeakTypeTag[S]): c.Expr[S] = {
     import c.universe._
 
