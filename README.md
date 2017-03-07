@@ -86,7 +86,7 @@ Though querying is nice, we may want to stylize the output to show the matched r
 val paged = lucene.query().sort(Sort(name)).filter(fuzzy(name("jhn"))).highlight().search()
 paged.results.foreach { searchResult =>
   val highlighting = searchResult.highlighting(name).head
-  println(s"Fragment: ${higlighting.fragment}, Word: ${highlighting.word}")
+  println(s"Fragment: ${highlighting.fragment}, Word: ${highlighting.word}")
 }
 ```
 
