@@ -1,24 +1,29 @@
 name := "lucene4s"
 organization := "com.outr"
-version := "1.4.6"
-scalaVersion := "2.12.1"
-crossScalaVersions := List("2.12.1", "2.11.8")
-sbtVersion := "0.13.13"
+version := "1.4.7-SNAPSHOT"
+scalaVersion := "2.12.3"
+crossScalaVersions := List("2.12.3", "2.11.11")
 parallelExecution in Test := false
 fork := true
 scalacOptions ++= Seq("-unchecked", "-deprecation")
 
-libraryDependencies <+= scalaVersion("org.scala-lang" % "scala-reflect" % _)
+val luceneVersion = "6.6.0"
+val akkaVersion = "2.5.3"
+val squantsVersion = "1.3.0"
+val scalaTestVersion = "3.0.3"
+val scalacticVersion = "3.0.3"
 
-libraryDependencies += "org.apache.lucene" % "lucene-core" % "6.3.0"
-libraryDependencies += "org.apache.lucene" % "lucene-analyzers-common" % "6.3.0"
-libraryDependencies += "org.apache.lucene" % "lucene-queryparser" % "6.3.0"
-libraryDependencies += "org.apache.lucene" % "lucene-facet" % "6.3.0"
-libraryDependencies += "org.apache.lucene" % "lucene-highlighter" % "6.3.0"
-libraryDependencies += "com.typesafe.akka" %% "akka-actor" % "2.4.16"
-libraryDependencies += "org.typelevel" %% "squants"  % "1.0.0"
-
-libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.0" % "test"
-libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.0" % "test"
+libraryDependencies ++= Seq(
+  "org.scala-lang" % "scala-reflect" % scalaVersion.value,
+  "org.apache.lucene" % "lucene-core" % luceneVersion,
+  "org.apache.lucene" % "lucene-analyzers-common" % luceneVersion,
+  "org.apache.lucene" % "lucene-queryparser" % luceneVersion,
+  "org.apache.lucene" % "lucene-facet" % luceneVersion,
+  "org.apache.lucene" % "lucene-highlighter" % luceneVersion,
+  "com.typesafe.akka" %% "akka-actor" % akkaVersion,
+  "org.typelevel" %% "squants"  % squantsVersion,
+  "org.scalactic" %% "scalactic" % scalaTestVersion % "test",
+  "org.scalatest" %% "scalatest" % scalacticVersion % "test"
+)
 
 testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-oF")
