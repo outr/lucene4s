@@ -1,6 +1,7 @@
 package tests
 
 import com.outr.lucene4s._
+import com.outr.lucene4s.field.Field
 import com.outr.lucene4s.keyword.KeywordIndexing
 import com.outr.lucene4s.query.{Condition, Sort}
 import org.scalatest.{Matchers, WordSpec}
@@ -8,11 +9,11 @@ import org.scalatest.{Matchers, WordSpec}
 class SimpleSpec extends WordSpec with Matchers {
   val lucene = new Lucene(defaultFullTextSearchable = true, autoCommit = true)
   val keywordIndexing = KeywordIndexing(lucene, "keywords")
-  val name = lucene.create.field[String]("name")
-  val age = lucene.create.field[Int]("age")
-  val progress = lucene.create.field[Double]("progress")
-  val bytes = lucene.create.field[Long]("bytes")
-  val enabled = lucene.create.field[Boolean]("enabled")
+  val name: Field[String] = lucene.create.field[String]("name")
+  val age: Field[Int] = lucene.create.field[Int]("age")
+  val progress: Field[Double] = lucene.create.field[Double]("progress")
+  val bytes: Field[Long] = lucene.create.field[Long]("bytes")
+  val enabled: Field[Boolean] = lucene.create.field[Boolean]("enabled")
 
   "Simple Spec" should {
     "create a simple document" in {

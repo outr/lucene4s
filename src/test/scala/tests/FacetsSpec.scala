@@ -1,14 +1,16 @@
 package tests
 
 import com.outr.lucene4s._
+import com.outr.lucene4s.facet.FacetField
+import com.outr.lucene4s.field.Field
 import com.outr.lucene4s.query.Condition
 import org.scalatest.{Matchers, WordSpec}
 
 class FacetsSpec extends WordSpec with Matchers {
   val lucene = new Lucene()
-  val name = lucene.create.field[String]("name")
-  val author = lucene.create.facet("Author", multiValued = true)
-  val publishDate = lucene.create.facet("Publish Date", hierarchical = true)
+  val name: Field[String] = lucene.create.field[String]("name")
+  val author: FacetField = lucene.create.facet("Author", multiValued = true)
+  val publishDate: FacetField = lucene.create.facet("Publish Date", hierarchical = true)
 
   "Facets" should {
     "create a few faceted documents" in {
@@ -91,6 +93,18 @@ class FacetsSpec extends WordSpec with Matchers {
       publishResult.childCount should be(0)
       publishResult.totalCount should be(0)
       page.results.map(_(name)) should be(Vector("Two"))
+    }
+    "delete a faceted document" in {
+      lucene.delete(term(name("Four")))
+      lucene.commit()
+    }
+    "query excluding the deleted document" in {
+      val page = lucene.query().limit(10).facet(author, limit = 10).search()
+      page.facet(publishDate) should be(None)
+      val authorResult = page.facet(author).get
+      authorResult.values.map(_.value) should be(Vector("Lisa", "Bob", "James", "Frank"))
+      authorResult.values.map(_.count) should be(Vector(2, 1, 1, 1))
+      page.results.map(_(name)) should be(Vector("One", "Two", "Three", "Five"))
     }
   }
 }
