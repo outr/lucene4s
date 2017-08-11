@@ -5,6 +5,7 @@ import org.apache.lucene.facet.{FacetField => LFF}
 
 class FacetValue(val field: FacetField, val path: String*) {
   private[lucene4s] def write(document: Document): Unit = {
-    document.add(new LFF(field.name, path: _*))
+    val updatedPath = if (field.hierarchical) path.toList ::: List("$ROOT$") else path
+    document.add(new LFF(field.name, updatedPath: _*))
   }
 }

@@ -24,7 +24,13 @@ case class QueryBuilder[T] private[lucene4s](lucene: Lucene,
 
   def convert[V](conversion: SearchResult => V): QueryBuilder[V] = copy[V](conversion = conversion)
 
-  def facet(field: FacetField, limit: Int = 10, path: List[String] = Nil, condition: Condition = Condition.Must): QueryBuilder[T] = copy(facets = facets + FacetQuery(field, limit, path, condition))
+  def facet(field: FacetField,
+            limit: Int = 10,
+            path: List[String] = Nil,
+            condition: Condition = Condition.Must,
+            onlyThisLevel: Boolean = false): QueryBuilder[T] = {
+    copy(facets = facets + FacetQuery(field, limit, path, condition, onlyThisLevel))
+  }
 
   def scoreDocs(b: Boolean = true): QueryBuilder[T] = copy(scoreDocs = b)
 
@@ -54,7 +60,12 @@ case class QueryBuilder[T] private[lucene4s](lucene: Lucene,
     facets.foreach { fq =>
       if (fq.path.nonEmpty) {
         val indexedField = lucene.facetsConfig.getDimConfig(fq.facet.name).indexFieldName
-        qb.add(new BoostQuery(new TermQuery(DrillDownQuery.term(indexedField, fq.facet.name, fq.path: _*)), 0.0f), fq.condition.occur)
+        val path = if (fq.onlyThisLevel) {
+          fq.path ::: List("$ROOT$")
+        } else {
+          fq.path
+        }
+        qb.add(new BoostQuery(new TermQuery(DrillDownQuery.term(indexedField, fq.facet.name, path: _*)), 0.0f), fq.condition.occur)
       }
     }
     val q = qb.build()
