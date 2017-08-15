@@ -58,7 +58,7 @@ case class QueryBuilder[T] private[lucene4s](lucene: Lucene,
     qb.setMinimumNumberShouldMatch(minimumShouldMatch)
     qb.add(baseQuery.toLucene(lucene), Occur.MUST)
     facets.foreach { fq =>
-      if (fq.path.nonEmpty) {
+      if (fq.path.nonEmpty || fq.onlyThisLevel) {
         val indexedField = lucene.facetsConfig.getDimConfig(fq.facet.name).indexFieldName
         val path = if (fq.onlyThisLevel) {
           fq.path ::: List("$ROOT$")
