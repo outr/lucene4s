@@ -130,12 +130,10 @@ case class SpatialPolygon(points: List[SpatialPoint], holes: List[SpatialPolygon
   }
 }
 
-case class GroupedSearchTerm(disableCoord: Boolean,
-                        minimumNumberShouldMatch: Int,
-                        conditionalTerms: List[(SearchTerm, Condition)]) extends SearchTerm {
+case class GroupedSearchTerm(minimumNumberShouldMatch: Int,
+                             conditionalTerms: List[(SearchTerm, Condition)]) extends SearchTerm {
   override protected[lucene4s] def toLucene(lucene: Lucene): Query = {
     val b = new BooleanQuery.Builder
-    b.setDisableCoord(disableCoord)
     b.setMinimumNumberShouldMatch(minimumNumberShouldMatch)
     conditionalTerms.foreach {
       case (st, c) => b.add(st.toLucene(lucene), c.occur)
@@ -143,5 +141,5 @@ case class GroupedSearchTerm(disableCoord: Boolean,
     b.build()
   }
 
-  override def toString: String = s"grouped(disableCoord: $disableCoord, minimumNumberShouldMatch: $minimumNumberShouldMatch, conditionalTerms: ${conditionalTerms.map(ct => s"${ct._1} -> ${ct._2}").mkString(", ")})"
+  override def toString: String = s"grouped(minimumNumberShouldMatch: $minimumNumberShouldMatch, conditionalTerms: ${conditionalTerms.map(ct => s"${ct._1} -> ${ct._2}").mkString(", ")})"
 }

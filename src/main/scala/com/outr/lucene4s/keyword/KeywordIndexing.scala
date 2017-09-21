@@ -170,12 +170,12 @@ object KeywordIndexing {
   }
 }
 
-case class KeywordResults(results: List[KeywordResult], total: Int, maxScore: Double) {
+case class KeywordResults(results: List[KeywordResult], total: Long, maxScore: Double) {
   lazy val words: List[String] = results.map(_.word)
 }
 
 object KeywordResults {
-  lazy val empty: KeywordResults = KeywordResults(Nil, 0, 0.0)
+  lazy val empty: KeywordResults = KeywordResults(Nil, 0L, 0.0)
 }
 
 case class KeywordResult(word: String, score: Double, additionalFields: Map[String, String])

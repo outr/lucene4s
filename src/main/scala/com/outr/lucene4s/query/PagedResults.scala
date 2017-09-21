@@ -15,7 +15,7 @@ class PagedResults[T] private[lucene4s](val lucene: Lucene,
   def apply(index: Int): T = entries(index)
 
   def pageSize: Int = query.limit
-  def total: Int = searchResults.topDocs.totalHits
+  def total: Long = searchResults.topDocs.totalHits
   def pageIndex: Int = offset / pageSize
   def pages: Int = math.ceil(total.toDouble / pageSize.toDouble).toInt
   def maxScore: Double = searchResults.topDocs.getMaxScore.toDouble
