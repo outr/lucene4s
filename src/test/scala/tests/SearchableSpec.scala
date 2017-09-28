@@ -58,6 +58,13 @@ class SearchableSpec extends WordSpec with Matchers {
     "query back last name removing duplicates" in {
       val lastNames = lucene.lastNameKeywords.search("doe")
       lastNames.results.map(_.word) should be(List("Doe"))
+      lastNames.results.map(_.highlighted("[", "]")) should be(List("[Doe]"))
+      lastNames.total should be(1)
+    }
+    "query back last name on partial" in {
+      val lastNames = lucene.lastNameKeywords.search("(*:* AND do*)")
+      lastNames.results.map(_.word) should be(List("Doe"))
+      lastNames.results.map(_.highlighted("[", "]")) should be(List("[Do]e"))
       lastNames.total should be(1)
     }
     "verify only last names in keywords" in {

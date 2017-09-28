@@ -132,7 +132,8 @@ case class KeywordIndexing(lucene: Lucene,
       val additionalFields = includeFields.flatMap { f =>
         Option(f.name -> doc.get(f.name))
       }.toMap
-      KeywordResult(word, scoreDoc.score.toDouble, additionalFields)
+      val wordMatch = WordMatch(queryString, word)
+      KeywordResult(word, wordMatch, scoreDoc.score.toDouble, additionalFields)
     }.toList
     KeywordResults(keywords, searchResults.totalHits, searchResults.getMaxScore)
   }
@@ -169,13 +170,3 @@ object KeywordIndexing {
     }
   }
 }
-
-case class KeywordResults(results: List[KeywordResult], total: Long, maxScore: Double) {
-  lazy val words: List[String] = results.map(_.word)
-}
-
-object KeywordResults {
-  lazy val empty: KeywordResults = KeywordResults(Nil, 0L, 0.0)
-}
-
-case class KeywordResult(word: String, score: Double, additionalFields: Map[String, String])

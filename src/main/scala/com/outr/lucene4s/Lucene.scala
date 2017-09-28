@@ -134,7 +134,19 @@ class LuceneCreate(val lucene: Lucene) {
 }
 
 object Lucene {
-  private val luceneCharacters = Set('~', '*', '?', '^', ':')
+  private val specialCharacters = Set('~', '*', '?', '^', ':', '(', ')')
 
-  def isLuceneWord(word: String): Boolean = luceneCharacters.exists(c => word.contains(c))
+  def isLuceneWord(word: String): Boolean = specialCharacters.exists(c => word.contains(c))
+  def removeSpecialCharacters(text: String): String = text.filterNot(specialCharacters.contains)
+  def queryToWords(query: String): List[String] = query.split(' ').toList.collect {
+    case w if !w.equalsIgnoreCase("AND") && !w.equalsIgnoreCase("OR") => {
+      val colon = w.indexOf(':')
+      val term = if (colon > -1) {
+        w.substring(colon + 1)
+      } else {
+        w
+      }
+      removeSpecialCharacters(term)
+    }
+  }
 }
