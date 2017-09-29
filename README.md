@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.org/outr/lucene4s.svg?branch=master)](https://travis-ci.org/outr/lucene4s)
 [![Stories in Ready](https://badge.waffle.io/outr/lucene4s.png?label=ready&title=Ready)](https://waffle.io/outr/lucene4s)
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/outr/lucene4s)
-[![Maven Central](https://img.shields.io/maven-central/v/com.outr/lucene4s_2.11.svg)](https://maven-badges.herokuapp.com/maven-central/com.outr/lucene4s_2.11)
+[![Maven Central](https://img.shields.io/maven-central/v/com.outr/lucene4s_2.12.svg)](https://maven-badges.herokuapp.com/maven-central/com.outr/lucene4s_2.12)
 
 Light-weight convenience wrapper around Lucene to simplify complex tasks and add Scala sugar.
 
@@ -14,7 +14,7 @@ lucene4s is published to Sonatype OSS and Maven Central currently supporting Sca
 Configuring the dependency in SBT simply requires:
 
 ```
-libraryDependencies += "com.outr" %% "lucene4s" % "1.5.0"
+libraryDependencies += "com.outr" %% "lucene4s" % "1.5.3"
 ```
 
 ## Using
