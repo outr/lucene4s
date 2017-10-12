@@ -1,7 +1,8 @@
 package tests
 
 import com.outr.lucene4s._
-import com.outr.lucene4s.field.Field
+import com.outr.lucene4s.facet.FacetField
+import com.outr.lucene4s.field.{Field, FieldType}
 import com.outr.lucene4s.keyword.KeywordIndexing
 import com.outr.lucene4s.mapper.Searchable
 import com.outr.lucene4s.query.{Condition, SearchTerm}
@@ -111,12 +112,14 @@ class SearchableSpec extends WordSpec with Matchers {
     // We must implement the criteria for updating and deleting
     override def idSearchTerms(t: Person): List[SearchTerm] = List(exact(id(t.id)))
 
-    // Create method stubs for code completion
-    def id: Field[Int]
+    // We can create custom / explicit configurations for each field
+    val id: Field[Int] = lucene.create.field[Int]("id", fullTextSearchable = false)
+
+    // Alternatively, we can simply define them like an interface and they will be defined automatically at compile-time
     def firstName: Field[String]
     def lastName: Field[String]
 
-    val tags = lucene.create.facet("tags", multiValued = true)
+    val tags: FacetField = lucene.create.facet("tags", multiValued = true)
   }
 
   case class Person(id: Int, firstName: String, lastName: String, age: Int, address: String, city: String, state: String, zip: String)
