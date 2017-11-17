@@ -9,26 +9,29 @@ import com.outr.lucene4s.field.value.support.ValueSupport
 import com.outr.lucene4s.field.{Field, FieldType}
 import com.outr.lucene4s.keyword.KeywordIndexing
 import com.outr.lucene4s.mapper.{BaseSearchable, SearchableMacro}
-import com.outr.lucene4s.query.{GroupedSearchTerm, QueryBuilder, SearchResult, SearchTerm}
+import com.outr.lucene4s.query.{QueryBuilder, SearchResult, SearchTerm}
+import org.apache.lucene.analysis.CharArraySet
 import org.apache.lucene.analysis.standard.StandardAnalyzer
 import org.apache.lucene.facet.FacetsConfig
 import org.apache.lucene.facet.taxonomy.SearcherTaxonomyManager
 import org.apache.lucene.facet.taxonomy.SearcherTaxonomyManager.SearcherAndTaxonomy
-import org.apache.lucene.facet.taxonomy.directory.{DirectoryTaxonomyReader, DirectoryTaxonomyWriter}
+import org.apache.lucene.facet.taxonomy.directory.DirectoryTaxonomyWriter
 import org.apache.lucene.index.IndexWriterConfig.OpenMode
-import org.apache.lucene.index.{DirectoryReader, IndexWriter, IndexWriterConfig}
-import org.apache.lucene.search.{IndexSearcher, SearcherFactory}
+import org.apache.lucene.index.{IndexWriter, IndexWriterConfig}
+import org.apache.lucene.search.SearcherFactory
 import org.apache.lucene.store.{FSDirectory, RAMDirectory}
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration._
 import scala.language.experimental.macros
+
+import scala.collection.JavaConverters._
 
 class Lucene(val directory: Option[Path] = None,
              val appendIfExists: Boolean = true,
              val defaultFullTextSearchable: Boolean = false,
-             val autoCommit: Boolean = false) {
-  private[lucene4s] lazy val standardAnalyzer = new StandardAnalyzer
+             val autoCommit: Boolean = false,
+             stopWords: Set[String] = KeywordIndexing.DefaultStopWords,
+             stopWordsIgnoreCase: Boolean = true) {
+  private[lucene4s] lazy val standardAnalyzer = new StandardAnalyzer(new CharArraySet(stopWords.asJava, stopWordsIgnoreCase))
 
   private[lucene4s] lazy val system = ActorSystem()
 
