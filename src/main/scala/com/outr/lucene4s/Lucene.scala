@@ -16,13 +16,13 @@ import org.apache.lucene.facet.FacetsConfig
 import org.apache.lucene.facet.taxonomy.SearcherTaxonomyManager
 import org.apache.lucene.facet.taxonomy.SearcherTaxonomyManager.SearcherAndTaxonomy
 import org.apache.lucene.facet.taxonomy.directory.DirectoryTaxonomyWriter
+import org.apache.lucene.facet.taxonomy.writercache.TaxonomyWriterCache
 import org.apache.lucene.index.IndexWriterConfig.OpenMode
 import org.apache.lucene.index.{IndexWriter, IndexWriterConfig}
 import org.apache.lucene.search.SearcherFactory
 import org.apache.lucene.store.{FSDirectory, RAMDirectory}
 
 import scala.language.experimental.macros
-
 import scala.collection.JavaConverters._
 
 class Lucene(val directory: Option[Path] = None,
@@ -46,12 +46,15 @@ class Lucene(val directory: Option[Path] = None,
   private[lucene4s] lazy val facetsConfig = new FacetsConfig
 
   private[lucene4s] lazy val indexWriter = new IndexWriter(indexDirectory, indexWriterConfig)
-  private[lucene4s] lazy val taxonomyWriter = new DirectoryTaxonomyWriter(taxonomyDirectory)
+  private[lucene4s] lazy val taxonomyWriterCache = createTaxonomyWriterCache()
+  private[lucene4s] lazy val taxonomyWriter = new DirectoryTaxonomyWriter(taxonomyDirectory, IndexWriterConfig.OpenMode.CREATE_OR_APPEND, taxonomyWriterCache)
   private[lucene4s] lazy val searcherTaxonomyManager = new SearcherTaxonomyManager(
     indexWriter,
     new SearcherFactory,
     taxonomyWriter
   )
+
+  protected def createTaxonomyWriterCache(): TaxonomyWriterCache = DirectoryTaxonomyWriter.defaultTaxonomyWriterCache()
 
   private[lucene4s] def withSearcherAndTaxonomy[R](f: SearcherAndTaxonomy => R): R = {
     searcherTaxonomyManager.maybeRefreshBlocking()
