@@ -160,7 +160,7 @@ Next we need to define a `Searchable` trait the defines the unique identificatio
 ```scala
 trait SearchablePerson extends Searchable[Person] {
   // This is necessary for update and delete to reference the correct document.
-  override def idSearchTerm(person: Person): SearchTerm = exact(id(person.id))
+  override def idSearchTerms(person: Person): List[SearchTerm] = List(exact(id(person.id)))
   
   /*
     Though at compile-time all fields will be generated from the params in `Person`, for code-completion we can define
@@ -196,7 +196,7 @@ Now lets try updating our `Person`:
 people.update(Person(1, "John", "Doe", 23, "321 Nowhere St.", "Lalaland", "California", "12345")).index()
 ```
 
-As you can see here, the signature is quite similar to `insert`. Internally this will utilize `idSearchTerm` as we
+As you can see here, the signature is quite similar to `insert`. Internally this will utilize `idSearchTerms` as we
 declared previously to apply the update. In this case that means as long as we don't change the id (1) then calls to
 update will replace an existing record if one exists.
 
