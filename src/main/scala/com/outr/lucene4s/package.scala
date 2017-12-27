@@ -91,6 +91,9 @@ package object lucene4s {
   def fuzzy(value: String): FuzzySearchTerm = new FuzzySearchTerm(None, value)
   def fuzzy(fv: FieldAndValue[String]): FuzzySearchTerm = new FuzzySearchTerm(Some(fv.field), fv.value.toString)
 
+  def mlt(value: String)(implicit config: MoreLikeThisConfig): MoreLikeThisSearchTerm = new MoreLikeThisSearchTerm(None, value, config)
+  def mlt(fv: FieldAndValue[String])(implicit config: MoreLikeThisConfig): MoreLikeThisSearchTerm = new MoreLikeThisSearchTerm(Some(fv.field), fv.value.toString, config)
+
   def spatialBox(field: Field[SpatialPoint], minLatitude: Double, maxLatitude: Double, minLongitude: Double, maxLongitude: Double): SpatialBoxTerm = new SpatialBoxTerm(field, minLatitude, maxLatitude, minLongitude, maxLongitude)
 
   def spatialDistance(field: Field[SpatialPoint], point: SpatialPoint, radius: Length): SpatialDistanceTerm = new SpatialDistanceTerm(field, point, radius)

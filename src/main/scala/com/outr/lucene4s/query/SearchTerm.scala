@@ -1,13 +1,15 @@
 package com.outr.lucene4s.query
 
+import java.io.StringReader
+
 import com.outr.lucene4s.Lucene
 import com.outr.lucene4s.field.Field
 import com.outr.lucene4s.field.value.SpatialPoint
-import org.apache.lucene.document.{DoublePoint, IntPoint, LatLonPoint, LongPoint}
+import org.apache.lucene.document._
 import org.apache.lucene.geo.Polygon
 import org.apache.lucene.index.Term
 import org.apache.lucene.queryparser.classic.QueryParser
-import org.apache.lucene.search.{BooleanQuery, FuzzyQuery, MatchAllDocsQuery, PhraseQuery, Query, RegexpQuery, TermQuery, WildcardQuery}
+import org.apache.lucene.search._
 import org.apache.lucene.util.automaton.RegExp
 import squants.space._
 
@@ -41,6 +43,17 @@ class TermSearchTerm(field: Option[Field[String]], value: String) extends Search
   override protected[lucene4s] def toLucene(lucene: Lucene): Query = new TermQuery(new Term(field.getOrElse(lucene.fullText).name, value))
 
   override def toString: String = s"term(${field.map(_.name)} = $value)"
+}
+
+class MoreLikeThisSearchTerm(field: Option[Field[String]], value: String, config: MoreLikeThisConfig) extends SearchTerm {
+  override protected[lucene4s] def toLucene(lucene: Lucene): Query = {
+    val fieldName = field.getOrElse(lucene.fullText).name
+    val mlt = lucene.moreLikeThis(fieldName, config)
+    val query = mlt.like(fieldName, new StringReader(value))
+    query
+  }
+
+  override def toString: String = s"mlt(${field.map(_.name)} = $value)"
 }
 
 class ExactBooleanSearchTerm(field: Field[Boolean], value: Boolean) extends SearchTerm {

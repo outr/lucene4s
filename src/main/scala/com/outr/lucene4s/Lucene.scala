@@ -9,7 +9,7 @@ import com.outr.lucene4s.field.value.support.ValueSupport
 import com.outr.lucene4s.field.{Field, FieldType}
 import com.outr.lucene4s.keyword.KeywordIndexing
 import com.outr.lucene4s.mapper.{BaseSearchable, SearchableMacro}
-import com.outr.lucene4s.query.{QueryBuilder, SearchResult, SearchTerm}
+import com.outr.lucene4s.query._
 import org.apache.lucene.analysis.CharArraySet
 import org.apache.lucene.analysis.standard.StandardAnalyzer
 import org.apache.lucene.facet.FacetsConfig
@@ -18,12 +18,13 @@ import org.apache.lucene.facet.taxonomy.SearcherTaxonomyManager.SearcherAndTaxon
 import org.apache.lucene.facet.taxonomy.directory.DirectoryTaxonomyWriter
 import org.apache.lucene.facet.taxonomy.writercache.TaxonomyWriterCache
 import org.apache.lucene.index.IndexWriterConfig.OpenMode
-import org.apache.lucene.index.{IndexWriter, IndexWriterConfig}
+import org.apache.lucene.index._
+import org.apache.lucene.queries.mlt.MoreLikeThis
 import org.apache.lucene.search.SearcherFactory
 import org.apache.lucene.store.{FSDirectory, RAMDirectory}
 
-import scala.language.experimental.macros
 import scala.collection.JavaConverters._
+import scala.language.experimental.macros
 
 class Lucene(val directory: Option[Path] = None,
              val appendIfExists: Boolean = true,
@@ -46,6 +47,7 @@ class Lucene(val directory: Option[Path] = None,
   private[lucene4s] lazy val facetsConfig = new FacetsConfig
 
   private[lucene4s] lazy val indexWriter = new IndexWriter(indexDirectory, indexWriterConfig)
+  private[lucene4s] lazy val indexReader = DirectoryReader.open(indexWriter)
   private[lucene4s] lazy val taxonomyWriterCache = createTaxonomyWriterCache()
   private[lucene4s] lazy val taxonomyWriter = new DirectoryTaxonomyWriter(taxonomyDirectory, IndexWriterConfig.OpenMode.CREATE_OR_APPEND, taxonomyWriterCache)
   private[lucene4s] lazy val searcherTaxonomyManager = new SearcherTaxonomyManager(
@@ -55,6 +57,24 @@ class Lucene(val directory: Option[Path] = None,
   )
 
   protected def createTaxonomyWriterCache(): TaxonomyWriterCache = DirectoryTaxonomyWriter.defaultTaxonomyWriterCache()
+
+  private[lucene4s] def moreLikeThis(fieldName: String, config: MoreLikeThisConfig): MoreLikeThis = {
+    val mlt = new MoreLikeThis(indexReader)
+    mlt.setAnalyzer(standardAnalyzer)
+    mlt.setStopWords(stopWords.asJava)
+    mlt.setFieldNames(Array[String](fieldName))
+
+    // configurable
+    mlt.setMinTermFreq(config.minTermFreq)
+    mlt.setMinDocFreq(config.minDocFreq)
+    mlt.setMaxDocFreq(config.maxDocFreq)
+    mlt.setBoost(config.boost)
+    mlt.setMinWordLen(config.minWordLen)
+    mlt.setMaxWordLen(config.maxWordLen)
+    mlt.setMaxQueryTerms(config.maxQueryTerms)
+
+    mlt
+  }
 
   private[lucene4s] def withSearcherAndTaxonomy[R](f: SearcherAndTaxonomy => R): R = {
     searcherTaxonomyManager.maybeRefreshBlocking()
