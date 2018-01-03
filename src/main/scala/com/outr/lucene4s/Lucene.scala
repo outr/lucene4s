@@ -58,20 +58,10 @@ class Lucene(val directory: Option[Path] = None,
 
   protected def createTaxonomyWriterCache(): TaxonomyWriterCache = DirectoryTaxonomyWriter.defaultTaxonomyWriterCache()
 
-  private[lucene4s] def moreLikeThis(fieldName: String, config: MoreLikeThisConfig): MoreLikeThis = {
+  private[lucene4s] def moreLikeThis: MoreLikeThis = {
     val mlt = new MoreLikeThis(indexReader)
     mlt.setAnalyzer(standardAnalyzer)
     mlt.setStopWords(stopWords.asJava)
-    mlt.setFieldNames(Array[String](fieldName))
-
-    // configurable
-    mlt.setMinTermFreq(config.minTermFreq)
-    mlt.setMinDocFreq(config.minDocFreq)
-    mlt.setMaxDocFreq(config.maxDocFreq)
-    mlt.setBoost(config.boost)
-    mlt.setMinWordLen(config.minWordLen)
-    mlt.setMaxWordLen(config.maxWordLen)
-    mlt.setMaxQueryTerms(config.maxQueryTerms)
 
     mlt
   }

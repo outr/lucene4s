@@ -45,10 +45,27 @@ class TermSearchTerm(field: Option[Field[String]], value: String) extends Search
   override def toString: String = s"term(${field.map(_.name)} = $value)"
 }
 
-class MoreLikeThisSearchTerm(field: Option[Field[String]], value: String, config: MoreLikeThisConfig) extends SearchTerm {
+class MoreLikeThisSearchTerm(field: Option[Field[String]], value: String,
+                             minTermFreq: Int,
+                             minDocFreq: Int,
+                             maxDocFreq: Int,
+                             boost: Boolean,
+                             minWordLen: Int,
+                             maxWordLen: Int,
+                             maxQueryTerms: Int) extends SearchTerm {
   override protected[lucene4s] def toLucene(lucene: Lucene): Query = {
     val fieldName = field.getOrElse(lucene.fullText).name
-    val mlt = lucene.moreLikeThis(fieldName, config)
+
+    val mlt = lucene.moreLikeThis
+    mlt.setFieldNames(Array[String](fieldName))
+    mlt.setMinTermFreq(minTermFreq)
+    mlt.setMinDocFreq(minDocFreq)
+    mlt.setMaxDocFreq(maxDocFreq)
+    mlt.setBoost(boost)
+    mlt.setMinWordLen(minWordLen)
+    mlt.setMaxWordLen(maxWordLen)
+    mlt.setMaxQueryTerms(maxQueryTerms)
+
     val query = mlt.like(fieldName, new StringReader(value))
     query
   }
