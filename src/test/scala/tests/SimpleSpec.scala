@@ -3,7 +3,7 @@ package tests
 import com.outr.lucene4s._
 import com.outr.lucene4s.field.Field
 import com.outr.lucene4s.keyword.KeywordIndexing
-import com.outr.lucene4s.query.{Condition, Sort}
+import com.outr.lucene4s.query._
 import org.scalatest.{Matchers, WordSpec}
 
 class SimpleSpec extends WordSpec with Matchers {
@@ -220,6 +220,22 @@ class SimpleSpec extends WordSpec with Matchers {
       )).search()
       paged.total should be(1)
       paged.results(0)(name) should be("Johnny Bob")
+    }
+    "query more like this" in {
+      val paged = lucene.query().filter(mlt(name("Doe"))).search()
+      paged.total should be(0)
+    }
+    "query more like this with overloaded config" in {
+      val paged = lucene.query().filter(mlt(name("Doe"), minTermFreq = 0, minDocFreq = 0)).search()
+      paged.total should be(2)
+      paged.results(0)(name) should be("John Doe")
+      paged.results(1)(name) should be("Jane Doe")
+    }
+    "query more like this for full text " in {
+      val paged = lucene.query().filter(mltFullText("John Doe", minTermFreq = 0, minDocFreq = 0)).search()
+      paged.total should be(2)
+      paged.results(0)(name) should be("John Doe")
+      paged.results(1)(name) should be("Jane Doe")
     }
     "delete John Doe" in {
       lucene.query().search().results.length should be(6)

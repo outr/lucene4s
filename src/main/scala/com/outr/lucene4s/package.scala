@@ -4,7 +4,7 @@ import com.outr.lucene4s.field.Field
 import com.outr.lucene4s.field.value.{FieldAndValue, SpatialPoint}
 import com.outr.lucene4s.field.value.support._
 import com.outr.lucene4s.query._
-import org.apache.lucene.search.PhraseQuery
+import org.apache.lucene.queries.mlt.MoreLikeThis
 import squants.space._
 
 import scala.language.implicitConversions
@@ -90,6 +90,41 @@ package object lucene4s {
 
   def fuzzy(value: String): FuzzySearchTerm = new FuzzySearchTerm(None, value)
   def fuzzy(fv: FieldAndValue[String]): FuzzySearchTerm = new FuzzySearchTerm(Some(fv.field), fv.value.toString)
+
+  def mltFullText(value: String,
+          minTermFreq: Int = MoreLikeThis.DEFAULT_MIN_TERM_FREQ,
+          minDocFreq: Int = MoreLikeThis.DEFAULT_MIN_DOC_FREQ,
+          maxDocFreq: Int = MoreLikeThis.DEFAULT_MAX_DOC_FREQ,
+          boost: Boolean = MoreLikeThis.DEFAULT_BOOST,
+          minWordLen: Int = MoreLikeThis.DEFAULT_MIN_WORD_LENGTH,
+          maxWordLen: Int = MoreLikeThis.DEFAULT_MAX_WORD_LENGTH,
+          maxQueryTerms: Int = MoreLikeThis.DEFAULT_MAX_QUERY_TERMS): MoreLikeThisSearchTerm =
+    new MoreLikeThisSearchTerm(None, value,
+      minTermFreq = minTermFreq,
+      minDocFreq = minDocFreq,
+      maxDocFreq = maxDocFreq,
+      boost = boost,
+      minWordLen = minWordLen,
+      maxWordLen = maxWordLen,
+      maxQueryTerms = maxQueryTerms)
+
+
+  def mlt(fv: FieldAndValue[String],
+          minTermFreq: Int = MoreLikeThis.DEFAULT_MIN_TERM_FREQ,
+          minDocFreq: Int = MoreLikeThis.DEFAULT_MIN_DOC_FREQ,
+          maxDocFreq: Int = MoreLikeThis.DEFAULT_MAX_DOC_FREQ,
+          boost: Boolean = MoreLikeThis.DEFAULT_BOOST,
+          minWordLen: Int = MoreLikeThis.DEFAULT_MIN_WORD_LENGTH,
+          maxWordLen: Int = MoreLikeThis.DEFAULT_MAX_WORD_LENGTH,
+          maxQueryTerms: Int = MoreLikeThis.DEFAULT_MAX_QUERY_TERMS): MoreLikeThisSearchTerm =
+    new MoreLikeThisSearchTerm(Some(fv.field), fv.value.toString,
+      minTermFreq = minTermFreq,
+      minDocFreq = minDocFreq,
+      maxDocFreq = maxDocFreq,
+      boost = boost,
+      minWordLen = minWordLen,
+      maxWordLen = maxWordLen,
+      maxQueryTerms = maxQueryTerms)
 
   def spatialBox(field: Field[SpatialPoint], minLatitude: Double, maxLatitude: Double, minLongitude: Double, maxLongitude: Double): SpatialBoxTerm = new SpatialBoxTerm(field, minLatitude, maxLatitude, minLongitude, maxLongitude)
 
