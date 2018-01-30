@@ -8,7 +8,7 @@ fork := true
 scalacOptions ++= Seq("-unchecked", "-deprecation")
 
 val luceneVersion = "7.2.1"
-val squantsVersion = "1.3.0"
+
 val scalaTestVersion = "3.0.4"
 val scalacticVersion = "3.0.4"
 
@@ -19,7 +19,6 @@ libraryDependencies ++= Seq(
   "org.apache.lucene" % "lucene-queryparser" % luceneVersion,
   "org.apache.lucene" % "lucene-facet" % luceneVersion,
   "org.apache.lucene" % "lucene-highlighter" % luceneVersion,
-  "org.typelevel" %% "squants"  % squantsVersion,
   "org.scalactic" %% "scalactic" % scalaTestVersion % "test",
   "org.scalatest" %% "scalatest" % scalacticVersion % "test"
 )

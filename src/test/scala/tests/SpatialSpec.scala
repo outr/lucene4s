@@ -6,8 +6,6 @@ import com.outr.lucene4s.field.value.SpatialPoint
 import com.outr.lucene4s.query.Sort
 import org.scalatest.{Matchers, WordSpec}
 
-import squants.space.LengthConversions._
-
 class SpatialSpec extends WordSpec with Matchers {
   val lucene = new Lucene()
   val name: Field[String] = lucene.create.field[String]("name")
@@ -52,7 +50,7 @@ class SpatialSpec extends WordSpec with Matchers {
     "query all documents within a 50 mile radius of a point in New York City" in {
       val paged = lucene
         .query()
-        .filter(spatialDistance(location, newYorkCity, 50.miles))
+        .filter(spatialDistance(location, newYorkCity, 80467))
         .sort(Sort.nearest(location, newYorkCity))
         .search()
       paged.total should be(2)

@@ -5,7 +5,6 @@ import com.outr.lucene4s.field.value.{FieldAndValue, SpatialPoint}
 import com.outr.lucene4s.field.value.support._
 import com.outr.lucene4s.query._
 import org.apache.lucene.queries.mlt.MoreLikeThis
-import squants.space._
 
 import scala.language.implicitConversions
 
@@ -137,7 +136,7 @@ package object lucene4s {
 
   def spatialBox(field: Field[SpatialPoint], minLatitude: Double, maxLatitude: Double, minLongitude: Double, maxLongitude: Double): SpatialBoxTerm = new SpatialBoxTerm(field, minLatitude, maxLatitude, minLongitude, maxLongitude)
 
-  def spatialDistance(field: Field[SpatialPoint], point: SpatialPoint, radius: Length): SpatialDistanceTerm = new SpatialDistanceTerm(field, point, radius)
+  def spatialDistance(field: Field[SpatialPoint], point: SpatialPoint, radiusInMeters: Long): SpatialDistanceTerm = new SpatialDistanceTerm(field, point, radiusInMeters)
 
   def spatialPolygon(field: Field[SpatialPoint], polygons: SpatialPolygon*): SpatialPolygonTerm = new SpatialPolygonTerm(field, polygons.toList)
 
