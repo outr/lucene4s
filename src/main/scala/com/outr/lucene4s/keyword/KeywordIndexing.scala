@@ -1,5 +1,7 @@
 package com.outr.lucene4s.keyword
 
+import java.util.{Timer, TimerTask}
+
 import com.outr.lucene4s._
 import com.outr.lucene4s.document.DocumentBuilder
 import com.outr.lucene4s.facet.FacetField
@@ -12,7 +14,6 @@ import org.apache.lucene.search.{IndexSearcher, MatchAllDocsQuery}
 import org.apache.lucene.store.{FSDirectory, RAMDirectory}
 
 import scala.annotation.tailrec
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
 /**
@@ -57,9 +58,10 @@ case class KeywordIndexing(lucene: Lucene,
     val reader = currentIndexReader match {
       case Some(r) => Option(DirectoryReader.openIfChanged(r, indexWriter, true)) match {
         case Some(updated) if updated ne r => {         // New reader was assigned
-          lucene.system.scheduler.scheduleOnce(30.seconds) {
-            r.close()
-          }
+          val timer = new Timer
+          timer.schedule(new TimerTask {
+            override def run(): Unit = r.close()
+          }, 30.seconds.toMillis)
           updated
         }
         case _ => r                                     // null was returned

@@ -2,7 +2,6 @@ package com.outr.lucene4s
 
 import java.nio.file.Path
 
-import akka.actor.ActorSystem
 import com.outr.lucene4s.document.DocumentBuilder
 import com.outr.lucene4s.facet.FacetField
 import com.outr.lucene4s.field.value.support.ValueSupport
@@ -33,8 +32,6 @@ class Lucene(val directory: Option[Path] = None,
              stopWords: Set[String] = KeywordIndexing.DefaultStopWords,
              stopWordsIgnoreCase: Boolean = true) {
   private[lucene4s] lazy val standardAnalyzer = new StandardAnalyzer(new CharArraySet(stopWords.asJava, stopWordsIgnoreCase))
-
-  private[lucene4s] lazy val system = ActorSystem()
 
   private lazy val indexPath = directory.map(_.resolve("index"))
   private lazy val taxonomyPath = directory.map(_.resolve("taxonomy"))
