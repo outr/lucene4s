@@ -154,6 +154,16 @@ class SimpleSpec extends WordSpec with Matchers {
       paged.results(1)(name) should be("Jane Doe")
       paged.results(1).score should be(0.4620981216430664)
     }
+    "query fuzzy matching john and jane with two word phrase" in {
+      val paged = lucene.query().scoreDocs().sort(Sort.Score).filter(parseFuzzy("jhn doe", Some(name))).search()
+      val names = paged.results.map(_.apply(name)).toSet
+      names should be(Set("John Doe", "Jane Doe"))
+      paged.total should be(2)
+      paged.results(0)(name) should be("John Doe")
+      paged.results(0).score should be(1.7996649742126465)
+      paged.results(1)(name) should be("Jane Doe")
+      paged.results(1).score should be(1.33756685256958)
+    }
     "query fuzzy matching john and jane with highlighting" in {
       val paged = lucene.query().scoreDocs().sort(Sort.Score).filter(fuzzy(name("jhn"))).highlight().search()
       paged.total should be(2)

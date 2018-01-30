@@ -1,14 +1,14 @@
 name := "lucene4s"
 organization := "com.outr"
-version := "1.5.5"
+version := "1.5.6-SNAPSHOT"
 scalaVersion := "2.12.4"
 crossScalaVersions := List("2.12.4", "2.11.11")
 parallelExecution in Test := false
 fork := true
 scalacOptions ++= Seq("-unchecked", "-deprecation")
 
-val luceneVersion = "7.1.0"
-val akkaVersion = "2.5.6"
+val luceneVersion = "7.2.1"
+val akkaVersion = "2.5.9"
 val squantsVersion = "1.3.0"
 val scalaTestVersion = "3.0.4"
 val scalacticVersion = "3.0.4"

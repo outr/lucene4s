@@ -41,6 +41,15 @@ package object lucene4s {
   def parse(field: Field[String], value: String, allowLeadingWildcard: Boolean): ParsableSearchTerm = new ParsableSearchTerm(Some(field), value, allowLeadingWildcard)
   def parse(value: String): ParsableSearchTerm = parse(value, allowLeadingWildcard = false)
   def parse(value: String, allowLeadingWildcard: Boolean): ParsableSearchTerm = new ParsableSearchTerm(None, value, allowLeadingWildcard)
+
+  def parseFuzzy(text: String, field: Option[Field[String]] = None): ParsableSearchTerm = {
+    val queryText = text.filterNot(Lucene.specialCharacters.contains).split(' ').flatMap {
+      case word if word.trim.isEmpty => None
+      case word => Some(s"$word~")
+    }.mkString("(", " AND ", ")")
+    new ParsableSearchTerm(field, queryText, allowLeadingWildcard = false)
+  }
+
   def parseQuery(text: String,
                  field: Option[Field[String]] = None,
                  allowLeadingWildcard: Boolean = false,

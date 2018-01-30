@@ -140,7 +140,7 @@ class LuceneCreate(val lucene: Lucene) {
 }
 
 object Lucene {
-  private val specialCharacters = Set('~', '*', '?', '^', ':', '(', ')')
+  val specialCharacters = Set('~', '*', '?', '^', ':', '(', ')', '"', '-', '+', '\'')
 
   def isLuceneWord(word: String): Boolean = specialCharacters.exists(c => word.contains(c))
   def removeSpecialCharacters(text: String): String = text.filterNot(specialCharacters.contains)

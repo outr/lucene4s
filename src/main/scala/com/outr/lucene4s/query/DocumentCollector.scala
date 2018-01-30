@@ -22,7 +22,8 @@ class DocumentCollector(lucene: Lucene, query: QueryBuilder[_]) extends Collecto
     val docLimit = math.min(query.offset + query.limit, docMax)
 
     val fillFields = true
-    val topFieldCollector = TopFieldCollector.create(sort, docLimit, null, fillFields, query.scoreDocs, query.scoreMax)
+    val trackTotalHits = true
+    val topFieldCollector = TopFieldCollector.create(sort, docLimit, fillFields, query.scoreDocs, query.scoreMax, trackTotalHits)
     val facetsCollector = new FacetsCollector(query.scoreDocs)
     Collectors(topFieldCollector, facetsCollector)
   }
