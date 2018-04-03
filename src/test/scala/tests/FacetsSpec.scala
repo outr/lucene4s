@@ -43,7 +43,13 @@ class FacetsSpec extends WordSpec with Matchers {
       page.results.map(_(name)) should be(Vector("One", "Two", "Three", "Four", "Five", "Six", "Seven"))
     }
     "list all results for 2010" in {
-      val page = lucene.query().limit(10).facet(author, limit = 10).facet(publishDate, limit = 10, path = List("2010")).search()
+      val page = lucene
+        .query()
+        .limit(10)
+        .facet(author, limit = 10)
+        .facet(publishDate, limit = 10, path = List("2010"))
+        .filter(drillDown(publishDate("2010")))
+        .search()
       val authorResult = page.facet(author).get
       authorResult.childCount should be(3)
       authorResult.totalCount should be(3)
@@ -57,7 +63,16 @@ class FacetsSpec extends WordSpec with Matchers {
       page.results.map(_(name)) should be(Vector("One", "Two"))
     }
     "exclude all results for 2010" in {
-      val page = lucene.query().limit(10).facet(author, limit = 10).facet(publishDate, limit = 10, path = List("2010"), condition = Condition.MustNot).search()
+      val page = lucene
+        .query()
+        .limit(10)
+        .facet(author, limit = 10)
+        .facet(publishDate, limit = 10)
+        .filter(grouped(
+          matchAll() -> Condition.Must,
+          boost(drillDown(publishDate("2010")), 0.0) -> Condition.MustNot
+        ))
+        .search()
       val authorResult = page.facet(author).get
       authorResult.childCount should be(5)
       authorResult.totalCount should be(5)
@@ -71,7 +86,13 @@ class FacetsSpec extends WordSpec with Matchers {
       page.results.map(_(name)) should be(Vector("Three", "Four", "Five", "Six", "Seven"))
     }
     "list all results for 2010/10" in {
-      val page = lucene.query().limit(10).facet(author, limit = 10).facet(publishDate, limit = 10, path = List("2010", "10")).search()
+      val page = lucene
+        .query()
+        .limit(10)
+        .facet(author, limit = 10)
+        .facet(publishDate, limit = 10, path = List("2010", "10"))
+        .filter(drillDown(publishDate("2010", "10")))
+        .search()
       val authorResult = page.facet(author).get
       authorResult.childCount should be(3)
       authorResult.totalCount should be(3)
@@ -85,7 +106,13 @@ class FacetsSpec extends WordSpec with Matchers {
       page.results.map(_(name)) should be(Vector("One", "Two"))
     }
     "list all results for 2010/10/20" in {
-      val page = lucene.query().limit(10).facet(author, limit = 10).facet(publishDate, limit = 10, path = List("2010", "10", "20")).search()
+      val page = lucene
+        .query()
+        .limit(10)
+        .facet(author, limit = 10)
+        .facet(publishDate, limit = 10, path = List("2010", "10", "20"))
+        .filter(drillDown(publishDate("2010", "10", "20")))
+        .search()
       val authorResult = page.facet(author).get
       authorResult.childCount should be(1)
       authorResult.totalCount should be(1)
@@ -102,7 +129,8 @@ class FacetsSpec extends WordSpec with Matchers {
         .query()
         .limit(10)
         .facet(author, limit = 10)
-        .facet(publishDate, limit = 10, path = List("1999"), onlyThisLevel = true)
+        .facet(publishDate, limit = 10, path = List("1999"))
+        .filter(drillDown(publishDate("1999"), onlyThisLevel = true))
         .search()
       val authorResult = page.facet(author).get
       authorResult.childCount should be(1)
@@ -119,7 +147,8 @@ class FacetsSpec extends WordSpec with Matchers {
         .query()
         .limit(10)
         .facet(author, limit = 10)
-        .facet(publishDate, limit = 10, path = Nil, onlyThisLevel = true)
+        .facet(publishDate, limit = 10)
+        .filter(drillDown(publishDate(), onlyThisLevel = true))
         .search()
       val authorResult = page.facet(author).get
       authorResult.childCount should be(1)

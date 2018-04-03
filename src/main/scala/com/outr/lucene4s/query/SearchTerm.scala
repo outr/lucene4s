@@ -3,9 +3,11 @@ package com.outr.lucene4s.query
 import java.io.StringReader
 
 import com.outr.lucene4s.Lucene
+import com.outr.lucene4s.facet.FacetField
 import com.outr.lucene4s.field.Field
 import com.outr.lucene4s.field.value.SpatialPoint
 import org.apache.lucene.document._
+import org.apache.lucene.facet.DrillDownQuery
 import org.apache.lucene.geo.Polygon
 import org.apache.lucene.index.Term
 import org.apache.lucene.queryparser.classic.QueryParser
@@ -42,6 +44,18 @@ class TermSearchTerm(field: Option[Field[String]], value: String) extends Search
   override protected[lucene4s] def toLucene(lucene: Lucene): Query = new TermQuery(new Term(field.getOrElse(lucene.fullText).name, value))
 
   override def toString: String = s"term(${field.map(_.name)} = $value)"
+}
+
+class DrillDownSearchTerm(facet: FacetField, path: Seq[String], onlyThisLevel: Boolean) extends SearchTerm {
+  override protected[lucene4s] def toLucene(lucene: Lucene): Query = {
+    val indexedField = lucene.facetsConfig.getDimConfig(facet.name).indexFieldName
+    val exactPath = if (onlyThisLevel) {
+      path.toList ::: List("$ROOT$")
+    } else {
+      path
+    }
+    new TermQuery(DrillDownQuery.term(indexedField, facet.name, exactPath: _*))
+  }
 }
 
 class MoreLikeThisSearchTerm(field: Option[Field[String]], value: String,
@@ -171,4 +185,12 @@ case class GroupedSearchTerm(minimumNumberShouldMatch: Int,
   }
 
   override def toString: String = s"grouped(minimumNumberShouldMatch: $minimumNumberShouldMatch, conditionalTerms: ${conditionalTerms.map(ct => s"${ct._1} -> ${ct._2}").mkString(", ")})"
+}
+
+case class BoostedSearchTerm(term: SearchTerm, boost: Double) extends SearchTerm {
+  override protected[lucene4s] def toLucene(lucene: Lucene): Query = {
+    new BoostQuery(term.toLucene(lucene), boost.toFloat)
+  }
+
+  override def toString: String = s"boosted(term: $term, boost: $boost)"
 }

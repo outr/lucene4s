@@ -1,5 +1,6 @@
 package com.outr
 
+import com.outr.lucene4s.facet.FacetValue
 import com.outr.lucene4s.field.Field
 import com.outr.lucene4s.field.value.{FieldAndValue, SpatialPoint}
 import com.outr.lucene4s.field.value.support._
@@ -146,4 +147,10 @@ package object lucene4s {
     conditionalTerms = entries.toList
   )
   def grouped(entries: (SearchTerm, Condition)*): GroupedSearchTerm = grouped(0, entries: _*)
+
+  def boost(term: SearchTerm, boost: Double): BoostedSearchTerm = BoostedSearchTerm(term, boost)
+
+  def drillDown(value: FacetValue, onlyThisLevel: Boolean = false): DrillDownSearchTerm = {
+    new DrillDownSearchTerm(value.field, value.path, onlyThisLevel)
+  }
 }

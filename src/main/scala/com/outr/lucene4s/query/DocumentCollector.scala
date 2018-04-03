@@ -49,7 +49,7 @@ class DocumentCollector(lucene: Lucene, query: QueryBuilder[_]) extends Collecto
       lucene.withSearcherAndTaxonomy { instance =>
         val facets = new FastTaxonomyFacetCounts(instance.taxonomyReader, lucene.facetsConfig, facetsCollector)
         query.facets.foreach { fq =>
-          val path = if (fq.condition == Condition.MustNot) Nil else fq.path
+          val path = fq.path
           Option(facets.getTopChildren(fq.limit, fq.facet.name, path: _*)) match {
             case Some(r) => {
               val values = if (r.childCount > 0) {

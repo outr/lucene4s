@@ -99,17 +99,21 @@ class ComplexQuerySpec extends WordSpec with Matchers {
         firstNames -> Condition.Should,
         term(s.name("Brin")) -> Condition.Should
       )
-//      val address = grouped(
-//        minimumNumberShouldMatch = 0,
-//        facet(s.city("Boulder")) -> Condition.Should,
-//        term(s.state("CO")) -> Condition.Should
-//      )
-      val results = s.query().filter(names).search()
+      val address = grouped(
+        minimumNumberShouldMatch = 1,
+        drillDown(s.city("Denver")) -> Condition.Should,
+        drillDown(s.state("CO")) -> Condition.Should
+      )
+      val filter = grouped(
+        minimumNumberShouldMatch = 0,
+        names -> Condition.Must,
+        address -> Condition.Should
+      )
+      val results = s.query().filter(filter).search()
       results.total should be(2)
       val result = results.results.head
       result(s.name) should be("Sergey Brin")
     }
-    // TODO: include city and state and have Serge Brin in another address
   }
 
   object PersonSearch extends Lucene(defaultFullTextSearchable = true, autoCommit = true) {
