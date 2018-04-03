@@ -70,7 +70,7 @@ class FacetsSpec extends WordSpec with Matchers {
         .facet(publishDate, limit = 10)
         .filter(grouped(
           matchAll() -> Condition.Must,
-          boost(drillDown(publishDate("2010")), 0.0) -> Condition.MustNot
+          drillDown(publishDate("2010")) -> Condition.MustNot
         ))
         .search()
       val authorResult = page.facet(author).get
