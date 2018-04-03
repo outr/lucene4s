@@ -141,7 +141,7 @@ package object lucene4s {
   def spatialPolygon(field: Field[SpatialPoint], polygons: SpatialPolygon*): SpatialPolygonTerm = new SpatialPolygonTerm(field, polygons.toList)
 
   def grouped(minimumNumberShouldMatch: Int,
-              entries: (SearchTerm, Condition)*): GroupedSearchTerm = new GroupedSearchTerm(
+              entries: (SearchTerm, Condition)*): GroupedSearchTerm = GroupedSearchTerm(
     minimumNumberShouldMatch = minimumNumberShouldMatch,
     conditionalTerms = entries.toList
   )
