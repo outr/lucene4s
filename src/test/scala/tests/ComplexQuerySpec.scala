@@ -3,7 +3,7 @@ package tests
 import com.outr.lucene4s._
 import com.outr.lucene4s.facet.{FacetField, FacetValue}
 import com.outr.lucene4s.field.Field
-import com.outr.lucene4s.query.Condition
+import com.outr.lucene4s.query.{Condition, SearchTerm}
 import org.scalatest.{Matchers, WordSpec}
 
 class ComplexQuerySpec extends WordSpec with Matchers {
@@ -26,10 +26,16 @@ class ComplexQuerySpec extends WordSpec with Matchers {
       val davidDrummond = Person("David Drummond", "dd@google.com", 54, Nil)
 
       val sergeBrin = Person("Serge Brin", "sb2@google.com", 43, List(austin))
+      val drJohnHennessy = Person("Dr. John L. Hennessy, Ph.D.", "djh@google.com", 65, List(birmingham))
     }
   }
 
   "Complex Query Spec" should {
+    def names(names: String*): SearchTerm = grouped(
+      minimumNumberShouldMatch = 1,
+      names.map(n => term(s.name(n)) -> Condition.Should): _*
+    )
+
     def s = PersonSearch
     "insert some documents" in {
       s.insert(values.people.johnHennessy)
@@ -40,19 +46,34 @@ class ComplexQuerySpec extends WordSpec with Matchers {
       s.insert(values.people.davidDrummond)
 
       s.insert(values.people.sergeBrin)
+      s.insert(values.people.drJohnHennessy)
     }
     "query to retrieve John Hennessy by name" in {
-      val results = s.query().filter(grouped(
+      val results = s.query().scoreDocs().filter(grouped(
         minimumNumberShouldMatch = 2,
         term(s.name("John")) -> Condition.Should,
         term(s.name("Hennessy")) -> Condition.Should
       )).search()
-      results.total should be(1)
+      results.total should be(2)
       val result = results.results.head
       result(s.name) should be("John Hennessy")
+      result.score should be > 2.5
+      results.results.last.score should be < 2.0
+    }
+    "query to retrieve Dr. John Hennessy by name" in {
+      val results = s.query().scoreDocs().filter(grouped(
+        minimumNumberShouldMatch = 2,
+        term(s.name("Dr")) -> Condition.Should,
+        term(s.name("John")) -> Condition.Should,
+        term(s.name("Hennessy")) -> Condition.Should,
+        term(s.name("PhD")) -> Condition.Should
+      )).search()
+      results.total should be(2)
+      val result = results.results.head
+      result(s.name) should be("Dr. John L. Hennessy, Ph.D.")
     }
     "query to retrieve Sergey Brin by name" in {
-      val results = s.query().filter(grouped(
+      val results = s.query().scoreDocs().filter(grouped(
         minimumNumberShouldMatch = 2,
         term(s.name("Sergey")) -> Condition.Should,
         term(s.name("Brin")) -> Condition.Should
@@ -62,7 +83,7 @@ class ComplexQuerySpec extends WordSpec with Matchers {
       result(s.name) should be("Sergey Brin")
     }
     "query to retrieve Sergey Brin by name with middle" in {
-      val results = s.query().filter(grouped(
+      val results = s.query().scoreDocs().filter(grouped(
         minimumNumberShouldMatch = 2,
         term(s.name("Sergey")) -> Condition.Should,
         term(s.name("John")) -> Condition.Should,
@@ -73,14 +94,9 @@ class ComplexQuerySpec extends WordSpec with Matchers {
       result(s.name) should be("Sergey Brin")
     }
     "query to retrieve Sergey Brin by name with nicknames" in {
-      val results = s.query().filter(grouped(
+      val results = s.query().scoreDocs().filter(grouped(
         minimumNumberShouldMatch = 2,
-        grouped(
-          minimumNumberShouldMatch = 1,
-          term(s.name("Gey")) -> Condition.Should,
-          term(s.name("Serge")) -> Condition.Should,
-          term(s.name("Sergey")) -> Condition.Should
-        ) -> Condition.Should,
+        names("Gey", "Serge", "Sergey") -> Condition.Should,
         term(s.name("Brin")) -> Condition.Should
       )).search()
       results.total should be(2)
@@ -88,15 +104,9 @@ class ComplexQuerySpec extends WordSpec with Matchers {
       result(s.name) should be("Sergey Brin")
     }
     "query to retrieve Sergey Brin by name with address" in {
-      val firstNames = grouped(
-        minimumNumberShouldMatch = 1,
-        term(s.name("Gey")) -> Condition.Should,
-        term(s.name("Serge")) -> Condition.Should,
-        term(s.name("Sergey")) -> Condition.Should
-      )
-      val names = grouped(
+      val nameGroup = grouped(
         minimumNumberShouldMatch = 2,
-        firstNames -> Condition.Should,
+        names("Gey", "Serge", "Sergey") -> Condition.Should,
         term(s.name("Brin")) -> Condition.Should
       )
       val address = grouped(
@@ -106,13 +116,30 @@ class ComplexQuerySpec extends WordSpec with Matchers {
       )
       val filter = grouped(
         minimumNumberShouldMatch = 0,
-        names -> Condition.Must,
+        nameGroup -> Condition.Must,
         address -> Condition.Should
       )
-      val results = s.query().filter(filter).search()
+      val results = s.query().scoreDocs().filter(filter).search()
       results.total should be(2)
       val result = results.results.head
       result(s.name) should be("Sergey Brin")
+    }
+    "query to retrieve Ruth Porat by partial name and email address" in {
+      val nameGroup = grouped(
+        minimumNumberShouldMatch = 1,
+        names("Ruthy", "R") -> Condition.Should,
+        boost(names("Porat"), 2.0) -> Condition.Should
+      )
+      val filter = grouped(
+        minimumNumberShouldMatch = 1,
+        nameGroup -> Condition.Should,
+        boost(drillDown(s.email("rp@google.com")), 5.0) -> Condition.Should
+      )
+      val results = s.query().scoreDocs().filter(filter).search()
+      results.total should be(1)
+      val result = results.results.head
+      result(s.name) should be("Ruth Porat")
+      result.score shouldBe 13.0 +- 0.3
     }
   }
 
