@@ -56,6 +56,8 @@ class DrillDownSearchTerm(facet: FacetField, path: Seq[String], onlyThisLevel: B
     }
     new TermQuery(DrillDownQuery.term(indexedField, facet.name, exactPath: _*))
   }
+
+  override def toString: String = s"drillDown(facet: $facet, path: $path)"
 }
 
 class MoreLikeThisSearchTerm(field: Option[Field[String]], value: String,
