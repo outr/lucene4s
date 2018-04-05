@@ -9,12 +9,12 @@ Light-weight convenience wrapper around Lucene to simplify complex tasks and add
 
 ## Setup
 
-lucene4s is published to Sonatype OSS and Maven Central currently supporting Scala 2.11 and 2.12.
+lucene4s is published to Sonatype OSS and Maven Central currently supporting Scala 2.11, 2.12, and 2.13.
 
 Configuring the dependency in SBT simply requires:
 
 ```
-libraryDependencies += "com.outr" %% "lucene4s" % "1.5.6"
+libraryDependencies += "com.outr" %% "lucene4s" % "1.6.0"
 ```
 
 ## Using
@@ -272,11 +272,15 @@ that you can use `miles`, `meters`, or whatever measurement of distance desirabl
 
 ## Versions
 
-### Features for 1.6.0 (In-Progress)
+### Features for 1.7.0 (In-Progress)
 
 * [ ] Scala.js support for Query parsing and URL mapping (QueryURL)
 * [ ] Numeric Seq support
 * [ ] Complete ScalaDocing
+
+### Features for 1.6.0 (Released 2018.04.05)
+
+* [X] Re-working of facets in queries to be more in-line with standard queries
 
 ### Features for 1.5.0 (Released 2017.08.11)
 
