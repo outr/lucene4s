@@ -99,7 +99,7 @@ class SearchableSpec extends WordSpec with Matchers {
     }
   }
 
-  object lucene extends Lucene {
+  object lucene extends DirectLucene {
     val person: SearchablePerson = create.searchable[SearchablePerson]
     val lastNameKeywords: KeywordIndexing = KeywordIndexing(
       lucene = this,

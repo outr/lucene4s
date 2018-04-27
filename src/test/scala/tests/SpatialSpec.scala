@@ -7,7 +7,7 @@ import com.outr.lucene4s.query.Sort
 import org.scalatest.{Matchers, WordSpec}
 
 class SpatialSpec extends WordSpec with Matchers {
-  val lucene = new Lucene()
+  val lucene = new DirectLucene()
   val name: Field[String] = lucene.create.field[String]("name")
   val location: Field[SpatialPoint] = lucene.create.field[SpatialPoint]("location")
   val city: Field[String] = lucene.create.field[String]("city")

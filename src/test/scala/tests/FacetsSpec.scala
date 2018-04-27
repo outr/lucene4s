@@ -7,7 +7,7 @@ import com.outr.lucene4s.query.Condition
 import org.scalatest.{Matchers, WordSpec}
 
 class FacetsSpec extends WordSpec with Matchers {
-  val lucene = new Lucene()
+  val lucene: Lucene = new DirectLucene()
   val name: Field[String] = lucene.create.field[String]("name")
   val author: FacetField = lucene.create.facet("Author", multiValued = true)
   val publishDate: FacetField = lucene.create.facet("Publish Date", hierarchical = true)

@@ -143,7 +143,7 @@ class ComplexQuerySpec extends WordSpec with Matchers {
     }
   }
 
-  object PersonSearch extends Lucene(defaultFullTextSearchable = true, autoCommit = true) {
+  object PersonSearch extends DirectLucene(defaultFullTextSearchable = true, autoCommit = true) {
     val name: Field[String] = create.field[String]("name")
     val email: FacetField = create.facet("email", multiValued = true)
     val age: Field[Int] = create.field[Int]("age")

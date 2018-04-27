@@ -28,7 +28,7 @@ object MatchAllSearchTerm extends SearchTerm {
 
 class ParsableSearchTerm(field: Option[Field[String]], value: String, allowLeadingWildcard: Boolean) extends SearchTerm {
   override def toLucene(lucene: Lucene): Query = {
-    val parser = new QueryParser(field.getOrElse(lucene.fullText).name, lucene.standardAnalyzer)
+    val parser = new QueryParser(field.getOrElse(lucene.fullText).name, lucene.analyzer)
     parser.setAllowLeadingWildcard(allowLeadingWildcard)
     parser.parse(value)
   }

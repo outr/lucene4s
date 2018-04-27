@@ -42,7 +42,7 @@ case class KeywordIndexing(lucene: Lucene,
   // Write support
   private lazy val indexPath = lucene.directory.map(_.resolve(directoryName))
   private lazy val indexDirectory = indexPath.map(FSDirectory.open).getOrElse(new RAMDirectory)
-  private lazy val indexWriterConfig = new IndexWriterConfig(lucene.standardAnalyzer)
+  private lazy val indexWriterConfig = new IndexWriterConfig(lucene.analyzer)
   private lazy val indexWriter = new IndexWriter(indexDirectory, indexWriterConfig)
 
   private lazy val allowedCharactersSet = allowedCharacters.toCharArray.toSet
@@ -96,7 +96,7 @@ case class KeywordIndexing(lucene: Lucene,
         additionalValues.foreach { fv =>
           doc.add(new Field(fv.field.name, fv.value.toString, FieldType.Stored.lucene()))
         }
-        val parser = new QueryParser("keyword", lucene.standardAnalyzer)
+        val parser = new QueryParser("keyword", lucene.analyzer)
         val queryString = new StringBuilder(s""""$word"""")
         additionalValues.foreach { fv =>
           queryString.append(s" AND ${fv.field.name}:${fv.value.toString}")
@@ -122,7 +122,7 @@ case class KeywordIndexing(lucene: Lucene,
     val query = queryString match {
       case "" => new MatchAllDocsQuery
       case _ => {
-        val parser = new QueryParser("keyword", lucene.standardAnalyzer)
+        val parser = new QueryParser("keyword", lucene.analyzer)
         parser.setAllowLeadingWildcard(true)
         parser.parse(queryString)
       }
@@ -148,11 +148,11 @@ object KeywordIndexing {
     "they", "this", "to", "was", "will", "with"
   )
   val DefaultSplitRegex: String = """\s+"""
-  val DefaultWordsFromBuilder: (DocumentBuilder) => List[String] = (builder: DocumentBuilder) => builder.fullText.flatMap(_.split(DefaultSplitRegex))
+  val DefaultWordsFromBuilder: DocumentBuilder => List[String] = (builder: DocumentBuilder) => builder.fullText.flatMap(_.split(DefaultSplitRegex))
   val DefaultAllowedCharacters: String = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789. "
   val DefaultRemoveEndsWithCharacters: String = ",.?!;"
 
-  def FieldFromBuilder[T](field: com.outr.lucene4s.field.Field[T]): (DocumentBuilder) => List[String] = (builder: DocumentBuilder) => {
+  def FieldFromBuilder[T](field: com.outr.lucene4s.field.Field[T]): DocumentBuilder => List[String] = (builder: DocumentBuilder) => {
     val text = Option(builder.document.get(field.name)).map(_.trim).getOrElse("")
     if (text.isEmpty) {
       Nil
@@ -160,10 +160,10 @@ object KeywordIndexing {
       List(text)
     }
   }
-  def FieldWordsFromBuilder[T](field: com.outr.lucene4s.field.Field[T]): (DocumentBuilder) => List[String] = (builder: DocumentBuilder) => {
+  def FieldWordsFromBuilder[T](field: com.outr.lucene4s.field.Field[T]): DocumentBuilder => List[String] = (builder: DocumentBuilder) => {
     builder.document.get(field.name).split(DefaultSplitRegex).toList
   }
-  def FacetFromBuilder(field: FacetField, pathSeparator: Option[String] = None): (DocumentBuilder) => List[String] = (builder: DocumentBuilder) => {
+  def FacetFromBuilder(field: FacetField, pathSeparator: Option[String] = None): DocumentBuilder => List[String] = (builder: DocumentBuilder) => {
     builder.facetsForField(field).map { fv =>
       pathSeparator match {
         case Some(ps) => fv.path.mkString(ps)
