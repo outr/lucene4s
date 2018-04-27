@@ -11,7 +11,7 @@ import org.apache.lucene.facet.taxonomy.SearcherTaxonomyManager
 import org.apache.lucene.facet.taxonomy.directory.DirectoryTaxonomyWriter
 import org.apache.lucene.index.{IndexReader, IndexWriter}
 
-class ReplaceableLucene private() extends Lucene {
+class ReplaceableLucene extends Lucene {
   private var _instance: Lucene = _
 
   def this(instance: Lucene) = {

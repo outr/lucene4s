@@ -24,6 +24,7 @@ developers in ThisBuild := List(
 )
 
 val luceneVersion = "7.2.1"
+val powerScalaVersion = "2.0.5"
 
 val scalaTestVersion = "3.0.5"
 val scalacticVersion = "3.0.5"
@@ -35,6 +36,7 @@ libraryDependencies ++= Seq(
   "org.apache.lucene" % "lucene-queryparser" % luceneVersion,
   "org.apache.lucene" % "lucene-facet" % luceneVersion,
   "org.apache.lucene" % "lucene-highlighter" % luceneVersion,
+  "org.powerscala" %% "powerscala-io" % powerScalaVersion,
   "org.scalactic" %% "scalactic" % scalaTestVersion % "test",
   "org.scalatest" %% "scalatest" % scalacticVersion % "test"
 )
