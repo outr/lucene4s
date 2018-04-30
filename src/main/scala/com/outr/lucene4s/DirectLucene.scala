@@ -38,9 +38,9 @@ class DirectLucene(override val directory: Option[Path] = None,
     .setOpenMode(if (appendIfExists) OpenMode.CREATE_OR_APPEND else OpenMode.CREATE)
   override protected[lucene4s] lazy val facetsConfig = new FacetsConfig
 
-  override protected[lucene4s] lazy val indexWriter = new IndexWriter(indexDirectory, indexWriterConfig)
-  override protected[lucene4s] lazy val indexReader = DirectoryReader.open(indexWriter)
-  private[lucene4s] lazy val taxonomyWriterCache = createTaxonomyWriterCache()
+  override protected[lucene4s] lazy val indexWriter: IndexWriter = new IndexWriter(indexDirectory, indexWriterConfig)
+  override protected[lucene4s] lazy val indexReader: DirectoryReader = DirectoryReader.open(indexWriter)
+  private[lucene4s] lazy val taxonomyWriterCache: TaxonomyWriterCache = createTaxonomyWriterCache()
   override protected[lucene4s] lazy val taxonomyWriter = new DirectoryTaxonomyWriter(taxonomyDirectory, IndexWriterConfig.OpenMode.CREATE_OR_APPEND, taxonomyWriterCache)
   private[lucene4s] lazy val searcherTaxonomyManager = new SearcherTaxonomyManager(
     indexWriter,
