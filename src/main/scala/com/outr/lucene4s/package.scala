@@ -87,9 +87,9 @@ package object lucene4s {
   def term(value: String): TermSearchTerm = new TermSearchTerm(None, value)
 
   def exact[T](fv: FieldAndValue[T])(implicit fv2SearchTerm: FieldAndValue[T] => SearchTerm): SearchTerm = fv2SearchTerm(fv)
-  def intRange(field: Field[Int], start: Int, end: Int): SearchTerm = new RangeIntSearchTerm(field, start, end)
-  def longRange(field: Field[Long], start: Long, end: Long): SearchTerm = new RangeLongSearchTerm(field, start, end)
-  def doubleRange(field: Field[Double], start: Double, end: Double): SearchTerm = new RangeDoubleSearchTerm(field, start, end)
+  def intRange(field: Field[Int], start: Int, end: Int): SearchTerm = new RangeIntSearchTerm(field, math.min(start, end), math.max(start, end))
+  def longRange(field: Field[Long], start: Long, end: Long): SearchTerm = new RangeLongSearchTerm(field, math.min(start, end), math.max(start, end))
+  def doubleRange(field: Field[Double], start: Double, end: Double): SearchTerm = new RangeDoubleSearchTerm(field, math.min(start, end), math.max(start, end))
 
   def regexp(fv: FieldAndValue[String]): RegexpSearchTerm = new RegexpSearchTerm(Some(fv.field), fv.value.toString)
   def regexp(value: String): RegexpSearchTerm = new RegexpSearchTerm(None, value)
@@ -152,5 +152,31 @@ package object lucene4s {
 
   def drillDown(value: FacetValue, onlyThisLevel: Boolean = false): DrillDownSearchTerm = {
     new DrillDownSearchTerm(value.field, value.path, onlyThisLevel)
+  }
+
+  implicit class IntFieldExtras(val field: Field[Int]) extends AnyVal {
+    def >=(value: Int): SearchTerm = intRange(field, value, Int.MaxValue)
+    def >(value: Int): SearchTerm = intRange(field, value + 1, Int.MaxValue)
+    def <=(value: Int): SearchTerm = intRange(field, Int.MinValue, value)
+    def <(value: Int): SearchTerm = intRange(field, Int.MinValue, value - 1)
+    def <=>(value: (Int, Int)): SearchTerm = intRange(field, value._1, value._2)
+  }
+
+  implicit class LongFieldExtras(val field: Field[Long]) extends AnyVal {
+    def >=(value: Long): SearchTerm = longRange(field, value, Long.MaxValue)
+    def >(value: Long): SearchTerm = longRange(field, value + 1, Long.MaxValue)
+    def <=(value: Long): SearchTerm = longRange(field, Long.MinValue, value)
+    def <(value: Long): SearchTerm = longRange(field, Long.MinValue, value - 1)
+    def <=>(value: (Long, Long)): SearchTerm = longRange(field, value._1, value._2)
+  }
+
+  private val doublePrecision = 0.0001
+
+  implicit class DoubleFieldExtras(val field: Field[Double]) extends AnyVal {
+    def >=(value: Double): SearchTerm = doubleRange(field, value, Double.MaxValue)
+    def >(value: Double): SearchTerm = doubleRange(field, value + doublePrecision, Double.MaxValue)
+    def <=(value: Double): SearchTerm = doubleRange(field, Double.MinValue, value)
+    def <(value: Double): SearchTerm = doubleRange(field, Double.MinValue, value - doublePrecision)
+    def <=>(value: (Double, Double)): SearchTerm = doubleRange(field, value._1, value._2)
   }
 }

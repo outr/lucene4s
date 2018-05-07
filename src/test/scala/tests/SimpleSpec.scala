@@ -102,6 +102,19 @@ class SimpleSpec extends WordSpec with Matchers {
       paged.results(1)(name) should be("John Doe")
       paged.results(2)(name) should be("Billy Bob")
     }
+    "query by age range with DSL" in {
+      val paged = lucene.query().filter(age <=> (25, 21)).sort(Sort(age)).search()
+      paged.total should be(3)
+      paged.results(0)(name) should be("Jane Doe")
+      paged.results(1)(name) should be("John Doe")
+      paged.results(2)(name) should be("Billy Bob")
+    }
+    "query by age greater than or equal to 25" in {
+      val paged = lucene.query().filter(age >= 25).sort(Sort(age)).search()
+      paged.total should be(2)
+      paged.results(0)(name) should be("Billy Bob")
+      paged.results(1)(name) should be("Andrew Anderson")
+    }
     "query sorting by progress" in {
       val paged = lucene.query().sort(Sort(progress, reverse = true)).search()
       paged.total should be(5)
