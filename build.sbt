@@ -1,8 +1,8 @@
 name := "lucene4s"
 organization := "com.outr"
 version := "1.7.0-SNAPSHOT"
-scalaVersion := "2.12.5"
-crossScalaVersions := List("2.12.5", "2.11.12", "2.13.0-M2")
+scalaVersion := "2.12.6"
+crossScalaVersions := List("2.12.6", "2.11.12", "2.13.0-M2")
 parallelExecution in Test := false
 fork := true
 scalacOptions ++= Seq("-unchecked", "-deprecation")
@@ -23,7 +23,7 @@ developers in ThisBuild := List(
   Developer(id="darkfrog", name="Matt Hicks", email="matt@matthicks.com", url=url("http://matthicks.com"))
 )
 
-val luceneVersion = "7.2.1"
+val luceneVersion = "7.3.0"
 val powerScalaVersion = "2.0.5"
 
 val scalaTestVersion = "3.0.5"
