@@ -74,10 +74,14 @@ class ManagedLucene(directory: Option[Path] = None,
       if (Files.isDirectory(active)) {                    // Already has an active index
         // TODO: only do this if `recoverable` is false
         if (Files.isDirectory(temp)) {                    // Delete temporary directory
-          Files.walk(temp).forEach(Files.delete(_))
+          Files.walk(temp).forEach(new Consumer[Path] {
+            override def accept(t: Path): Unit = Files.delete(t)
+          })
         }
         if (Files.isDirectory(working)) {                 // Replace current with working
-          Files.walk(active).forEach(Files.delete(_))     // Delete current active directory
+          Files.walk(active).forEach(new Consumer[Path] { // Delete current active directory
+            override def accept(t: Path): Unit = Files.delete(t)
+          })
           Files.move(working, active)                     // Move the working directory to be the active
         }
       } else if (directories.nonEmpty) {                  // Migrate from direct lucene

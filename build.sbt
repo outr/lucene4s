@@ -1,8 +1,8 @@
 name := "lucene4s"
 organization := "com.outr"
-version := "1.7.0-SNAPSHOT"
+version := "1.7.0"
 scalaVersion := "2.12.6"
-crossScalaVersions := List("2.12.6", "2.11.12", "2.13.0-M2")
+crossScalaVersions := List("2.12.6", "2.11.12")
 parallelExecution in Test := false
 fork := true
 scalacOptions ++= Seq("-unchecked", "-deprecation")
@@ -25,6 +25,7 @@ developers in ThisBuild := List(
 
 val luceneVersion = "7.3.0"
 val powerScalaVersion = "2.0.5"
+val squantsVersion = "1.3.0"
 
 val scalaTestVersion = "3.0.5"
 val scalacticVersion = "3.0.5"
@@ -37,6 +38,7 @@ libraryDependencies ++= Seq(
   "org.apache.lucene" % "lucene-facet" % luceneVersion,
   "org.apache.lucene" % "lucene-highlighter" % luceneVersion,
   "org.powerscala" %% "powerscala-io" % powerScalaVersion,
+  "org.typelevel" %% "squants" % squantsVersion,
   "org.scalactic" %% "scalactic" % scalaTestVersion % "test",
   "org.scalatest" %% "scalatest" % scalacticVersion % "test"
 )

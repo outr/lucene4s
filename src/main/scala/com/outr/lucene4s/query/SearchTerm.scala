@@ -13,6 +13,7 @@ import org.apache.lucene.index.Term
 import org.apache.lucene.queryparser.classic.QueryParser
 import org.apache.lucene.search._
 import org.apache.lucene.util.automaton.RegExp
+import squants.Length
 
 sealed trait SearchTerm {
   protected[lucene4s] def toLucene(lucene: Lucene): Query
@@ -130,6 +131,24 @@ class RangeDoubleSearchTerm(field: Field[Double], start: Double, end: Double) ex
   override def toString: String = s"range(${field.name}, start: $start, end: $end)"
 }
 
+class SetIntSearchTerm(field: Field[Int], set: Seq[Int]) extends SearchTerm {
+  override protected[lucene4s] def toLucene(lucene: Lucene): Query = IntPoint.newSetQuery(field.name, set: _*)
+
+  override def toString: String = s"set(${field.name}, set: $set)"
+}
+
+class SetLongSearchTerm(field: Field[Long], set: Seq[Long]) extends SearchTerm {
+  override protected[lucene4s] def toLucene(lucene: Lucene): Query = LongPoint.newSetQuery(field.name, set: _*)
+
+  override def toString: String = s"set(${field.name}, set: $set)"
+}
+
+class SetDoubleSearchTerm(field: Field[Double], set: Seq[Double]) extends SearchTerm {
+  override protected[lucene4s] def toLucene(lucene: Lucene): Query = DoublePoint.newSetQuery(field.name, set: _*)
+
+  override def toString: String = s"set(${field.name}, set: $set)"
+}
+
 class RegexpSearchTerm(field: Option[Field[String]], value: String) extends SearchTerm {
   // TODO: add support for regular expression flags
   override protected[lucene4s] def toLucene(lucene: Lucene): Query = new RegexpQuery(new Term(field.getOrElse(lucene.fullText).name, value), RegExp.ALL)
@@ -155,10 +174,10 @@ class SpatialBoxTerm(field: Field[SpatialPoint], minLatitude: Double, maxLatitud
   override def toString: String = s"spatialBox(${field.name}, minLatitude: $minLatitude, maxLatitude: $maxLatitude, minLongitude: $minLongitude, maxLongitude: $maxLongitude)"
 }
 
-class SpatialDistanceTerm(field: Field[SpatialPoint], point: SpatialPoint, radiusInMeters: Long) extends SearchTerm {
-  override protected[lucene4s] def toLucene(lucene: Lucene): Query = LatLonPoint.newDistanceQuery(field.name, point.latitude, point.longitude, radiusInMeters)
+class SpatialDistanceTerm(field: Field[SpatialPoint], point: SpatialPoint, radius: Length) extends SearchTerm {
+  override protected[lucene4s] def toLucene(lucene: Lucene): Query = LatLonPoint.newDistanceQuery(field.name, point.latitude, point.longitude, radius.toMeters)
 
-  override def toString: String = s"spatialDistance(${field.name}, latitude: ${point.latitude}, longitude: ${point.longitude}, radius: $radiusInMeters)"
+  override def toString: String = s"spatialDistance(${field.name}, latitude: ${point.latitude}, longitude: ${point.longitude}, radius: $radius)"
 }
 
 class SpatialPolygonTerm(field: Field[SpatialPoint], polygons: List[SpatialPolygon]) extends SearchTerm {

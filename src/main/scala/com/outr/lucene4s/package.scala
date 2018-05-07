@@ -6,6 +6,7 @@ import com.outr.lucene4s.field.value.{FieldAndValue, SpatialPoint}
 import com.outr.lucene4s.field.value.support._
 import com.outr.lucene4s.query._
 import org.apache.lucene.queries.mlt.MoreLikeThis
+import squants.space.Length
 
 import scala.language.implicitConversions
 
@@ -91,6 +92,10 @@ package object lucene4s {
   def longRange(field: Field[Long], start: Long, end: Long): SearchTerm = new RangeLongSearchTerm(field, math.min(start, end), math.max(start, end))
   def doubleRange(field: Field[Double], start: Double, end: Double): SearchTerm = new RangeDoubleSearchTerm(field, math.min(start, end), math.max(start, end))
 
+  def intSet(field: Field[Int], set: Seq[Int]): SearchTerm = new SetIntSearchTerm(field, set)
+  def longSet(field: Field[Long], set: Seq[Long]): SearchTerm = new SetLongSearchTerm(field, set)
+  def doubleSet(field: Field[Double], set: Seq[Double]): SearchTerm = new SetDoubleSearchTerm(field, set)
+
   def regexp(fv: FieldAndValue[String]): RegexpSearchTerm = new RegexpSearchTerm(Some(fv.field), fv.value.toString)
   def regexp(value: String): RegexpSearchTerm = new RegexpSearchTerm(None, value)
 
@@ -137,7 +142,7 @@ package object lucene4s {
 
   def spatialBox(field: Field[SpatialPoint], minLatitude: Double, maxLatitude: Double, minLongitude: Double, maxLongitude: Double): SpatialBoxTerm = new SpatialBoxTerm(field, minLatitude, maxLatitude, minLongitude, maxLongitude)
 
-  def spatialDistance(field: Field[SpatialPoint], point: SpatialPoint, radiusInMeters: Long): SpatialDistanceTerm = new SpatialDistanceTerm(field, point, radiusInMeters)
+  def spatialDistance(field: Field[SpatialPoint], point: SpatialPoint, radius: Length): SpatialDistanceTerm = new SpatialDistanceTerm(field, point, radius)
 
   def spatialPolygon(field: Field[SpatialPoint], polygons: SpatialPolygon*): SpatialPolygonTerm = new SpatialPolygonTerm(field, polygons.toList)
 
@@ -160,6 +165,7 @@ package object lucene4s {
     def <=(value: Int): SearchTerm = intRange(field, Int.MinValue, value)
     def <(value: Int): SearchTerm = intRange(field, Int.MinValue, value - 1)
     def <=>(value: (Int, Int)): SearchTerm = intRange(field, value._1, value._2)
+    def contains(values: Int*): SearchTerm = intSet(field, values)
   }
 
   implicit class LongFieldExtras(val field: Field[Long]) extends AnyVal {
@@ -168,6 +174,7 @@ package object lucene4s {
     def <=(value: Long): SearchTerm = longRange(field, Long.MinValue, value)
     def <(value: Long): SearchTerm = longRange(field, Long.MinValue, value - 1)
     def <=>(value: (Long, Long)): SearchTerm = longRange(field, value._1, value._2)
+    def contains(values: Long*): SearchTerm = longSet(field, values)
   }
 
   private val doublePrecision = 0.0001
@@ -178,5 +185,14 @@ package object lucene4s {
     def <=(value: Double): SearchTerm = doubleRange(field, Double.MinValue, value)
     def <(value: Double): SearchTerm = doubleRange(field, Double.MinValue, value - doublePrecision)
     def <=>(value: (Double, Double)): SearchTerm = doubleRange(field, value._1, value._2)
+    def contains(values: Double*): SearchTerm = doubleSet(field, values)
+  }
+
+  implicit class SpatialFieldExtras(val field: Field[SpatialPoint]) extends AnyVal {
+    def within(length: Length): SpatialPartialDistance = SpatialPartialDistance(field, length)
+  }
+
+  case class SpatialPartialDistance(field: Field[SpatialPoint], length: Length) {
+    def of(point: SpatialPoint): SpatialDistanceTerm = spatialDistance(field, point, length)
   }
 }

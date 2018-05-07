@@ -272,13 +272,16 @@ that you can use `miles`, `meters`, or whatever measurement of distance desirabl
 
 ## Versions
 
-### Features for 1.7.0 (In-Progress)
+### Features for 1.8.0 (In-Progress)
+
+* [ ] Scala.js support for Query parsing and URL mapping (QueryURL)
+* [ ] Complete ScalaDocing
+
+### Features for 1.7.0 (Released 2018.05.07)
 
 * [X] In-Place Replaceable Indexes
 * [X] Numeric operator querying (<, >, <=, >=, etc.)
-* [ ] Scala.js support for Query parsing and URL mapping (QueryURL)
-* [ ] Numeric Seq support
-* [ ] Complete ScalaDocing
+* [X] Numeric Seq support
 
 ### Features for 1.6.0 (Released 2018.04.05)
 
