@@ -3,6 +3,7 @@ package com.outr.lucene4s
 import java.nio.file.Path
 
 import com.outr.lucene4s.document.DocumentBuilder
+import com.outr.lucene4s.facet.FacetField
 import com.outr.lucene4s.field.Field
 import com.outr.lucene4s.query._
 import org.apache.lucene.analysis.Analyzer
@@ -16,13 +17,25 @@ import scala.collection.JavaConverters._
 import scala.language.experimental.macros
 
 trait Lucene {
+  private[lucene4s] var _fields = Set.empty[Field[_]]
+  private[lucene4s] var _facets = Set.empty[FacetField]
+
   def directory: Option[Path]
   def defaultFullTextSearchable: Boolean
+  def fields: Set[Field[_]] = _fields
+  def field[T](name: String): Field[T] = {
+    fields.find(_.name == name).getOrElse(throw new RuntimeException(s"Field $name not found")).asInstanceOf[Field[T]]
+  }
+  def facets: Set[FacetField] = _facets
+  def facet(name: String): FacetField = {
+    facets.find(_.name == name).getOrElse(throw new RuntimeException(s"Facet $name not found"))
+  }
   def fullText: Field[String]
   def stopWords: Set[String]
 
   lazy val create: LuceneCreate = new LuceneCreate(this)
 
+  def uniqueFields: List[String]
   def doc(): DocumentBuilder = new DocumentBuilder(this, None)
   def query(): QueryBuilder[SearchResult] = QueryBuilder(this, conversion = sr => sr)
   def delete(term: SearchTerm): Unit

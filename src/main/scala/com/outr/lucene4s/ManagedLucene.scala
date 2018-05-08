@@ -4,6 +4,7 @@ import java.nio.file.{Files, Path}
 import java.util.concurrent.locks.ReentrantLock
 import java.util.function.Consumer
 
+import com.outr.lucene4s.field.Field
 import com.outr.lucene4s.keyword.KeywordIndexing
 
 import scala.collection.JavaConverters._
@@ -11,12 +12,13 @@ import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.language.implicitConversions
 
-class ManagedLucene(directory: Option[Path] = None,
+class ManagedLucene(override val uniqueFields: List[String],
+                    directory: Option[Path] = None,
                     appendIfExists: Boolean = true,
                     defaultFullTextSearchable: Boolean = false,
                     autoCommit: Boolean = false,
                     stopWords: Set[String] = KeywordIndexing.DefaultStopWords,
-                    stopWordsIgnoreCase: Boolean = true) extends ReplaceableLucene {
+                    stopWordsIgnoreCase: Boolean = true) extends ReplaceableLucene { self =>
   private val lock = new ReentrantLock()
 
   attemptMigration()
@@ -98,11 +100,14 @@ class ManagedLucene(directory: Option[Path] = None,
   protected def load(): Unit = instance = create(temp = false)
 
   protected def create(temp: Boolean): Lucene = new DirectLucene(
+    uniqueFields = uniqueFields,
     directory = directory.map(_.resolve(if (temp) "temp" else "active")),
     appendIfExists = appendIfExists,
     defaultFullTextSearchable = defaultFullTextSearchable,
     autoCommit = autoCommit,
     stopWords = stopWords,
     stopWordsIgnoreCase = stopWordsIgnoreCase
-  )
+  ) {
+    override def fields: Set[Field[_]] = self.fields
+  }
 }

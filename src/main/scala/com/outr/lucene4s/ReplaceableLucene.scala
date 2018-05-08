@@ -19,6 +19,8 @@ class ReplaceableLucene extends Lucene {
     _instance = instance
   }
 
+  override def uniqueFields: List[String] = instance.uniqueFields
+
   protected def instance: Lucene = _instance
   protected def instance_=(instance: Lucene): Unit = synchronized {
     _instance = instance

@@ -9,7 +9,7 @@ import org.scalatest.{Matchers, WordSpec}
 import squants.space.LengthConversions._
 
 class SpatialSpec extends WordSpec with Matchers {
-  val lucene = new DirectLucene()
+  val lucene = new DirectLucene(uniqueFields = List("name"))
   val name: Field[String] = lucene.create.field[String]("name")
   val location: Field[SpatialPoint] = lucene.create.field[SpatialPoint]("location")
   val city: Field[String] = lucene.create.field[String]("city")

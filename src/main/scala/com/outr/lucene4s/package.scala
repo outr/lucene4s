@@ -7,6 +7,7 @@ import com.outr.lucene4s.field.value.support._
 import com.outr.lucene4s.query._
 import org.apache.lucene.queries.mlt.MoreLikeThis
 import squants.space.Length
+import squants.space.LengthConversions._
 
 import scala.language.implicitConversions
 
@@ -20,20 +21,23 @@ package object lucene4s {
 
   implicit def string2ParsableSearchTerm(value: String): SearchTerm = parse(value)
 
-  implicit val booleanFieldValue2SearchTerm: (FieldAndValue[Boolean]) => SearchTerm = {
-    (fv: FieldAndValue[Boolean]) => new ExactBooleanSearchTerm(fv.field, fv.value)
+  implicit val booleanFieldValue2SearchTerm: FieldAndValue[Boolean] => SearchTerm = {
+    fv: FieldAndValue[Boolean] => new ExactBooleanSearchTerm(fv.field, fv.value)
   }
-  implicit val intFieldValue2SearchTerm: (FieldAndValue[Int]) => SearchTerm = {
-    (fv: FieldAndValue[Int]) => new ExactIntSearchTerm(fv.field, fv.value)
+  implicit val intFieldValue2SearchTerm: FieldAndValue[Int] => SearchTerm = {
+    fv: FieldAndValue[Int] => new ExactIntSearchTerm(fv.field, fv.value)
   }
-  implicit val longFieldValue2SearchTerm: (FieldAndValue[Long]) => SearchTerm = {
-    (fv: FieldAndValue[Long]) => new ExactLongSearchTerm(fv.field, fv.value)
+  implicit val longFieldValue2SearchTerm: FieldAndValue[Long] => SearchTerm = {
+    fv: FieldAndValue[Long] => new ExactLongSearchTerm(fv.field, fv.value)
   }
-  implicit val doubleFieldValue2SearchTerm: (FieldAndValue[Double]) => SearchTerm = {
-    (fv: FieldAndValue[Double]) => new ExactDoubleSearchTerm(fv.field, fv.value)
+  implicit val doubleFieldValue2SearchTerm: FieldAndValue[Double] => SearchTerm = {
+    fv: FieldAndValue[Double] => new ExactDoubleSearchTerm(fv.field, fv.value)
   }
-  implicit val stringFieldValue2SearchTerm: (FieldAndValue[String]) => SearchTerm = {
-    (fv: FieldAndValue[String]) => new PhraseSearchTerm(Some(fv.field), fv.value)
+  implicit val stringFieldValue2SearchTerm: FieldAndValue[String] => SearchTerm = {
+    fv: FieldAndValue[String] => new PhraseSearchTerm(Some(fv.field), fv.value)
+  }
+  implicit val spatialFieldValue2SearchTerm: FieldAndValue[SpatialPoint] => SearchTerm = {
+    fv: FieldAndValue[SpatialPoint] => spatialDistance(fv.field, fv.value, 1.meters)
   }
 
   def matchAll(): SearchTerm = MatchAllSearchTerm
@@ -87,7 +91,7 @@ package object lucene4s {
   def term(fv: FieldAndValue[String]): TermSearchTerm = new TermSearchTerm(Some(fv.field), fv.value.toString.toLowerCase)
   def term(value: String): TermSearchTerm = new TermSearchTerm(None, value)
 
-  def exact[T](fv: FieldAndValue[T])(implicit fv2SearchTerm: FieldAndValue[T] => SearchTerm): SearchTerm = fv2SearchTerm(fv)
+  def exact[T](fv: FieldAndValue[T]): SearchTerm = fv.field.fv2SearchTerm(fv)
   def intRange(field: Field[Int], start: Int, end: Int): SearchTerm = new RangeIntSearchTerm(field, math.min(start, end), math.max(start, end))
   def longRange(field: Field[Long], start: Long, end: Long): SearchTerm = new RangeLongSearchTerm(field, math.min(start, end), math.max(start, end))
   def doubleRange(field: Field[Double], start: Double, end: Double): SearchTerm = new RangeDoubleSearchTerm(field, math.min(start, end), math.max(start, end))

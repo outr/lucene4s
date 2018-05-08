@@ -7,7 +7,7 @@ import com.outr.lucene4s.query.Condition
 import org.scalatest.{Matchers, WordSpec}
 
 class FacetsSpec extends WordSpec with Matchers {
-  val lucene: Lucene = new DirectLucene()
+  val lucene: Lucene = new DirectLucene(uniqueFields = List("name"))
   val name: Field[String] = lucene.create.field[String]("name")
   val author: FacetField = lucene.create.facet("Author", multiValued = true)
   val publishDate: FacetField = lucene.create.facet("Publish Date", hierarchical = true)
@@ -41,6 +41,12 @@ class FacetsSpec extends WordSpec with Matchers {
       publishResult.values.map(_.value) should be(Vector("2010", "2012", "1999"))
       publishResult.values.map(_.count) should be(Vector(2, 2, 2))
       page.results.map(_(name)) should be(Vector("One", "Two", "Three", "Four", "Five", "Six", "Seven"))
+    }
+    "modify a record" in {
+      val page = lucene.query().filter(exact(name("Five"))).search()
+      page.results.length should be(1)
+      val result = page.results.head
+      result.update.fields(name("Cinco")).index()
     }
     "list all results for 2010" in {
       val page = lucene
@@ -83,7 +89,7 @@ class FacetsSpec extends WordSpec with Matchers {
       publishResult.totalCount should be(4)
       publishResult.values.map(_.value) should be(Vector("2012", "1999"))
       publishResult.values.map(_.count) should be(Vector(2, 2))
-      page.results.map(_(name)) should be(Vector("Three", "Four", "Five", "Six", "Seven"))
+      page.results.map(_(name)) should be(Vector("Three", "Four", "Six", "Seven", "Cinco"))
     }
     "list all results for 2010/10" in {
       val page = lucene
@@ -170,7 +176,7 @@ class FacetsSpec extends WordSpec with Matchers {
       val authorResult = page.facet(author).get
       authorResult.values.map(_.value) should be(Vector("Bob", "Lisa", "James", "Frank", "George"))
       authorResult.values.map(_.count) should be(Vector(2, 2, 1, 1, 1))
-      page.results.map(_(name)) should be(Vector("One", "Two", "Three", "Five", "Six", "Seven"))
+      page.results.map(_(name)) should be(Vector("One", "Two", "Three", "Six", "Seven", "Cinco"))
     }
   }
 }

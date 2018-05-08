@@ -6,7 +6,6 @@ import com.outr.lucene4s.field.Field
 import com.outr.lucene4s.field.value.FieldAndValue
 import com.outr.lucene4s.query.SearchTerm
 import org.apache.lucene.document.Document
-import org.apache.lucene.index.Term
 
 import scala.collection.mutable.ListBuffer
 
@@ -28,8 +27,17 @@ class DocumentBuilder(lucene: Lucene,
   def facetsForField(field: FacetField): List[FacetValue] = facetValues.filter(_.field.name == field.name)
   def facetsForName(name: String): List[FacetValue] = facetValues.filter(_.field.name == name)
 
+  private[lucene4s] def rebuildFacetsFromDocument(): Unit = {
+    lucene.facets.foreach { ff =>
+      val field = document.getField(ff.name)
+      val path = field.stringValue().split('/').toList
+      facets(ff(path: _*))
+    }
+  }
+
   def fields(fieldAndValues: FieldAndValue[_]*): DocumentBuilder = synchronized {
     fieldAndValues.foreach { fv =>
+      document.removeFields(fv.field.name)      // Remove existing by name
       fv.write(document)
       if (fv.field.fullTextSearchable) {
         fullText = fv.value.toString :: fullText
@@ -41,6 +49,7 @@ class DocumentBuilder(lucene: Lucene,
 
   def facets(facetValues: FacetValue*): DocumentBuilder = synchronized {
     facetValues.foreach { fv =>
+      document.removeFields(fv.field.name)
       fv.write(document)
       _facetValues += fv
     }

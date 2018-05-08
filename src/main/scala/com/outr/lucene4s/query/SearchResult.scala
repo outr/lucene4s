@@ -1,18 +1,27 @@
 package com.outr.lucene4s.query
 
-import com.outr.lucene4s.Lucene
+import com.outr.lucene4s._
+import com.outr.lucene4s.document.DocumentBuilder
 import com.outr.lucene4s.field.Field
+import org.apache.lucene.document.Document
 import org.apache.lucene.search.ScoreDoc
 
 class SearchResult private[lucene4s](lucene: Lucene, search: PagedResults[_], scoreDoc: ScoreDoc) {
-  private lazy val doc = lucene.withSearcherAndTaxonomy(_.searcher.doc(scoreDoc.doc))
+  private lazy val doc: Document = lucene.withSearcherAndTaxonomy(_.searcher.doc(scoreDoc.doc))
 
   def apply[T](field: Field[T]): T = field.support.fromLucene(doc.getField(field.name))
-  // TODO: create get[T](field: Field[T]): Option[T]
 
   def id: Int = scoreDoc.doc
   def score: Double = scoreDoc.score.toDouble
   def shardIndex: Int = scoreDoc.shardIndex
+
+  def update: DocumentBuilder = {
+    val identifiers = lucene.uniqueFields.map(lucene.field[Any]).map(f => exact(f(apply(f))))
+    val query = grouped(identifiers.map(_ -> Condition.Must): _*)
+    val builder = new DocumentBuilder(lucene, Some(query), doc)
+    builder.rebuildFacetsFromDocument()
+    builder
+  }
 
   def highlighting[T](field: Field[T]): List[HighlightedResult] = search.highlighter match {
     case Some(highlighter) => {

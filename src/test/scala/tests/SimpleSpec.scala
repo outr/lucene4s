@@ -7,7 +7,7 @@ import com.outr.lucene4s.query._
 import org.scalatest.{Matchers, WordSpec}
 
 class SimpleSpec extends WordSpec with Matchers {
-  val lucene = new DirectLucene(defaultFullTextSearchable = true, autoCommit = true)
+  val lucene = new DirectLucene(uniqueFields = List("name"), defaultFullTextSearchable = true, autoCommit = true)
   val keywordIndexing = KeywordIndexing(lucene, "keywords")
   val name: Field[String] = lucene.create.field[String]("name")
   val age: Field[Int] = lucene.create.field[Int]("age")
@@ -272,17 +272,19 @@ class SimpleSpec extends WordSpec with Matchers {
       lucene.query().search().results.length should be(5)
     }
     "update Jane Doe with name and age" in {
-      lucene.query().search().results.length should be(5)
-      lucene.update(grouped(
-        exact(name("Jane Doe")) -> Condition.Must,
-        exact(age(21)) -> Condition.Must
-      )).fields(name("Janie Doe")).index()
-      lucene.query().search().results.length should be(5)
-      val results = lucene.query().filter(exact(name("Janie Doe"))).search()
-      results.total should be(1)
+      val results = lucene.query().search().results
+      results.length should be(5)
+
+      val janeDoe = results.find(_.apply(name) == "Jane Doe").getOrElse(fail("Cannot find Jane Doe in results"))
+      janeDoe.update.fields(name("Janie Doe")).index()
+
+      val results2 = lucene.query().filter(exact(name("Janie Doe"))).search()
+      results2.total should be(1)
+      val result = results2.entries.head
+      result(name) should be("Janie Doe")
+      result(age) should be(21)
     }
     // TODO: storage and querying of Array[Byte]
-    // TODO: storage and querying of multiple points
     "dispose" in {
       lucene.dispose()
     }

@@ -6,7 +6,7 @@ import com.outr.lucene4s.query.Sort
 import org.scalatest.{Matchers, WordSpec}
 
 class FullTextSpec extends WordSpec with Matchers {
-  val lucene: Lucene = new DirectLucene(defaultFullTextSearchable = true)   // Default all fields to be fullTextSearchable
+  val lucene: Lucene = new DirectLucene(uniqueFields = List("firstName", "lastName"), defaultFullTextSearchable = true)   // Default all fields to be fullTextSearchable
   val firstName: Field[String] = lucene.create.field[String]("firstName")
   val lastName: Field[String] = lucene.create.field[String]("lastName")
   val age: Field[Int] = lucene.create.field[Int]("age")

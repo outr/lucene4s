@@ -20,7 +20,8 @@ import org.apache.lucene.store.{FSDirectory, RAMDirectory}
 
 import scala.collection.JavaConverters._
 
-class DirectLucene(override val directory: Option[Path] = None,
+class DirectLucene(override val uniqueFields: List[String],
+                   override val directory: Option[Path] = None,
                    val appendIfExists: Boolean = true,
                    override val defaultFullTextSearchable: Boolean = false,
                    val autoCommit: Boolean = false,
