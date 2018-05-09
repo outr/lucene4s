@@ -272,11 +272,15 @@ that you can use `miles`, `meters`, or whatever measurement of distance desirabl
 
 ## Versions
 
-### Features for 1.8.0 (In-Progress)
+### Features for 1.9.0 (In-Progress)
 
-* [X] Support to update documents returned from a search
 * [ ] Scala.js support for Query parsing and URL mapping (QueryURL)
 * [ ] Complete ScalaDocing
+
+### Features for 1.8.0 (Released 2018.05.09)
+
+* [X] Support to update documents returned from a search
+* [X] Access to fields and facets associated with a `Lucene` instance
 
 ### Features for 1.7.0 (Released 2018.05.07)
 
