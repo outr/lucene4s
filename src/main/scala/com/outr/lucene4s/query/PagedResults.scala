@@ -36,4 +36,46 @@ class PagedResults[T] private[lucene4s](val lucene: Lucene,
   } else {
     None
   }
+  def pagedResultsIterator: Iterator[SearchResult] = new PagedResultsIterator(this)
+  def pagedEntriesIterator: Iterator[T] = new PagedEntriesIterator[T](this)
+}
+
+class PagedResultsIterator(private var pagedResults: PagedResults[_]) extends Iterator[SearchResult] {
+  private var results = pagedResults.results
+
+  override def hasNext: Boolean = results.nonEmpty || pagedResults.hasNextPage
+
+  override def next(): SearchResult = if (results.nonEmpty) {
+    try {
+      results.head
+    } finally {
+      results = results.tail
+    }
+  } else if (pagedResults.hasNextPage) {
+    pagedResults = pagedResults.nextPage().getOrElse(throw new RuntimeException("Failed to change pages"))
+    results = pagedResults.results
+    next()
+  } else {
+    throw new NullPointerException("No more results")
+  }
+}
+
+class PagedEntriesIterator[T](private var pagedResults: PagedResults[T]) extends Iterator[T] {
+  private var entries = pagedResults.entries
+
+  override def hasNext: Boolean = entries.nonEmpty || pagedResults.hasNextPage
+
+  override def next(): T = if (entries.nonEmpty) {
+    try {
+      entries.head
+    } finally {
+      entries = entries.tail
+    }
+  } else if (pagedResults.hasNextPage) {
+    pagedResults = pagedResults.nextPage().getOrElse(throw new RuntimeException("Failed to change pages"))
+    entries = pagedResults.entries
+    next()
+  } else {
+    throw new NullPointerException("No more results")
+  }
 }

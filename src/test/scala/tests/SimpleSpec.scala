@@ -284,6 +284,14 @@ class SimpleSpec extends WordSpec with Matchers {
       result(name) should be("Janie Doe")
       result(age) should be(21)
     }
+    "query all results paginated iterator" in {
+      val paged = lucene.query().limit(2).search()
+      paged.total should be(5)
+      paged.results.length should be(2)
+
+      paged.pagedResultsIterator.toList.size should be(5)
+      paged.pagedEntriesIterator.toList.size should be(5)
+    }
     // TODO: storage and querying of Array[Byte]
     "dispose" in {
       lucene.dispose()

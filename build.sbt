@@ -1,6 +1,6 @@
 name := "lucene4s"
 organization := "com.outr"
-version := "1.8.0"
+version := "1.8.1-SNAPSHOT"
 scalaVersion := "2.12.6"
 crossScalaVersions := List("2.12.6", "2.11.12")
 parallelExecution in Test := false
@@ -23,7 +23,7 @@ developers in ThisBuild := List(
   Developer(id="darkfrog", name="Matt Hicks", email="matt@matthicks.com", url=url("http://matthicks.com"))
 )
 
-val luceneVersion = "7.3.0"
+val luceneVersion = "7.4.0"
 val powerScalaVersion = "2.0.5"
 val squantsVersion = "1.3.0"
 
