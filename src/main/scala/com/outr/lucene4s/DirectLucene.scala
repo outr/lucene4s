@@ -16,7 +16,7 @@ import org.apache.lucene.facet.taxonomy.writercache.TaxonomyWriterCache
 import org.apache.lucene.index.IndexWriterConfig.OpenMode
 import org.apache.lucene.index.{DirectoryReader, IndexWriter, IndexWriterConfig}
 import org.apache.lucene.search.SearcherFactory
-import org.apache.lucene.store.{FSDirectory, RAMDirectory}
+import org.apache.lucene.store.{NIOFSDirectory, RAMDirectory}
 
 import scala.collection.JavaConverters._
 
@@ -32,8 +32,8 @@ class DirectLucene(override val uniqueFields: List[String],
   private lazy val indexPath = directory.map(_.resolve("index"))
   private lazy val taxonomyPath = directory.map(_.resolve("taxonomy"))
 
-  private lazy val indexDirectory = indexPath.map(FSDirectory.open).getOrElse(new RAMDirectory)
-  private lazy val taxonomyDirectory = taxonomyPath.map(FSDirectory.open).getOrElse(new RAMDirectory)
+  private lazy val indexDirectory = indexPath.map(new NIOFSDirectory(_)).getOrElse(new RAMDirectory)
+  private lazy val taxonomyDirectory = taxonomyPath.map(new NIOFSDirectory(_)).getOrElse(new RAMDirectory)
 
   private lazy val indexWriterConfig = new IndexWriterConfig(analyzer)
     .setOpenMode(if (appendIfExists) OpenMode.CREATE_OR_APPEND else OpenMode.CREATE)

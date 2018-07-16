@@ -11,7 +11,7 @@ import org.apache.lucene.document.{Document, Field}
 import org.apache.lucene.index.{DirectoryReader, IndexWriter, IndexWriterConfig}
 import org.apache.lucene.queryparser.classic.QueryParser
 import org.apache.lucene.search.{IndexSearcher, MatchAllDocsQuery}
-import org.apache.lucene.store.{FSDirectory, RAMDirectory}
+import org.apache.lucene.store.{NIOFSDirectory, RAMDirectory}
 
 import scala.annotation.tailrec
 import scala.concurrent.duration._
@@ -41,7 +41,7 @@ case class KeywordIndexing(lucene: Lucene,
                            minimumLength: Int = 2) extends LuceneListener {
   // Write support
   private lazy val indexPath = lucene.directory.map(_.resolve(directoryName))
-  private lazy val indexDirectory = indexPath.map(FSDirectory.open).getOrElse(new RAMDirectory)
+  private lazy val indexDirectory = indexPath.map(new NIOFSDirectory(_)).getOrElse(new RAMDirectory)
   private lazy val indexWriterConfig = new IndexWriterConfig(lucene.analyzer)
   private lazy val indexWriter = new IndexWriter(indexDirectory, indexWriterConfig)
 
