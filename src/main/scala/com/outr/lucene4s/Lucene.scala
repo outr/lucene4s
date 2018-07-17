@@ -42,6 +42,12 @@ trait Lucene {
   def deleteAll(): Unit
   def listen(listener: LuceneListener): Unit
   def commit(): Unit
+  def optimize(): Unit = {
+    indexWriter.flush()
+    indexWriter.commit()
+    indexWriter.forceMergeDeletes()
+    indexWriter.deleteUnusedFiles()
+  }
   def update(searchTerm: SearchTerm): DocumentBuilder = new DocumentBuilder(this, Some(searchTerm))
   def dispose(): Unit
 
