@@ -109,6 +109,11 @@ package object lucene4s {
   def fuzzy(value: String): FuzzySearchTerm = new FuzzySearchTerm(None, value)
   def fuzzy(fv: FieldAndValue[String]): FuzzySearchTerm = new FuzzySearchTerm(Some(fv.field), fv.value.toString)
 
+  def phrase(fv: FieldAndValue[String]): PhraseSearchTerm = phrase(fv, 0)
+  def phrase(fv: FieldAndValue[String], slop: Int): PhraseSearchTerm = new PhraseSearchTerm(Some(fv.field), fv.value, slop)
+  def phrase(value: String): PhraseSearchTerm = phrase(value, 0)
+  def phrase(value: String, slop: Int): PhraseSearchTerm = new PhraseSearchTerm(None, value, slop)
+
   def mltFullText(value: String,
           minTermFreq: Int = MoreLikeThis.DEFAULT_MIN_TERM_FREQ,
           minDocFreq: Int = MoreLikeThis.DEFAULT_MIN_DOC_FREQ,

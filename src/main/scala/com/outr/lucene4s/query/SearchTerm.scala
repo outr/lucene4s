@@ -37,8 +37,10 @@ class ParsableSearchTerm(field: Option[Field[String]], value: String, allowLeadi
   override def toString: String = s"parse($field, value: $value, allowLeadingWildcard: $allowLeadingWildcard)"
 }
 
-class PhraseSearchTerm(field: Option[Field[String]], value: String) extends SearchTerm {
-  override protected[lucene4s] def toLucene(lucene: Lucene): Query = new PhraseQuery(field.getOrElse(lucene.fullText).name, value.split(' ').map(_.toLowerCase): _*)
+class PhraseSearchTerm(field: Option[Field[String]], value: String, slop: Int = 0) extends SearchTerm {
+  override protected[lucene4s] def toLucene(lucene: Lucene): Query = {
+    new PhraseQuery(slop, field.getOrElse(lucene.fullText).name, value.split(' ').map(_.toLowerCase): _*)
+  }
 }
 
 class TermSearchTerm(field: Option[Field[String]], value: String) extends SearchTerm {
