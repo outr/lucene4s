@@ -1,7 +1,7 @@
 package tests
 
 import com.outr.lucene4s._
-import com.outr.lucene4s.field.Field
+import com.outr.lucene4s.field.{Field, FieldType}
 import com.outr.lucene4s.keyword.KeywordIndexing
 import com.outr.lucene4s.query._
 import org.scalatest.{Matchers, WordSpec}
@@ -14,6 +14,7 @@ class SimpleSpec extends WordSpec with Matchers {
   val progress: Field[Double] = lucene.create.field[Double]("progress")
   val bytes: Field[Long] = lucene.create.field[Long]("bytes")
   val enabled: Field[Boolean] = lucene.create.field[Boolean]("enabled")
+  val email: Field[String] = lucene.create.field[String]("email", fieldType = FieldType.Untokenized)
 
   "Simple Spec" should {
     "create a simple document" in {
@@ -291,6 +292,18 @@ class SimpleSpec extends WordSpec with Matchers {
 
       paged.pagedResultsIterator.toList.size should be(5)
       paged.pagedEntriesIterator.toList.size should be(5)
+    }
+    "insert two emails" in {
+      lucene.doc().fields(email("john@doe.com"), name("John Doe")).index()
+      lucene.doc().fields(email("John@doe.com"), name("John Jacob")).index()
+    }
+    "query back a case-sensitive email 'john@doe.com'" in {
+      val results = lucene.query().filter(exact(email("john@doe.com"))).search().results.map(_(name))
+      results should be(Vector("John Doe"))
+    }
+    "query back a case-sensitive email 'John@doe.com'" in {
+      val results = lucene.query().filter(exact(email("John@doe.com"))).search().results.map(_(name))
+      results should be(Vector("John Jacob"))
     }
     // TODO: storage and querying of Array[Byte]
     "dispose" in {

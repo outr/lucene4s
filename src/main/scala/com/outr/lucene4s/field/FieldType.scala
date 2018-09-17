@@ -12,6 +12,12 @@ object FieldType {
     stored = true,
     frozen = true
   )
+  val Untokenized = FieldType(
+    indexOptions = Set(IndexOption.Documents, IndexOption.Frequencies, IndexOption.Positions),
+    tokenized = false,
+    stored = true,
+    frozen = true
+  )
 }
 
 case class FieldType(stored: Boolean = false,

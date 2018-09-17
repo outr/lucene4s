@@ -34,7 +34,11 @@ package object lucene4s {
     fv: FieldAndValue[Double] => new ExactDoubleSearchTerm(fv.field, fv.value)
   }
   implicit val stringFieldValue2SearchTerm: FieldAndValue[String] => SearchTerm = {
-    fv: FieldAndValue[String] => new PhraseSearchTerm(Some(fv.field), fv.value)
+    fv: FieldAndValue[String] => if (fv.field.fieldType.tokenized) {
+      new PhraseSearchTerm(Some(fv.field), fv.value)
+    } else {
+      new TermSearchTerm(Some(fv.field), fv.value)
+    }
   }
   implicit val spatialFieldValue2SearchTerm: FieldAndValue[SpatialPoint] => SearchTerm = {
     fv: FieldAndValue[SpatialPoint] => spatialDistance(fv.field, fv.value, 1.meters)

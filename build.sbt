@@ -1,6 +1,6 @@
 name := "lucene4s"
 organization := "com.outr"
-version := "1.8.4"
+version := "1.8.5-SNAPSHOT"
 scalaVersion := "2.12.6"
 crossScalaVersions := List("2.12.6", "2.11.12")
 parallelExecution in Test := false
