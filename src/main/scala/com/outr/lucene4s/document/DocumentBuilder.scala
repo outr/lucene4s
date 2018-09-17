@@ -10,7 +10,7 @@ import org.apache.lucene.document.Document
 import scala.collection.mutable.ListBuffer
 
 class DocumentBuilder(lucene: Lucene,
-                      update: Option[SearchTerm],
+                      val update: Option[SearchTerm],
                       val document: Document = new Document) {
   var fullText: List[String] = List.empty[String]
 
@@ -56,18 +56,5 @@ class DocumentBuilder(lucene: Lucene,
     this
   }
 
-  def index(): Unit = {
-    if (fullText.nonEmpty) {
-      val fullTextString: String = fullText.mkString("\n")
-      fields(lucene.fullText(fullTextString))
-    }
-    val doc = lucene.facetsConfig.build(lucene.taxonomyWriter, document)
-
-    update.foreach { searchTerm =>
-      // We need to do an update, so delete based on the criteria
-      lucene.delete(searchTerm)
-    }
-    lucene.indexWriter.addDocument(doc)
-    lucene.indexed(this)
-  }
+  def index(): Unit = lucene.index(this)
 }

@@ -101,8 +101,10 @@ class DirectLucene(override val uniqueFields: List[String],
     taxonomyDirectory.close()
   }
 
-  override protected[lucene4s] def indexed(builder: DocumentBuilder): Unit = synchronized {
-    listeners.foreach(_.indexed(builder))
+  override protected[lucene4s] def indexed(builders: Seq[DocumentBuilder]): Unit = synchronized {
+    builders.foreach { builder =>
+      listeners.foreach(_.indexed(builder))
+    }
     if (autoCommit) {
       commit()
     }

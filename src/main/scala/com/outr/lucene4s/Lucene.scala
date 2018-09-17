@@ -49,6 +49,26 @@ trait Lucene {
     indexWriter.deleteUnusedFiles()
   }
   def update(searchTerm: SearchTerm): DocumentBuilder = new DocumentBuilder(this, Some(searchTerm))
+  def index(builders: DocumentBuilder*): Unit = {
+    // Build documents to insert
+    val docs = builders.map { b =>
+      if (b.fullText.nonEmpty) {
+        val fullTextString: String = b.fullText.mkString("\n")
+        b.fields(fullText(fullTextString))
+      }
+      facetsConfig.build(taxonomyWriter, b.document)
+    }
+
+    // Delete existing matching docs
+    val deleteTerms = builders.flatten(_.update)
+    if (deleteTerms.nonEmpty) {
+      delete(grouped(minimumNumberShouldMatch = 1, deleteTerms.map(term => term -> Condition.Should): _*))
+    }
+
+    // Add the documents
+    indexWriter.addDocuments(docs.asJava)
+    indexed(builders)
+  }
   def dispose(): Unit
 
   protected[lucene4s] def analyzer: Analyzer
@@ -56,7 +76,7 @@ trait Lucene {
   protected[lucene4s] def taxonomyWriter: DirectoryTaxonomyWriter
   protected[lucene4s] def indexWriter: IndexWriter
   protected[lucene4s] def indexReader: IndexReader
-  protected[lucene4s] def indexed(builder: DocumentBuilder): Unit
+  protected[lucene4s] def indexed(builders: Seq[DocumentBuilder]): Unit
   protected[lucene4s] def withSearcherAndTaxonomy[R](f: SearcherAndTaxonomy => R): R
 
   protected[lucene4s] def moreLikeThis: MoreLikeThis = {

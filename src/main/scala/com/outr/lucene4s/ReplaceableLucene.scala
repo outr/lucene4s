@@ -54,7 +54,7 @@ class ReplaceableLucene extends Lucene {
 
   override protected[lucene4s] def indexReader: IndexReader = instance.indexReader
 
-  override protected[lucene4s] def indexed(builder: DocumentBuilder): Unit = instance.indexed(builder)
+  override protected[lucene4s] def indexed(builders: Seq[DocumentBuilder]): Unit = instance.indexed(builders)
 
   override protected[lucene4s] def withSearcherAndTaxonomy[R](f: SearcherTaxonomyManager.SearcherAndTaxonomy => R): R = {
     instance.withSearcherAndTaxonomy(f)

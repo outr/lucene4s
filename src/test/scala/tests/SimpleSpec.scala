@@ -32,10 +32,12 @@ class SimpleSpec extends WordSpec with Matchers {
       results(0)(enabled) should be(true)
     }
     "add a few more documents" in {
-      lucene.doc().fields(name("Jane Doe"), age(21)).index()
-      lucene.doc().fields(name("Andrew Anderson"), age(31)).index()
-      lucene.doc().fields(name("Billy Bob"), age(25)).index()
-      lucene.doc().fields(name("Carly Charles"), age(19)).index()
+      lucene.index(
+        lucene.doc().fields(name("Jane Doe"), age(21)),
+        lucene.doc().fields(name("Andrew Anderson"), age(31)),
+        lucene.doc().fields(name("Billy Bob"), age(25)),
+        lucene.doc().fields(name("Carly Charles"), age(19))
+      )
     }
     "query by an exact name" in {
       val page = lucene.query().filter(exact(name("John Doe"))).search()
