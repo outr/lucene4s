@@ -5,14 +5,20 @@ import org.apache.lucene.document.{Document, SortedDocValuesField, StringField, 
 import org.apache.lucene.index.IndexableField
 import org.apache.lucene.search.SortField
 import org.apache.lucene.search.SortField.Type
-import org.apache.lucene.util.BytesRef
+import org.apache.lucene.util.{ByteBlockPool, BytesRef}
 
 object StringValueSupport extends ValueSupport[String] {
   override def write(field: Field[String], value: String, document: Document): Unit = {
     val stored = new LuceneField(field.name, value, field.fieldType.lucene())
-    val sorted = new SortedDocValuesField(field.name, new BytesRef(value))
     document.add(stored)
-    document.add(sorted)
+    if (field.sortable) {
+      val bytes = new BytesRef(value)
+      if (bytes.length > ByteBlockPool.BYTE_BLOCK_SIZE - 2)
+        System.err.println(s"Value for field ${field.name} is greater than ${ByteBlockPool.BYTE_BLOCK_SIZE - 2}. " +
+          "This will cause an error. Reduce field size or set: sortable = false")
+      val sorted = new SortedDocValuesField(field.name, bytes)
+      document.add(sorted)
+    }
   }
 
   override def fromLucene(field: IndexableField): String = field.stringValue()

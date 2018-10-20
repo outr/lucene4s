@@ -12,9 +12,10 @@ import scala.language.experimental.macros
 class LuceneCreate(val lucene: Lucene) {
   def field[T](name: String,
                fieldType: FieldType = FieldType.Stored,
-               fullTextSearchable: Boolean = lucene.defaultFullTextSearchable
+               fullTextSearchable: Boolean = lucene.defaultFullTextSearchable,
+               sortable: Boolean = true
               )(implicit support: ValueSupport[T], fv2SearchTerm: FieldAndValue[T] => SearchTerm): Field[T] = {
-    val field = new Field[T](name, fieldType, support, fullTextSearchable)
+    val field = new Field[T](name, fieldType, support, fullTextSearchable, sortable)
     lucene.synchronized {
       lucene._fields += field
     }

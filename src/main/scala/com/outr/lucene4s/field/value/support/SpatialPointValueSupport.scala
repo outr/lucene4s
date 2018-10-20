@@ -11,10 +11,12 @@ object SpatialPointValueSupport extends ValueSupport[SpatialPoint] {
   override def write(field: Field[SpatialPoint], value: SpatialPoint, document: Document): Unit = {
     val stored = new StoredField(field.name, value.toString)
     val filtered = new LatLonPoint(field.name, value.latitude, value.longitude)
-    val sorted = new LatLonDocValuesField(field.name, value.latitude, value.longitude)
     document.add(stored)
     document.add(filtered)
-    document.add(sorted)
+    if (field.sortable) {
+      val sorted = new LatLonDocValuesField(field.name, value.latitude, value.longitude)
+      document.add(sorted)
+    }
   }
 
   override def fromLucene(field: IndexableField): SpatialPoint = SpatialPoint.fromString(field.stringValue())
