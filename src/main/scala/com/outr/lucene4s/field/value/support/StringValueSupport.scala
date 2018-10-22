@@ -14,8 +14,9 @@ object StringValueSupport extends ValueSupport[String] {
     if (field.sortable) {
       val bytes = new BytesRef(value)
       if (bytes.length > ByteBlockPool.BYTE_BLOCK_SIZE - 2)
-        System.err.println(s"Value for field ${field.name} is greater than ${ByteBlockPool.BYTE_BLOCK_SIZE - 2}. " +
-          "This will cause an error. Reduce field size or set: sortable = false")
+        throw new RuntimeException(s"Value for field ${field.name} is greater than " +
+          s"${ByteBlockPool.BYTE_BLOCK_SIZE - 2} bytes. " +
+          "This would cause a Lucene error. Reduce field size or set: sortable = false")
       val sorted = new SortedDocValuesField(field.name, bytes)
       document.add(sorted)
     }
