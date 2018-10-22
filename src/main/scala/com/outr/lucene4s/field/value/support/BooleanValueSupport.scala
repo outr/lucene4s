@@ -11,10 +11,12 @@ object BooleanValueSupport extends ValueSupport[Boolean] {
     val v = if (value) 1 else 0
     val stored = new StoredField(field.name, v)
     val filtered = new IntPoint(field.name, v)
-    val sorted = new NumericDocValuesField(field.name, v)
     document.add(stored)
     document.add(filtered)
-    document.add(sorted)
+    if (field.sortable) {
+      val sorted = new NumericDocValuesField(field.name, v)
+      document.add(sorted)
+    }
   }
 
   override def fromLucene(field: IndexableField): Boolean = if (field.numericValue().intValue() == 1) true else false

@@ -34,7 +34,7 @@ import com.outr.lucene4s._
 
 ```scala
 val directory = Paths.get("index")
-val lucene = new Lucene(directory = Option(directory))
+val lucene = new DirectLucene(Nil, directory = Option(directory))
 ```
 
 NOTE: If you leave `directory` blank or set it to None (the default) it will use an in-memory index. 

@@ -10,10 +10,12 @@ object IntValueSupport extends ValueSupport[Int] {
   override def write(field: Field[Int], value: Int, document: Document): Unit = {
     val stored = new StoredField(field.name, value)
     val filtered = new IntPoint(field.name, value)
-    val sorted = new NumericDocValuesField(field.name, value)
     document.add(stored)
     document.add(filtered)
-    document.add(sorted)
+    if (field.sortable) {
+      val sorted = new NumericDocValuesField(field.name, value)
+      document.add(sorted)
+    }
   }
 
   override def fromLucene(field: IndexableField): Int = field.numericValue().intValue()
