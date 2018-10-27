@@ -10,10 +10,12 @@ object DoubleValueSupport extends ValueSupport[Double] {
   override def write(field: Field[Double], value: Double, document: Document): Unit = {
     val stored = new StoredField(field.name, value)
     val filtered = new DoublePoint(field.name, value)
-    val sorted = new DoubleDocValuesField(field.name, value)
     document.add(stored)
     document.add(filtered)
-    document.add(sorted)
+    if (field.sortable) {
+      val sorted = new DoubleDocValuesField(field.name, value)
+      document.add(sorted)
+    }
   }
 
   override def fromLucene(field: IndexableField): Double = field.numericValue().doubleValue()
