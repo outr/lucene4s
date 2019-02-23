@@ -1,10 +1,11 @@
-name := "lucene4s"
-organization := "com.outr"
-version := "1.8.5"
-scalaVersion := "2.12.8"
-crossScalaVersions := List("2.12.8", "2.11.12")
-parallelExecution in Test := false
-fork := true
+import sbtcrossproject.CrossPlugin.autoImport.crossProject
+
+name in ThisBuild := "lucene4s"
+organization in ThisBuild := "com.outr"
+version in ThisBuild := "1.9.0-SNAPSHOT"
+scalaVersion in ThisBuild := "2.12.8"
+crossScalaVersions in ThisBuild := List("2.12.8", "2.11.12")
+parallelExecution in Test in ThisBuild := false
 scalacOptions ++= Seq("-unchecked", "-deprecation")
 
 publishTo in ThisBuild := sonatypePublishTo.value
@@ -30,17 +31,39 @@ val squantsVersion = "1.3.0"
 val scalaTestVersion = "3.0.5"
 val scalacticVersion = "3.0.5"
 
-libraryDependencies ++= Seq(
-  "org.scala-lang" % "scala-reflect" % scalaVersion.value,
-  "org.apache.lucene" % "lucene-core" % luceneVersion,
-  "org.apache.lucene" % "lucene-analyzers-common" % luceneVersion,
-  "org.apache.lucene" % "lucene-queryparser" % luceneVersion,
-  "org.apache.lucene" % "lucene-facet" % luceneVersion,
-  "org.apache.lucene" % "lucene-highlighter" % luceneVersion,
-  "org.powerscala" %% "powerscala-io" % powerScalaVersion,
-  "org.typelevel" %% "squants" % squantsVersion,
-  "org.scalactic" %% "scalactic" % scalaTestVersion % "test",
-  "org.scalatest" %% "scalatest" % scalacticVersion % "test"
-)
+lazy val root = project.in(file("."))
+  .aggregate(coreJS, coreJVM, implementation)
+  .settings(
+    publish := {},
+    publishLocal := {}
+  )
 
-testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-oF")
+lazy val core = crossProject(JVMPlatform, JSPlatform)
+  .in(file("core"))
+  .settings(
+    name := "lucene4s-core"
+  )
+
+lazy val coreJS = core.js
+lazy val coreJVM = core.jvm
+
+lazy val implementation = project
+  .in(file("implementation"))
+  .settings(
+    name := "lucene4s",
+    libraryDependencies ++= Seq(
+      "org.scala-lang" % "scala-reflect" % scalaVersion.value,
+      "org.apache.lucene" % "lucene-core" % luceneVersion,
+      "org.apache.lucene" % "lucene-analyzers-common" % luceneVersion,
+      "org.apache.lucene" % "lucene-queryparser" % luceneVersion,
+      "org.apache.lucene" % "lucene-facet" % luceneVersion,
+      "org.apache.lucene" % "lucene-highlighter" % luceneVersion,
+      "org.powerscala" %% "powerscala-io" % powerScalaVersion,
+      "org.typelevel" %% "squants" % squantsVersion,
+      "org.scalactic" %% "scalactic" % scalaTestVersion % "test",
+      "org.scalatest" %% "scalatest" % scalacticVersion % "test"
+    ),
+    testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-oF")
+  )
+  .dependsOn(coreJVM)
+
