@@ -17,7 +17,7 @@ class TokenSpec extends WordSpec with Matchers with Eventually {
   val sessionExpireField: Field[Long] = lucene.create.field[Long](name = "sessionExpireField")
 
   "generate session tokens for emails, expire tokens and assert that expire time is set" in {
-    val userEmails = (1 to 1000) map (i => s"email$i@email.com")
+    val userEmails = (1 to 10) map (i => s"email$i@email.com")
 
     // Generate UUID -> e-mail tuples and index them
     val tokensAndEmails: Seq[(String, String)] = userEmails map { email =>

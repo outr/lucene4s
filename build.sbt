@@ -23,8 +23,9 @@ scmInfo in ThisBuild := Some(
 developers in ThisBuild := List(
   Developer(id="darkfrog", name="Matt Hicks", email="matt@matthicks.com", url=url("http://matthicks.com"))
 )
+testOptions in Test in ThisBuild += Tests.Argument("-oD")
 
-val luceneVersion = "7.6.0"
+val luceneVersion = "7.7.1"
 val powerScalaVersion = "2.0.5"
 val squantsVersion = "1.3.0"
 
