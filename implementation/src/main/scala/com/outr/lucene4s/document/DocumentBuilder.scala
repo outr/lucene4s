@@ -29,9 +29,10 @@ class DocumentBuilder(lucene: Lucene,
 
   private[lucene4s] def rebuildFacetsFromDocument(): Unit = {
     lucene.facets.foreach { ff =>
-      val field = document.getField(ff.name)
-      val path = field.stringValue().split('/').toList
-      facets(ff(path: _*))
+      Option(document.getField(ff.name)).foreach { field =>
+        val path = field.stringValue().split('/').toList
+        facets(ff(path: _*))
+      }
     }
   }
 
