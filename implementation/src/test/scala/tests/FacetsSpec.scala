@@ -18,27 +18,28 @@ class FacetsSpec extends WordSpec with Matchers {
       lucene.doc().fields(name("One")).facets(
         author("Bob"),
         author("James"),
-//        keywords("support@one.com"),
-//        keywords("support@two.com"),
+        keywords("support@one.com"),
+        keywords("support@two.com"),
         publishDate("2010", "10", "15")
       ).index()
       lucene.doc().fields(name("Two")).facets(
         author("Lisa"),
-//        keywords("support@one.com"),
+        keywords("support@one.com"),
         publishDate("2010", "10", "20")
       ).index()
       lucene.doc().fields(name("Three")).facets(
         author("Lisa"),
-//        keywords("support@two.com"),
+        keywords("support@two.com"),
         publishDate("2012", "1", "1")
       ).index()
       lucene.doc().fields(name("Four")).facets(
         author("Susan"),
-//        keywords("support@three.com"),
+        keywords("support@three.com"),
         publishDate("2012", "1", "7")
       ).index()
       lucene.doc().fields(name("Five")).facets(
         author("Frank"),
+        keywords("support"),
         publishDate("1999", "5", "5")
       ).index()
       lucene.doc().fields(name("Six")).facets(
@@ -70,11 +71,11 @@ class FacetsSpec extends WordSpec with Matchers {
       publishResult.values.map(_.count) should be(Vector(2, 2, 2))
       page.results.map(_(name)) should be(Vector("One", "Two", "Three", "Four", "Five", "Six", "Seven"))
     }
-//    "list all support@one.com keyword facets" in {
-//      val page = lucene.query().filter(drillDown(keywords("support@one.com"))).search()
-//      val names = page.entries.map(r => r(name))
-//      names should be(Vector("One", "Two"))
-//    }
+    "list all support@one.com keyword facets" in {
+      val page = lucene.query().filter(drillDown(keywords("support@one.com"))).search()
+      val names = page.entries.map(r => r(name))
+      names should be(Vector("One", "Two"))
+    }
     "modify a record" in {
       val page = lucene.query().filter(exact(name("Five"))).search()
       page.results.length should be(1)
