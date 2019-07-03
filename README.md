@@ -99,7 +99,7 @@ Fragment: <em>Jane</em> Doe, Word: Jane
 
 ### Faceted Searching
 
-See https://github.com/outr/lucene4s/blob/master/src/test/scala/tests/FacetsSpec.scala
+See https://github.com/outr/lucene4s/blob/master/implementation/src/test/scala/tests/FacetsSpec.scala
 
 ### Full-Text Searching
 
@@ -117,7 +117,7 @@ paged.results(2)(firstName) should be("Baby")
 paged.results(3)(firstName) should be("James")
 ```
 
-For a complete example, see: https://github.com/outr/lucene4s/blob/master/src/test/scala/tests/FullTextSpec.scala
+For a complete example, see: https://github.com/outr/lucene4s/blob/master/implementation/src/test/scala/tests/FullTextSpec.scala
 
 ### Keyword Searching
 
@@ -138,7 +138,7 @@ The above code would output:
 Keywords: Doe
 ```
 
-For the complete example see: https://github.com/outr/lucene4s/blob/master/src/test/scala/tests/SimpleSpec.scala
+For the complete example see: https://github.com/outr/lucene4s/blob/master/implementation/src/test/scala/tests/SimpleSpec.scala
 
 ### Case Class Support
 
@@ -228,7 +228,7 @@ people.delete(Person(1, "John", "Doe", 23, "321 Nowhere St.", "Lalaland", "Calif
 All `Searchable` implementations automatically define a `docType` field that is used to uniquely separate different
 `Searchable` instances so you don't have to worry about multiple different instances overlapping.
 
-For more examples see https://github.com/outr/lucene4s/blob/master/src/test/scala/tests/SearchableSpec.scala
+For more examples see https://github.com/outr/lucene4s/blob/master/implementation/src/test/scala/tests/SearchableSpec.scala
 
 ### Geospatial Support
 
