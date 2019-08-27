@@ -1,10 +1,12 @@
 package com.outr.lucene4s.keyword
 
-case class KeywordResults(results: List[KeywordResult], total: Long, maxScore: Double) {
+import org.apache.lucene.search.TotalHits
+
+case class KeywordResults(results: List[KeywordResult], total: TotalHits) {
   lazy val words: List[String] = results.map(_.word)
   def highlighted(pre: String = "<strong>", post: String = "</strong>"): List[String] = results.map(_.highlighted(pre, post))
 }
 
 object KeywordResults {
-  lazy val empty: KeywordResults = KeywordResults(Nil, 0L, 0.0)
+  lazy val empty: KeywordResults = KeywordResults(Nil, new TotalHits(0L, TotalHits.Relation.EQUAL_TO))
 }

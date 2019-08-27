@@ -3,8 +3,8 @@ import sbtcrossproject.CrossPlugin.autoImport.crossProject
 name in ThisBuild := "lucene4s"
 organization in ThisBuild := "com.outr"
 version in ThisBuild := "1.9.0-SNAPSHOT"
-scalaVersion in ThisBuild := "2.12.8"
-crossScalaVersions in ThisBuild := List("2.12.8", "2.11.12")
+scalaVersion in ThisBuild := "2.13.0"
+crossScalaVersions in ThisBuild := List("2.13.0", "2.12.8", "2.11.12")
 parallelExecution in Test in ThisBuild := false
 scalacOptions ++= Seq("-unchecked", "-deprecation")
 
@@ -25,12 +25,9 @@ developers in ThisBuild := List(
 )
 testOptions in Test in ThisBuild += Tests.Argument("-oD")
 
-val luceneVersion = "7.7.1"
-val powerScalaVersion = "2.0.5"
-val squantsVersion = "1.3.0"
+val luceneVersion = "8.2.0"
 
-val scalaTestVersion = "3.0.5"
-val scalacticVersion = "3.0.5"
+val scalaTestVersion = "3.1.0-SNAP13"
 
 lazy val root = project.in(file("."))
   .aggregate(coreJS, coreJVM, implementation)
@@ -59,12 +56,8 @@ lazy val implementation = project
       "org.apache.lucene" % "lucene-queryparser" % luceneVersion,
       "org.apache.lucene" % "lucene-facet" % luceneVersion,
       "org.apache.lucene" % "lucene-highlighter" % luceneVersion,
-      "org.powerscala" %% "powerscala-io" % powerScalaVersion,
-      "org.typelevel" %% "squants" % squantsVersion,
-      "org.scalactic" %% "scalactic" % scalaTestVersion % "test",
-      "org.scalatest" %% "scalatest" % scalacticVersion % "test"
+      "org.scalactic" %% "scalactic" % scalaTestVersion % "test"
     ),
     testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-oF")
   )
   .dependsOn(coreJVM)
-

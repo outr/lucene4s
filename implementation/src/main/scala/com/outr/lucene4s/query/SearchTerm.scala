@@ -2,7 +2,7 @@ package com.outr.lucene4s.query
 
 import java.io.StringReader
 
-import com.outr.lucene4s.Lucene
+import com.outr.lucene4s.{Length, Lucene}
 import com.outr.lucene4s.facet.FacetField
 import com.outr.lucene4s.field.Field
 import com.outr.lucene4s.field.value.SpatialPoint
@@ -13,7 +13,6 @@ import org.apache.lucene.index.Term
 import org.apache.lucene.queryparser.classic.QueryParser
 import org.apache.lucene.search._
 import org.apache.lucene.util.automaton.RegExp
-import squants.Length
 
 sealed trait SearchTerm {
   protected[lucene4s] def toLucene(lucene: Lucene): Query
@@ -177,7 +176,7 @@ class SpatialBoxTerm(field: Field[SpatialPoint], minLatitude: Double, maxLatitud
 }
 
 class SpatialDistanceTerm(field: Field[SpatialPoint], point: SpatialPoint, radius: Length) extends SearchTerm {
-  override protected[lucene4s] def toLucene(lucene: Lucene): Query = LatLonPoint.newDistanceQuery(field.name, point.latitude, point.longitude, radius.toMeters)
+  override protected[lucene4s] def toLucene(lucene: Lucene): Query = LatLonPoint.newDistanceQuery(field.name, point.latitude, point.longitude, radius.meters)
 
   override def toString: String = s"spatialDistance(${field.name}, latitude: ${point.latitude}, longitude: ${point.longitude}, radius: $radius)"
 }

@@ -6,8 +6,6 @@ import com.outr.lucene4s.field.value.{FieldAndValue, SpatialPoint}
 import com.outr.lucene4s.field.value.support._
 import com.outr.lucene4s.query._
 import org.apache.lucene.queries.mlt.MoreLikeThis
-import squants.space.Length
-import squants.space.LengthConversions._
 
 import scala.language.implicitConversions
 
@@ -42,6 +40,9 @@ package object lucene4s {
   }
   implicit val spatialFieldValue2SearchTerm: FieldAndValue[SpatialPoint] => SearchTerm = {
     fv: FieldAndValue[SpatialPoint] => spatialDistance(fv.field, fv.value, 1.meters)
+  }
+  implicit class IntExtras(i: Int) {
+    def meters: Length = new Length(i)
   }
 
   def matchAll(): SearchTerm = MatchAllSearchTerm

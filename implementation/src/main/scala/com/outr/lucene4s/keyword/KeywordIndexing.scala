@@ -11,7 +11,7 @@ import com.outr.lucene4s.field.value.FieldAndValue
 import org.apache.lucene.document.{Document, Field}
 import org.apache.lucene.index.{DirectoryReader, IndexWriter, IndexWriterConfig}
 import org.apache.lucene.queryparser.classic.QueryParser
-import org.apache.lucene.search.{IndexSearcher, MatchAllDocsQuery}
+import org.apache.lucene.search.{IndexSearcher, MatchAllDocsQuery, TopDocs}
 import org.apache.lucene.store.{MMapDirectory, NIOFSDirectory}
 
 import scala.annotation.tailrec
@@ -128,7 +128,7 @@ case class KeywordIndexing(lucene: Lucene,
         parser.parse(queryString)
       }
     }
-    val searchResults = searcher.search(query, limit)
+    val searchResults: TopDocs = searcher.search(query, limit)
     val keywords = searchResults.scoreDocs.map { scoreDoc =>
       val doc = searcher.doc(scoreDoc.doc)
       val word = doc.get("keyword")
@@ -138,7 +138,7 @@ case class KeywordIndexing(lucene: Lucene,
       val wordMatch = WordMatch(queryString, word)
       KeywordResult(word, wordMatch, scoreDoc.score.toDouble, additionalFields)
     }.toList
-    KeywordResults(keywords, searchResults.totalHits, searchResults.getMaxScore)
+    KeywordResults(keywords, searchResults.totalHits)
   }
 }
 
