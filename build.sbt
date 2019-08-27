@@ -56,7 +56,7 @@ lazy val implementation = project
       "org.apache.lucene" % "lucene-queryparser" % luceneVersion,
       "org.apache.lucene" % "lucene-facet" % luceneVersion,
       "org.apache.lucene" % "lucene-highlighter" % luceneVersion,
-      "org.scalactic" %% "scalactic" % scalaTestVersion % "test"
+      "org.scalatest" %% "scalatest" % scalaTestVersion % "test"
     ),
     testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-oF")
   )

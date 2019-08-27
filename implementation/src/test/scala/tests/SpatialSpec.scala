@@ -6,8 +6,6 @@ import com.outr.lucene4s.field.value.SpatialPoint
 import com.outr.lucene4s.query.Sort
 import org.scalatest.{Matchers, WordSpec}
 
-import squants.space.LengthConversions._
-
 class SpatialSpec extends WordSpec with Matchers {
   val lucene = new DirectLucene(uniqueFields = List("name"))
   val name: Field[String] = lucene.create.field[String]("name")

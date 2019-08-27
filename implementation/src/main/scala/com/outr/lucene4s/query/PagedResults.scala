@@ -2,6 +2,7 @@ package com.outr.lucene4s.query
 
 import com.outr.lucene4s.Lucene
 import com.outr.lucene4s.facet.FacetField
+import org.apache.lucene.search.TotalHits
 import org.apache.lucene.search.highlight.Highlighter
 
 class PagedResults[T] private[lucene4s](val lucene: Lucene,
@@ -15,10 +16,10 @@ class PagedResults[T] private[lucene4s](val lucene: Lucene,
   def apply(index: Int): T = entries(index)
 
   def pageSize: Int = query.limit
-  def total: Long = searchResults.topDocs.totalHits
+  def total: Long = searchResults.topDocs.totalHits.value
+  def totalRelation: TotalHits.Relation = searchResults.topDocs.totalHits.relation
   def pageIndex: Int = offset / pageSize
   def pages: Int = math.ceil(total.toDouble / pageSize.toDouble).toInt
-  def maxScore: Double = searchResults.topDocs.getMaxScore.toDouble
 
   def facets: Map[FacetField, FacetResult] = searchResults.facetResults
   def facet(field: FacetField): Option[FacetResult] = facets.get(field)

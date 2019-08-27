@@ -43,6 +43,7 @@ package object lucene4s {
   }
   implicit class IntExtras(i: Int) {
     def meters: Length = new Length(i)
+    def miles: Length = new Length(i * 1609.344)
   }
 
   def matchAll(): SearchTerm = MatchAllSearchTerm

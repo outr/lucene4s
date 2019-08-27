@@ -143,9 +143,9 @@ class SimpleSpec extends WordSpec with Matchers {
       val paged = lucene.query().scoreDocs().sort(Sort.Score).filter(term(name("doe"))).search()
       paged.total should be(2)
       paged.results(0)(name) should be("John Doe")
-      paged.results(0).score should be(0.8754687309265137)
+      paged.results(0).score should be(0.3979403078556061)
       paged.results(1)(name) should be("Jane Doe")
-      paged.results(1).score should be(0.8754687309265137)
+      paged.results(1).score should be(0.3979403078556061)
     }
     "query by age" in {
       val paged = lucene.query().filter(exact(age(23))).search()
@@ -172,9 +172,9 @@ class SimpleSpec extends WordSpec with Matchers {
       val paged = lucene.query().scoreDocs().sort(Sort.Score).filter(fuzzy(name("jhn"))).search()
       paged.total should be(2)
       paged.results(0)(name) should be("John Doe")
-      paged.results(0).score should be(0.9241962432861328)
+      paged.results(0).score should be(0.42008915543556213)
       paged.results(1)(name) should be("Jane Doe")
-      paged.results(1).score should be(0.4620981216430664)
+      paged.results(1).score should be(0.21004457771778107)
     }
     "query fuzzy matching john and jane with two word phrase" in {
       val paged = lucene.query().scoreDocs().sort(Sort.Score).filter(parseFuzzy("jhn doe", Some(name))).search()
@@ -182,22 +182,22 @@ class SimpleSpec extends WordSpec with Matchers {
       names should be(Set("John Doe", "Jane Doe"))
       paged.total should be(2)
       paged.results(0)(name) should be("John Doe")
-      paged.results(0).score should be(1.7996649742126465)
+      paged.results(0).score should be(0.8180294632911682)
       paged.results(1)(name) should be("Jane Doe")
-      paged.results(1).score should be(1.33756685256958)
+      paged.results(1).score should be(0.6079849004745483)
     }
     "query fuzzy matching john and jane with highlighting" in {
       val paged = lucene.query().scoreDocs().sort(Sort.Score).filter(fuzzy(name("jhn"))).highlight().search()
       paged.total should be(2)
       paged.results(0)(name) should be("John Doe")
-      paged.results(0).score should be(0.9241962432861328)
+      paged.results(0).score should be(0.42008915543556213)
       val highlightsJohn = paged.results(0).highlighting(name)
       highlightsJohn.length should be(1)
       highlightsJohn.head.fragment should be("<em>John</em> Doe")
       highlightsJohn.head.word should be("John")
 
       paged.results(1)(name) should be("Jane Doe")
-      paged.results(1).score should be(0.4620981216430664)
+      paged.results(1).score should be(0.21004457771778107)
       val highlightsJane = paged.results(1).highlighting(name)
       highlightsJane.length should be(1)
       highlightsJane.head.fragment should be("<em>Jane</em> Doe")
@@ -207,14 +207,14 @@ class SimpleSpec extends WordSpec with Matchers {
       val paged = lucene.query().scoreDocs().sort(Sort.Score).filter(fuzzy(lucene.fullText("jhn"))).highlight().search()
       paged.total should be(2)
       paged.results(0)(name) should be("John Doe")
-      paged.results(0).score should be(0.7261541485786438)
+      paged.results(0).score should be(0.33007004857063293)
       val highlightsJohn = paged.results(0).highlighting(name)
       highlightsJohn.length should be(1)
       highlightsJohn.head.fragment should be("<em>John</em> Doe")
       highlightsJohn.head.word should be("John")
 
       paged.results(1)(name) should be("Jane Doe")
-      paged.results(1).score should be(0.4959101378917694)
+      paged.results(1).score should be(0.22541369497776031)
       val highlightsJane = paged.results(1).highlighting(name)
       highlightsJane.length should be(1)
       highlightsJane.head.fragment should be("<em>Jane</em> Doe")
@@ -223,15 +223,15 @@ class SimpleSpec extends WordSpec with Matchers {
     "query all keywords from keyword indexing" in {
       val keywords = keywordIndexing.search(limit = 20)
       keywords.results.map(_.word) should be(List("true", "123456789", "0.123", "23", "John", "21", "Jane", "Doe", "31", "Andrew", "Anderson", "25", "Billy", "Bob", "19", "Carly", "Charles"))
-      keywords.total should be(17)
-      keywords.maxScore should be(1.0)
+      keywords.total.value should be(17)
+      keywords.results.head.score should be(1.0)
       keywords.results.length should be(17)
     }
     "query keywords filtered by 'doe'" in {
       val keywords = keywordIndexing.search("do*")
       keywords.results.map(_.word) should be(List("Doe"))
-      keywords.total should be(1)
-      keywords.maxScore should be(1.0)
+      keywords.total.value should be(1)
+      keywords.results.head.score should be(1.0)
       keywords.results.length should be(1)
     }
     "update 'Billy Bob' to 'Johnny Bob'" in {
