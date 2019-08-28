@@ -9,7 +9,7 @@ import org.apache.lucene.search.ScoreDoc
 class SearchResult private[lucene4s](lucene: Lucene, search: PagedResults[_], scoreDoc: ScoreDoc) {
   private lazy val doc: Document = lucene.withSearcherAndTaxonomy(_.searcher.doc(scoreDoc.doc))
 
-  def apply[T](field: Field[T]): T = field.support.fromLucene(doc.getField(field.name))
+  def apply[T](field: Field[T]): T = field.support.fromLucene(doc.getFields(field.name).toList)
 
   def id: Int = scoreDoc.doc
   def score: Double = scoreDoc.score.toDouble
