@@ -156,6 +156,8 @@ package object lucene4s {
 
   def all(terms: SearchTerm*): GroupedSearchTerm = grouped(terms.map(t => t -> Condition.Must): _*)
 
+  def any(terms: SearchTerm*): GroupedSearchTerm = grouped(minimumNumberShouldMatch = 1, terms.map(t => t -> Condition.Should): _*)
+
   def none(terms: SearchTerm*): GroupedSearchTerm = grouped(terms.map(t => t -> Condition.MustNot): _*)
 
   def boost(term: SearchTerm, boost: Double): BoostedSearchTerm = BoostedSearchTerm(term, boost)

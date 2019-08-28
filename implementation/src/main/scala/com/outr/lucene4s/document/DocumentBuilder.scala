@@ -52,12 +52,14 @@ class DocumentBuilder(lucene: Lucene,
     this
   }
 
-  def remove[T](fv: FacetValue): DocumentBuilder = {
-    val values = document.getFields(fv.field.name).toList.map(_.stringValue()).distinct
+  def remove[T](facetValues: FacetValue*): DocumentBuilder = {
+    val field = facetValues.head.field
+    val excludePaths = facetValues.map(_.pathString).toSet
+    val values = document.getFields(field.name).toList.map(_.stringValue()).distinct
     val updated = values.collect {
-      case v if v != fv.pathString => new FacetValue(fv.field, v.split('/'): _*)
+      case v if !excludePaths.contains(v) => new FacetValue(field, v.split('/'): _*)
     }
-    clear(fv.field.name)
+    clear(field.name)
     facets(updated: _*)
   }
 
