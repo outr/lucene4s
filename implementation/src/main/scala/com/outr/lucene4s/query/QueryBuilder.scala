@@ -66,6 +66,15 @@ case class QueryBuilder[T] private[lucene4s](lucene: Lucene,
       new PagedResults(lucene, this, offset, searchResults, highlighter)
     }
   }
+
+  def delete(): Unit = {
+    val query = searchTerms match {
+      case Nil => MatchAllSearchTerm
+      case st :: Nil => st
+      case _ => grouped(searchTerms.map(_ -> Condition.Must): _*)
+    }
+    lucene.delete(query)
+  }
 }
 
 case class Highlighting(preTag: String, postTag: String)
