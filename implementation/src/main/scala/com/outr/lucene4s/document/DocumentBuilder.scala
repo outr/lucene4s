@@ -15,7 +15,6 @@ class DocumentBuilder(lucene: Lucene,
   var fullText: List[String] = List.empty[String]
 
   private val _values = ListBuffer.empty[FieldAndValue[_]]
-  private val _facetValues = ListBuffer.empty[FacetValue]
 
   def values: List[FieldAndValue[_]] = _values.toList
   def valueForField[T](field: Field[T]): Option[FieldAndValue[T]] = {
@@ -23,22 +22,19 @@ class DocumentBuilder(lucene: Lucene,
   }
   def valueForName(name: String): Option[FieldAndValue[_]] = values.find(_.field.name == name)
 
-  def facetValues: List[FacetValue] = _facetValues.toList
-  def facetsForField(field: FacetField): List[FacetValue] = facetValues.filter(_.field.name == field.name)
-  def facetsForName(name: String): List[FacetValue] = facetValues.filter(_.field.name == name)
+  private var unwrittenFacets = Set.empty[FacetValue]
 
   private[lucene4s] def rebuildFacetsFromDocument(): Unit = {
     lucene.facets.foreach { ff =>
-      Option(document.getField(ff.name)).foreach { field =>
+      document.getFields(ff.name).foreach { field =>
         val path = field.stringValue().split('/').toList
-        facets(ff(path: _*))
+        unwrittenFacets += ff(path: _*)
       }
     }
   }
 
   def fields(fieldAndValues: FieldAndValue[_]*): DocumentBuilder = synchronized {
     fieldAndValues.foreach { fv =>
-      document.removeFields(fv.field.name)      // Remove existing by name
       fv.write(document)
       if (fv.field.fullTextSearchable) {
         fullText = fv.value.toString :: fullText
@@ -48,13 +44,32 @@ class DocumentBuilder(lucene: Lucene,
     this
   }
 
-  def facets(facetValues: FacetValue*): DocumentBuilder = synchronized {
-    facetValues.foreach { fv =>
-      document.removeFields(fv.field.name)
-      fv.write(document)
-      _facetValues += fv
-    }
+  def clear[T](field: Field[T]): DocumentBuilder = clear(field.name)
+
+  def clear(fieldName: String): DocumentBuilder = {
+    document.removeFields(fieldName)
+    unwrittenFacets = unwrittenFacets.filterNot(_.field.name == fieldName)
     this
+  }
+
+  def remove[T](fv: FacetValue): DocumentBuilder = {
+    val values = document.getFields(fv.field.name).toList.map(_.stringValue()).distinct
+    val updated = values.collect {
+      case v if v != fv.pathString => new FacetValue(fv.field, v.split('/'): _*)
+    }
+    clear(fv.field.name)
+    facets(updated: _*)
+  }
+
+  def facets(facetValues: FacetValue*): DocumentBuilder = synchronized {
+    unwrittenFacets ++= facetValues.toSet
+    this
+  }
+
+  def prepareForWriting(): Unit = {
+    // Write facets
+    unwrittenFacets.foreach(fv => fv.write(document))
+    unwrittenFacets = Set.empty
   }
 
   def index(): Unit = lucene.index(this)

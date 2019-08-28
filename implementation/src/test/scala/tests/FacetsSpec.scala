@@ -10,7 +10,8 @@ class FacetsSpec extends WordSpec with Matchers {
   val lucene: Lucene = new DirectLucene(uniqueFields = List("name"))
   val name: Field[String] = lucene.create.field[String]("name")
   val author: FacetField = lucene.create.facet("Author", multiValued = true)
-  val keywords: FacetField = lucene.create.facet("Keywords", multiValued = true)
+  val keywords: Field[List[String]] = lucene.create.field[List[String]]("Keywords")
+  val keywordsFacet: FacetField = lucene.create.facet("Keywords", multiValued = true)
   val publishDate: FacetField = lucene.create.facet("Publish Date", hierarchical = true)
 
   "Facets" should {
@@ -18,28 +19,28 @@ class FacetsSpec extends WordSpec with Matchers {
       lucene.doc().fields(name("One")).facets(
         author("Bob"),
         author("James"),
-        keywords("support@one.com"),
-        keywords("support@two.com"),
+        keywordsFacet("support@one.com"),
+        keywordsFacet("support@two.com"),
         publishDate("2010", "10", "15")
       ).index()
       lucene.doc().fields(name("Two")).facets(
         author("Lisa"),
-        keywords("support@one.com"),
+        keywordsFacet("support@one.com"),
         publishDate("2010", "10", "20")
       ).index()
       lucene.doc().fields(name("Three")).facets(
         author("Lisa"),
-        keywords("support@two.com"),
+        keywordsFacet("support@two.com"),
         publishDate("2012", "1", "1")
       ).index()
       lucene.doc().fields(name("Four")).facets(
         author("Susan"),
-        keywords("support@three.com"),
+        keywordsFacet("support@three.com"),
         publishDate("2012", "1", "7")
       ).index()
       lucene.doc().fields(name("Five")).facets(
         author("Frank"),
-        keywords("support"),
+        keywordsFacet("support"),
         publishDate("1999", "5", "5")
       ).index()
       lucene.doc().fields(name("Six")).facets(
@@ -59,6 +60,8 @@ class FacetsSpec extends WordSpec with Matchers {
       authorResult.totalCount should be(8)
       authorResult.values.map(_.value) should be(Vector("Bob", "Lisa", "James", "Susan", "Frank", "George"))
       authorResult.values.map(_.count) should be(Vector(2, 2, 1, 1, 1, 1))
+      val bob = page.results.head
+      bob(keywords).toSet should be(Set("support@one.com", "support@two.com"))
       page.results.map(_(name)) should be(Vector("One", "Two", "Three", "Four", "Five", "Six", "Seven"))
     }
     "list all publishDate facets" in {
@@ -72,7 +75,7 @@ class FacetsSpec extends WordSpec with Matchers {
       page.results.map(_(name)) should be(Vector("One", "Two", "Three", "Four", "Five", "Six", "Seven"))
     }
     "list all support@one.com keyword facets" in {
-      val page = lucene.query().filter(drillDown(keywords("support@one.com"))).search()
+      val page = lucene.query().filter(drillDown(keywordsFacet("support@one.com"))).search()
       val names = page.entries.map(r => r(name))
       names should be(Vector("One", "Two"))
     }
@@ -80,7 +83,7 @@ class FacetsSpec extends WordSpec with Matchers {
       val page = lucene.query().filter(exact(name("Five"))).search()
       page.results.length should be(1)
       val result = page.results.head
-      result.update.fields(name("Cinco")).index()
+      result.update.clear(name).fields(name("Cinco")).index()
     }
     "list all results for 2010" in {
       val page = lucene
@@ -93,14 +96,14 @@ class FacetsSpec extends WordSpec with Matchers {
       val authorResult = page.facet(author).get
       authorResult.childCount should be(3)
       authorResult.totalCount should be(3)
-      authorResult.values.map(_.value) should be(Vector("Bob", "James", "Lisa"))
+      authorResult.values.map(_.value).toSet should be(Set("Bob", "James", "Lisa"))
       authorResult.values.map(_.count) should be(Vector(1, 1, 1))
       val publishResult = page.facet(publishDate).get
       publishResult.childCount should be(1)
       publishResult.totalCount should be(2)
       publishResult.values.map(_.value) should be(Vector("10"))
       publishResult.values.map(_.count) should be(Vector(2))
-      page.results.map(_(name)) should be(Vector("One", "Two"))
+      page.results.map(_(name)).toSet should be(Set("One", "Two"))
     }
     "exclude all results for 2010" in {
       val page = lucene
@@ -182,6 +185,28 @@ class FacetsSpec extends WordSpec with Matchers {
       publishResult.totalCount should be(0)
       page.results.map(_(name)) should be(Vector("Six"))
     }
+    "show all results for support@two.com" in {
+      val page = lucene
+        .query()
+        .limit(10)
+        .filter(drillDown(keywordsFacet("support@two.com")))
+        .search()
+      page.results.map(_(name)) should be(Vector("One", "Three"))
+    }
+    "remove a keyword from One" in {
+      val page = lucene.query().filter(name("One")).search()
+      page.total should be(1)
+      page.results.head.update.remove(keywordsFacet("support@two.com")).index()
+      lucene.commit()
+    }
+    "show all results for support@two.com excluding updated" in {
+      val page = lucene
+        .query()
+        .limit(10)
+        .filter(drillDown(keywordsFacet("support@two.com")))
+        .search()
+      page.results.map(_(name)) should be(Vector("Three"))
+    }
     "show only top-level results without a publish date" in {
       val page = lucene
         .query()
@@ -210,7 +235,7 @@ class FacetsSpec extends WordSpec with Matchers {
       val authorResult = page.facet(author).get
       authorResult.values.map(_.value) should be(Vector("Bob", "Lisa", "James", "Frank", "George"))
       authorResult.values.map(_.count) should be(Vector(2, 2, 1, 1, 1))
-      page.results.map(_(name)) should be(Vector("One", "Two", "Three", "Six", "Seven", "Cinco"))
+      page.results.map(_(name)).toSet should be(Set("One", "Two", "Three", "Six", "Seven", "Cinco"))
     }
   }
 }

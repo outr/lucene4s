@@ -50,6 +50,8 @@ trait Lucene {
   }
   def update(searchTerm: SearchTerm): DocumentBuilder = new DocumentBuilder(this, Some(searchTerm))
   def index(builders: DocumentBuilder*): Unit = {
+    builders.foreach(_.prepareForWriting())
+
     // Build documents to insert
     val docs = builders.map { b =>
       if (b.fullText.nonEmpty) {

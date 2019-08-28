@@ -164,12 +164,4 @@ object KeywordIndexing {
   def FieldWordsFromBuilder[T](field: com.outr.lucene4s.field.Field[T]): DocumentBuilder => List[String] = (builder: DocumentBuilder) => {
     builder.document.get(field.name).split(DefaultSplitRegex).toList
   }
-  def FacetFromBuilder(field: FacetField, pathSeparator: Option[String] = None): DocumentBuilder => List[String] = (builder: DocumentBuilder) => {
-    builder.facetsForField(field).map { fv =>
-      pathSeparator match {
-        case Some(ps) => fv.path.mkString(ps)
-        case None => fv.path.head
-      }
-    }
-  }
 }

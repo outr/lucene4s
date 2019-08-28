@@ -279,7 +279,7 @@ class SimpleSpec extends WordSpec with Matchers {
       results.length should be(5)
 
       val janeDoe = results.find(_.apply(name) == "Jane Doe").getOrElse(fail("Cannot find Jane Doe in results"))
-      janeDoe.update.fields(name("Janie Doe")).index()
+      janeDoe.update.clear(name).fields(name("Janie Doe")).index()
 
       val results2 = lucene.query().filter(exact(name("Janie Doe"))).search()
       results2.total should be(1)
