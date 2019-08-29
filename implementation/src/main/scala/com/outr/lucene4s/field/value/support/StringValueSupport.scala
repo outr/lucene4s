@@ -27,7 +27,7 @@ object StringValueSupport extends ValueSupport[String] {
     document.add(sorted)
   }
 
-  override def fromLucene(fields: List[IndexableField]): String = fields.head.stringValue()
+  override def fromLucene(fields: List[IndexableField]): String = fields.headOption.map(_.stringValue()).orNull
 
   override def sortFieldType: Type = SortField.Type.STRING
 
