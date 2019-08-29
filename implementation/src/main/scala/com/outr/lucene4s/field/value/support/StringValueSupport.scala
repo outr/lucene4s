@@ -11,7 +11,7 @@ import org.apache.lucene.util.{ByteBlockPool, BytesRef}
 
 object StringValueSupport extends ValueSupport[String] {
   override def store(field: Field[String], value: String, document: Document): Unit = {
-    val stored = new LuceneField(field.name, value, field.fieldType.lucene())
+    val stored = new LuceneField(field.storeName, value, field.fieldType.lucene())
     document.add(stored)
   }
 
@@ -20,12 +20,14 @@ object StringValueSupport extends ValueSupport[String] {
   override def sorted(field: Field[String], value: String, document: Document): Unit = {
     val bytes = new BytesRef(value)
     if (bytes.length > ByteBlockPool.BYTE_BLOCK_SIZE - 2)
-      throw new RuntimeException(s"Value for field ${field.name} is greater than " +
+      throw new RuntimeException(s"Value for field ${field.sortName} is greater than " +
         s"${ByteBlockPool.BYTE_BLOCK_SIZE - 2} bytes. " +
         "This would cause a Lucene error. Reduce field size or set: sortable = false")
-    val sorted = new SortedDocValuesField(field.name, bytes)
+    val sorted = new SortedDocValuesField(field.sortName, bytes)
     document.add(sorted)
   }
+
+  override def separateFilter: Boolean = false
 
   override def fromLucene(fields: List[IndexableField]): String = fields.headOption.map(_.stringValue()).orNull
 

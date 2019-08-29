@@ -25,6 +25,8 @@ case class StringifyValueSupport[T](stringify: Stringify[T]) extends ValueSuppor
     stringify.fromString(StringValueSupport.fromLucene(fields))
   }
 
+  override def separateFilter: Boolean = StringValueSupport.separateFilter
+
   override def sortFieldType: SortField.Type = StringValueSupport.sortFieldType
 
   override def searchTerm(fv: FieldAndValue[T]): SearchTerm = {

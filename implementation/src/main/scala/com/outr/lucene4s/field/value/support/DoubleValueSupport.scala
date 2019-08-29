@@ -10,17 +10,17 @@ import org.apache.lucene.search.SortField.Type
 
 object DoubleValueSupport extends ValueSupport[Double] {
   override def store(field: Field[Double], value: Double, document: Document): Unit = {
-    val stored = new StoredField(field.name, value)
+    val stored = new StoredField(field.storeName, value)
     document.add(stored)
   }
 
   override def filter(field: Field[Double], value: Double, document: Document): Unit = {
-    val filtered = new DoublePoint(field.name, value)
+    val filtered = new DoublePoint(field.filterName, value)
     document.add(filtered)
   }
 
   override def sorted(field: Field[Double], value: Double, document: Document): Unit = {
-    val sorted = new DoubleDocValuesField(field.name, value)
+    val sorted = new DoubleDocValuesField(field.sortName, value)
     document.add(sorted)
   }
 

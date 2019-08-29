@@ -76,7 +76,7 @@ case class KeywordIndexing(lucene: Lucene,
 
   override def indexed(builder: DocumentBuilder): Unit = {
     val additionalValues = includeFields.flatMap { field =>
-      builder.valueForName(field.name)
+      builder.valueForName(field.storeName)
     }
     index(wordsFromBuilder(builder), additionalValues)
   }
@@ -95,12 +95,12 @@ case class KeywordIndexing(lucene: Lucene,
         val doc = new Document
         doc.add(new Field("keyword", word, FieldType.Stored.lucene()))
         additionalValues.foreach { fv =>
-          doc.add(new Field(fv.field.name, fv.value.toString, FieldType.Stored.lucene()))
+          doc.add(new Field(fv.field.storeName, fv.value.toString, FieldType.Stored.lucene()))
         }
         val parser = new QueryParser("keyword", lucene.analyzer)
         val queryString = new StringBuilder(s""""$word"""")
         additionalValues.foreach { fv =>
-          queryString.append(s" AND ${fv.field.name}:${fv.value.toString}")
+          queryString.append(s" AND ${fv.field.storeName}:${fv.value.toString}")
         }
         val query = parser.parse(queryString.toString)
         indexWriter.deleteDocuments(query)
@@ -133,7 +133,7 @@ case class KeywordIndexing(lucene: Lucene,
       val doc = searcher.doc(scoreDoc.doc)
       val word = doc.get("keyword")
       val additionalFields = includeFields.flatMap { f =>
-        Option(f.name -> doc.get(f.name))
+        Option(f.storeName -> doc.get(f.storeName))
       }.toMap
       val wordMatch = WordMatch(queryString, word)
       KeywordResult(word, wordMatch, scoreDoc.score.toDouble, additionalFields)
@@ -154,7 +154,7 @@ object KeywordIndexing {
   val DefaultRemoveEndsWithCharacters: String = ",.?!;"
 
   def FieldFromBuilder[T](field: com.outr.lucene4s.field.Field[T]): DocumentBuilder => List[String] = (builder: DocumentBuilder) => {
-    val text = Option(builder.document.get(field.name)).map(_.trim).getOrElse("")
+    val text = Option(builder.document.get(field.storeName)).map(_.trim).getOrElse("")
     if (text.isEmpty) {
       Nil
     } else {
@@ -162,6 +162,6 @@ object KeywordIndexing {
     }
   }
   def FieldWordsFromBuilder[T](field: com.outr.lucene4s.field.Field[T]): DocumentBuilder => List[String] = (builder: DocumentBuilder) => {
-    builder.document.get(field.name).split(DefaultSplitRegex).toList
+    builder.document.get(field.storeName).split(DefaultSplitRegex).toList
   }
 }

@@ -16,6 +16,8 @@ trait ValueSupport[T] {
 
   def fromLucene(fields: List[IndexableField]): T
 
+  def separateFilter: Boolean = true
+
   def sortFieldType: SortField.Type
 
   def searchTerm(fv: FieldAndValue[T]): SearchTerm

@@ -10,17 +10,17 @@ import org.apache.lucene.search.SortField.Type
 
 object LongValueSupport extends ValueSupport[Long] {
   override def store(field: Field[Long], value: Long, document: Document): Unit = {
-    val stored = new StoredField(field.name, value)
+    val stored = new StoredField(field.storeName, value)
     document.add(stored)
   }
 
   override def filter(field: Field[Long], value: Long, document: Document): Unit = {
-    val filtered = new LongPoint(field.name, value)
+    val filtered = new LongPoint(field.filterName, value)
     document.add(filtered)
   }
 
   override def sorted(field: Field[Long], value: Long, document: Document): Unit = {
-    val sorted = new NumericDocValuesField(field.name, value)
+    val sorted = new NumericDocValuesField(field.sortName, value)
     document.add(sorted)
   }
 

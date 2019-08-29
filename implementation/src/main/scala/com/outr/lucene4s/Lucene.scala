@@ -24,7 +24,7 @@ trait Lucene {
   def defaultFullTextSearchable: Boolean
   def fields: Set[Field[_]] = _fields
   def field[T](name: String): Field[T] = {
-    fields.find(_.name == name).getOrElse(throw new RuntimeException(s"Field $name not found")).asInstanceOf[Field[T]]
+    fields.find(_.storeName == name).getOrElse(throw new RuntimeException(s"Field $name not found")).asInstanceOf[Field[T]]
   }
   def facets: Set[FacetField] = _facets
   def facet(name: String): FacetField = {

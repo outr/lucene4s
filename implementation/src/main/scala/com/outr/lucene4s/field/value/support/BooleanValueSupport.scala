@@ -11,19 +11,19 @@ import org.apache.lucene.search.SortField.Type
 object BooleanValueSupport extends ValueSupport[Boolean] {
   override def store(field: Field[Boolean], value: Boolean, document: Document): Unit = {
     val v = if (value) 1 else 0
-    val stored = new StoredField(field.name, v)
+    val stored = new StoredField(field.storeName, v)
     document.add(stored)
   }
 
   override def filter(field: Field[Boolean], value: Boolean, document: Document): Unit = {
     val v = if (value) 1 else 0
-    val filtered = new IntPoint(field.name, v)
+    val filtered = new IntPoint(field.filterName, v)
     document.add(filtered)
   }
 
   override def sorted(field: Field[Boolean], value: Boolean, document: Document): Unit = {
     val v = if (value) 1 else 0
-    val sorted = new NumericDocValuesField(field.name, v)
+    val sorted = new NumericDocValuesField(field.sortName, v)
     document.add(sorted)
   }
 

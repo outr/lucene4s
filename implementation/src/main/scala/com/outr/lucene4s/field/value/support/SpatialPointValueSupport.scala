@@ -11,17 +11,17 @@ import org.apache.lucene.search.SortField.Type
 
 object SpatialPointValueSupport extends ValueSupport[SpatialPoint] {
   override def store(field: Field[SpatialPoint], value: SpatialPoint, document: Document): Unit = {
-    val stored = new StoredField(field.name, value.toString)
+    val stored = new StoredField(field.storeName, value.toString)
     document.add(stored)
   }
 
   override def filter(field: Field[SpatialPoint], value: SpatialPoint, document: Document): Unit = {
-    val filtered = new LatLonPoint(field.name, value.latitude, value.longitude)
+    val filtered = new LatLonPoint(field.filterName, value.latitude, value.longitude)
     document.add(filtered)
   }
 
   override def sorted(field: Field[SpatialPoint], value: SpatialPoint, document: Document): Unit = {
-    val sorted = new LatLonDocValuesField(field.name, value.latitude, value.longitude)
+    val sorted = new LatLonDocValuesField(field.sortName, value.latitude, value.longitude)
     document.add(sorted)
   }
 

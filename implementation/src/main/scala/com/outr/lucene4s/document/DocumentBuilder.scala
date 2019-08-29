@@ -18,9 +18,9 @@ class DocumentBuilder(lucene: Lucene,
 
   def values: List[FieldAndValue[_]] = _values.toList
   def valueForField[T](field: Field[T]): Option[FieldAndValue[T]] = {
-    values.find(_.field.name == field.name).asInstanceOf[Option[FieldAndValue[T]]]
+    values.find(_.field.storeName == field.storeName).asInstanceOf[Option[FieldAndValue[T]]]
   }
-  def valueForName(name: String): Option[FieldAndValue[_]] = values.find(_.field.name == name)
+  def valueForName(name: String): Option[FieldAndValue[_]] = values.find(_.field.storeName == name)
 
   private var unwrittenFacets = Set.empty[FacetValue]
 
@@ -45,7 +45,7 @@ class DocumentBuilder(lucene: Lucene,
     this
   }
 
-  def clear[T](field: Field[T]): DocumentBuilder = clear(field.name)
+  def clear[T](field: Field[T]): DocumentBuilder = clear(field.storeName).clear(field.filterName).clear(field.sortName)
 
   def clear(fieldName: String): DocumentBuilder = {
     document.removeFields(fieldName)

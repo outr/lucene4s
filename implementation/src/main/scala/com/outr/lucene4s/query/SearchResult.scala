@@ -9,7 +9,7 @@ import org.apache.lucene.search.ScoreDoc
 class SearchResult private[lucene4s](lucene: Lucene, search: PagedResults[_], scoreDoc: ScoreDoc) {
   private lazy val doc: Document = lucene.withSearcherAndTaxonomy(_.searcher.doc(scoreDoc.doc))
 
-  def apply[T](field: Field[T]): T = field.support.fromLucene(doc.getFields(field.name).toList)
+  def apply[T](field: Field[T]): T = field.support.fromLucene(doc.getFields(field.storeName).toList)
 
   def id: Int = scoreDoc.doc
   def score: Double = scoreDoc.score.toDouble
@@ -25,8 +25,8 @@ class SearchResult private[lucene4s](lucene: Lucene, search: PagedResults[_], sc
 
   def highlighting[T](field: Field[T]): List[HighlightedResult] = search.highlighter match {
     case Some(highlighter) => {
-      val text = doc.get(field.name)
-      val tokenStream = lucene.analyzer.tokenStream(field.name, text)
+      val text = doc.get(field.storeName)
+      val tokenStream = lucene.analyzer.tokenStream(field.storeName, text)
       val mergeContiguousFragments = false
       val maxNumFragments = 10
       val fragments = highlighter.getBestTextFragments(tokenStream, text, mergeContiguousFragments, maxNumFragments)
