@@ -14,7 +14,7 @@ lucene4s is published to Sonatype OSS and Maven Central currently supporting Sca
 Configuring the dependency in SBT simply requires:
 
 ```
-libraryDependencies += "com.outr" %% "lucene4s" % "1.8.1"
+libraryDependencies += "com.outr" %% "lucene4s" % "1.9.0"
 ```
 
 ## Using
@@ -257,8 +257,6 @@ val paged = lucene.query().sort(Sort.nearest(location, SpatialPoint(40.7142, -74
 If you want to filter your results to only include entries within a certain range of a location:
 
 ```scala
-import squants.space.LengthConversions._
-
 val newYorkCity = SpatialPoint(40.7142, -74.0119)
 val paged = lucene
   .query()
@@ -266,69 +264,3 @@ val paged = lucene
   .filter(spatialDistance(location, newYorkCity, 50.miles))
   .search()
 ```
-
-Note the import from `squants`.  We use Squants (https://github.com/typelevel/squants) for distance representations so
-that you can use `miles`, `meters`, or whatever measurement of distance desirable.
-
-## Versions
-
-### Features for 1.9.0 (In-Progress)
-
-* [ ] Scala.js support for Query parsing and URL mapping (QueryURL)
-* [ ] Complete ScalaDocing
-
-### Features for 1.8.0 (Released 2018.05.09)
-
-* [X] Support to update documents returned from a search
-* [X] Access to fields and facets associated with a `Lucene` instance
-
-### Features for 1.7.0 (Released 2018.05.07)
-
-* [X] In-Place Replaceable Indexes
-* [X] Numeric operator querying (<, >, <=, >=, etc.)
-* [X] Numeric Seq support
-
-### Features for 1.6.0 (Released 2018.04.05)
-
-* [X] Re-working of facets in queries to be more in-line with standard queries
-
-### Features for 1.5.0 (Released 2017.08.11)
-
-* [X] Add better facet searching drilldown to support only that level or that level and lower
-
-### Features for 1.4.0 (Released 2016.12.17)
-
-* [X] Geospatial features
-
-### Features for 1.3.0 (Released 2016.12.06)
-
-* [X] Better Highlighting support
-* [X] Add Scala 2.12 support
-* [X] Keyword indexing / autocomplete support
-* [X] Add support for FacetQuery Conditions (MustNot and Should support)
-* [X] Range querying
-
-### Features for 1.2.0 (Released 2016.11.23)
-
-* [X] Highlighting support
-* [X] Code Cleanup and Optimizations
-
-### Features for 1.1.0 (Released 2016.10.17)
-
-* [X] Better field integrations and convenience implicits
-* [X] Support for storing and retrieving case classes as documents via compile-time Macro
-* [X] Numeric storage and retrieval functionality (Boolean, Int, Long, and Double)
-* [X] Facets support in Searchable
-* [X] Support for docType on Searchable to provide multiple Searchable implementation in a single index
-
-### Features for 1.0.0 (Released 2016.10.13)
-
-* [X] Simplified set up of readers, writers, facets, etc. all under `Lucene`
-* [X] DSL for inserting documents in a type-safe way
-* [X] DSL for querying documents in a type-safe way
-* [X] Facet searching support
-* [X] Full-Text search functionality
-* [X] Query Builder to simplify querying against Lucene
-* [X] Solid test coverage
-* [X] Updating and Deleting documents
-* [X] Structured query terms builder
