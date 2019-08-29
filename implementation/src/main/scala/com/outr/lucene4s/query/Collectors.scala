@@ -2,7 +2,7 @@ package com.outr.lucene4s.query
 
 import org.apache.lucene.facet.FacetsCollector
 import org.apache.lucene.index.LeafReaderContext
-import org.apache.lucene.search.{CollectionTerminatedException, Collector, LeafCollector, TopFieldCollector}
+import org.apache.lucene.search.{CollectionTerminatedException, Collector, LeafCollector, ScoreMode, TopFieldCollector}
 
 case class Collectors(topFieldCollector: TopFieldCollector, facetsCollector: FacetsCollector) extends Collector {
   override def getLeafCollector(context: LeafReaderContext): LeafCollector = {
@@ -24,5 +24,15 @@ case class Collectors(topFieldCollector: TopFieldCollector, facetsCollector: Fac
     }
   }
 
-  override def needsScores(): Boolean = topFieldCollector.needsScores() || facetsCollector.needsScores()
+  override def scoreMode(): ScoreMode = {
+    val sm1 = topFieldCollector.scoreMode()
+    val sm2 = facetsCollector.scoreMode()
+    if (sm1 == ScoreMode.COMPLETE || sm2 == ScoreMode.COMPLETE) {
+      ScoreMode.COMPLETE
+    } else if (sm1 == ScoreMode.TOP_SCORES || sm2 == ScoreMode.TOP_SCORES) {
+      ScoreMode.TOP_SCORES
+    } else {
+      sm1
+    }
+  }
 }

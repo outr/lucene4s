@@ -1,11 +1,9 @@
 package com.outr.lucene4s
 
 import com.outr.lucene4s.facet.FacetField
-import com.outr.lucene4s.field.value.FieldAndValue
-import com.outr.lucene4s.field.value.support.ValueSupport
+import com.outr.lucene4s.field.value.support.{StringifyValueSupport, ValueSupport}
 import com.outr.lucene4s.field.{Field, FieldType}
 import com.outr.lucene4s.mapper.{BaseSearchable, SearchableMacro}
-import com.outr.lucene4s.query.SearchTerm
 
 import scala.language.experimental.macros
 
@@ -14,12 +12,18 @@ class LuceneCreate(val lucene: Lucene) {
                fieldType: FieldType = FieldType.Stored,
                fullTextSearchable: Boolean = lucene.defaultFullTextSearchable,
                sortable: Boolean = true
-              )(implicit support: ValueSupport[T], fv2SearchTerm: FieldAndValue[T] => SearchTerm): Field[T] = {
+              )(implicit support: ValueSupport[T]): Field[T] = {
     val field = new Field[T](name, fieldType, support, fullTextSearchable, sortable)
     lucene.synchronized {
       lucene._fields += field
     }
     field
+  }
+  def stringifiedField[T](name: String,
+                          fieldType: FieldType = FieldType.Stored,
+                          fullTextSearchable: Boolean = lucene.defaultFullTextSearchable,
+                          sortable: Boolean = true)(implicit stringify: Stringify[T]): Field[T] = {
+    field[T](name, fieldType, fullTextSearchable, sortable)(StringifyValueSupport(stringify))
   }
   def facet(name: String,
             hierarchical: Boolean = false,

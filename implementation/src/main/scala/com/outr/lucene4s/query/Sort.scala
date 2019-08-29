@@ -11,12 +11,12 @@ trait Sort {
 
 case class FieldSort[T](field: Field[T], reverse: Boolean) extends Sort {
   override protected[lucene4s] def sortField(): SortField = {
-    new SortField(field.name, field.support.sortFieldType, reverse)
+    new SortField(field.sortName, field.support.sortFieldType, reverse)
   }
 }
 
 case class NearestSort(field: Field[SpatialPoint], point: SpatialPoint) extends Sort {
-  override protected[lucene4s] def sortField(): SortField = LatLonDocValuesField.newDistanceSort(field.name, point.latitude, point.longitude)
+  override protected[lucene4s] def sortField(): SortField = LatLonDocValuesField.newDistanceSort(field.sortName, point.latitude, point.longitude)
 }
 
 object Sort {
@@ -28,7 +28,10 @@ object Sort {
     override protected[lucene4s] def sortField(): SortField = SortField.FIELD_DOC
   }
 
-  def apply[T](field: Field[T], reverse: Boolean = false): Sort = FieldSort[T](field, reverse)
+  def apply[T](field: Field[T], reverse: Boolean = false): Sort = {
+    assert(field.sortable, s"$field is not sortable")
+    FieldSort[T](field, reverse)
+  }
 
   def nearest(field: Field[SpatialPoint], point: SpatialPoint): Sort = NearestSort(field, point)
 }

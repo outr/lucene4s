@@ -57,7 +57,7 @@ class ComplexQuerySpec extends WordSpec with Matchers {
       results.total should be(2)
       val result = results.results.head
       result(s.name) should be("John Hennessy")
-      result.score should be > 2.5
+      result.score should be > 1.0
       results.results.last.score should be < 2.0
     }
     "query to retrieve Dr. John Hennessy by name" in {
@@ -139,7 +139,7 @@ class ComplexQuerySpec extends WordSpec with Matchers {
       results.total should be(1)
       val result = results.results.head
       result(s.name) should be("Ruth Porat")
-      result.score shouldBe 13.0 +- 0.3
+      result.score shouldBe 8.0 +- 0.3
     }
   }
 

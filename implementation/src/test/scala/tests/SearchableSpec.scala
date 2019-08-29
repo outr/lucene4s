@@ -15,7 +15,7 @@ class SearchableSpec extends WordSpec with Matchers {
       lucene.person.docType shouldNot be(null)
     }
     "insert a Person" in {
-      val john = Person(1, "John", "Doe", 23, "123 Somewhere Rd.", "Lalaland", "California", "12345")
+      val john = Person(Id[Person]("1"), "John", "Doe", 23, "123 Somewhere Rd.", "Lalaland", "California", "12345", List("john", "johnny"))
       lucene.person.insert(john).facets(
         lucene.person.tags("monkey"),
         lucene.person.tags("elephant")
@@ -41,16 +41,16 @@ class SearchableSpec extends WordSpec with Matchers {
       paged.total should be(1)
       val result = paged.results.head
       val john = lucene.person(result)
-      john should be(Person(1, "John", "Doe", 23, "123 Somewhere Rd.", "Lalaland", "California", "12345"))
+      john should be(Person(Id[Person]("1"), "John", "Doe", 23, "123 Somewhere Rd.", "Lalaland", "California", "12345", List("john", "johnny")))
     }
     "query back the record as a Person using Searchable.query" in {
       val paged = lucene.person.query().search()
       paged.total should be(1)
       val john = paged.entries.head
-      john should be(Person(1, "John", "Doe", 23, "123 Somewhere Rd.", "Lalaland", "California", "12345"))
+      john should be(Person(Id[Person]("1"), "John", "Doe", 23, "123 Somewhere Rd.", "Lalaland", "California", "12345", List("john", "johnny")))
     }
     "insert another Person" in {
-      val jane = Person(2, "Jane", "Doe", 21, "123 Somewhere Rd.", "Lalaland", "California", "12345")
+      val jane = Person(Id[Person]("2"), "Jane", "Doe", 21, "123 Somewhere Rd.", "Lalaland", "California", "12345", List("jane"))
       lucene.person.insert(jane).facets(
         lucene.person.tags("cheetah"),
         lucene.person.tags("dolphin")
@@ -60,24 +60,24 @@ class SearchableSpec extends WordSpec with Matchers {
       val lastNames = lucene.lastNameKeywords.search("doe")
       lastNames.results.map(_.word) should be(List("Doe"))
       lastNames.results.map(_.highlighted("[", "]")) should be(List("[Doe]"))
-      lastNames.total should be(1)
+      lastNames.total.value should be(1)
     }
     "query back last name on partial" in {
       val lastNames = lucene.lastNameKeywords.search("(*:* AND do*)")
       lastNames.results.map(_.word) should be(List("Doe"))
       lastNames.results.map(_.highlighted("[", "]")) should be(List("[Do]e"))
-      lastNames.total should be(1)
+      lastNames.total.value should be(1)
     }
     "verify only last names in keywords" in {
       val lastNames = lucene.lastNameKeywords.search("john")
-      lastNames.total should be(0)
+      lastNames.total.value should be(0)
     }
     "delete the new record" in {
-      val jane = Person(2, "Jane", "Doe", 21, "321 Nowhere St.", "Lalaland", "California", "12345")
+      val jane = Person(Id[Person]("2"), "Jane", "Doe", 21, "321 Nowhere St.", "Lalaland", "California", "12345", List("jane"))
       lucene.person.delete(jane)
     }
     "update the record" in {
-      val john = Person(1, "John", "Doe", 23, "321 Nowhere St.", "Lalaland", "California", "12345")
+      val john = Person(Id[Person]("1"), "John", "Doe", 23, "321 Nowhere St.", "Lalaland", "California", "12345", List("john", "johnny"))
       lucene.person.update(john).index()
       lucene.commit()
     }
@@ -86,10 +86,10 @@ class SearchableSpec extends WordSpec with Matchers {
       paged.total should be(1)
       val result = paged.results.head
       val john = lucene.person(result)
-      john should be(Person(1, "John", "Doe", 23, "321 Nowhere St.", "Lalaland", "California", "12345"))
+      john should be(Person(Id[Person]("1"), "John", "Doe", 23, "321 Nowhere St.", "Lalaland", "California", "12345", List("john", "johnny")))
     }
     "delete the record" in {
-      val john = Person(1, "John", "Doe", 23, "321 Nowhere St.", "Lalaland", "California", "12345")
+      val john = Person(Id[Person]("1"), "John", "Doe", 23, "321 Nowhere St.", "Lalaland", "California", "12345", List("john", "johnny"))
       lucene.person.delete(john)
       lucene.commit()
     }
@@ -112,8 +112,10 @@ class SearchableSpec extends WordSpec with Matchers {
     // We must implement the criteria for updating and deleting
     override def idSearchTerms(t: Person): List[SearchTerm] = List(exact(id(t.id)))
 
+    implicit def stringifyId[T]: Stringify[Id[T]] = Stringify[Id[T]]((s: String) => Id[T](s))
+
     // We can create custom / explicit configurations for each field
-    val id: Field[Int] = lucene.create.field[Int]("id", fullTextSearchable = false)
+    val id: Field[Id[Person]] = lucene.create.stringifiedField[Id[Person]]("id", fullTextSearchable = false)
 
     // Alternatively, we can simply define them like an interface and they will be defined automatically at compile-time
     def firstName: Field[String]
@@ -122,5 +124,9 @@ class SearchableSpec extends WordSpec with Matchers {
     val tags: FacetField = lucene.create.facet("tags", multiValued = true)
   }
 
-  case class Person(id: Int, firstName: String, lastName: String, age: Int, address: String, city: String, state: String, zip: String)
+  case class Person(id: Id[Person], firstName: String, lastName: String, age: Int, address: String, city: String, state: String, zip: String, aliases: List[String])
+
+  case class Id[T](value: String) {
+    override def toString: String = value
+  }
 }

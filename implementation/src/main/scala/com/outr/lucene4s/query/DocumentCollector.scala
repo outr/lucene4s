@@ -21,9 +21,7 @@ class DocumentCollector(lucene: Lucene, query: QueryBuilder[_]) extends Collecto
     val docMax = math.max(1, lucene.withSearcherAndTaxonomy(_.searcher.getIndexReader.maxDoc()))
     val docLimit = math.min(query.offset + query.limit, docMax)
 
-    val fillFields = true
-    val trackTotalHits = true
-    val topFieldCollector = TopFieldCollector.create(sort, docLimit, fillFields, query.scoreDocs, query.scoreMax, trackTotalHits)
+    val topFieldCollector = TopFieldCollector.create(sort, docLimit, Int.MaxValue)
     val facetsCollector = new FacetsCollector(query.scoreDocs)
     Collectors(topFieldCollector, facetsCollector)
   }
@@ -39,7 +37,7 @@ class DocumentCollector(lucene: Lucene, query: QueryBuilder[_]) extends Collecto
 
     val topFieldDocs = TopDocs.merge(sort, docLimit, topDocs) match {
       case td if query.offset > 0 => {
-        new TopDocs(td.totalHits, td.scoreDocs.slice(query.offset, query.offset + query.limit), td.getMaxScore)
+        new TopDocs(td.totalHits, td.scoreDocs.slice(query.offset, query.offset + query.limit))
       }
       case td => td
     }

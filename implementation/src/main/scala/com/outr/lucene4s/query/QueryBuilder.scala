@@ -2,6 +2,7 @@ package com.outr.lucene4s.query
 
 import com.outr.lucene4s._
 import com.outr.lucene4s.facet.FacetField
+import org.apache.lucene.search.TopFieldCollector
 import org.apache.lucene.search.highlight.{Highlighter, QueryScorer, SimpleHTMLFormatter}
 
 case class QueryBuilder[T] private[lucene4s](lucene: Lucene,
@@ -52,7 +53,10 @@ case class QueryBuilder[T] private[lucene4s](lucene: Lucene,
 
     val manager = new DocumentCollector(lucene, this)
     lucene.withSearcherAndTaxonomy { instance =>
-      val searchResults = instance.searcher.search(q, manager)
+      val searchResults: SearchResults = instance.searcher.search(q, manager)
+      if (scoreDocs) {
+        TopFieldCollector.populateScores(searchResults.topDocs.scoreDocs, instance.searcher, q)
+      }
       val highlighter = highlighting.map {
         case Highlighting(preTag, postTag) => {
           val highlightFormatter = new SimpleHTMLFormatter(preTag, postTag)
@@ -61,6 +65,15 @@ case class QueryBuilder[T] private[lucene4s](lucene: Lucene,
       }
       new PagedResults(lucene, this, offset, searchResults, highlighter)
     }
+  }
+
+  def delete(): Unit = {
+    val query = searchTerms match {
+      case Nil => MatchAllSearchTerm
+      case st :: Nil => st
+      case _ => grouped(searchTerms.map(_ -> Condition.Must): _*)
+    }
+    lucene.delete(query)
   }
 }
 

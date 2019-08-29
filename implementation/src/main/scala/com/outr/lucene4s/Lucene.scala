@@ -24,7 +24,7 @@ trait Lucene {
   def defaultFullTextSearchable: Boolean
   def fields: Set[Field[_]] = _fields
   def field[T](name: String): Field[T] = {
-    fields.find(_.name == name).getOrElse(throw new RuntimeException(s"Field $name not found")).asInstanceOf[Field[T]]
+    fields.find(_.storeName == name).getOrElse(throw new RuntimeException(s"Field $name not found")).asInstanceOf[Field[T]]
   }
   def facets: Set[FacetField] = _facets
   def facet(name: String): FacetField = {
@@ -50,6 +50,8 @@ trait Lucene {
   }
   def update(searchTerm: SearchTerm): DocumentBuilder = new DocumentBuilder(this, Some(searchTerm))
   def index(builders: DocumentBuilder*): Unit = {
+    builders.foreach(_.prepareForWriting())
+
     // Build documents to insert
     val docs = builders.map { b =>
       if (b.fullText.nonEmpty) {

@@ -6,8 +6,6 @@ import com.outr.lucene4s.field.value.{FieldAndValue, SpatialPoint}
 import com.outr.lucene4s.field.value.support._
 import com.outr.lucene4s.query._
 import org.apache.lucene.queries.mlt.MoreLikeThis
-import squants.space.Length
-import squants.space.LengthConversions._
 
 import scala.language.implicitConversions
 
@@ -19,29 +17,27 @@ package object lucene4s {
   implicit def doubleSupport: ValueSupport[Double] = DoubleValueSupport
   implicit def spatialPointSupport: ValueSupport[SpatialPoint] = SpatialPointValueSupport
 
+  implicit val listStringSupport: ValueSupport[List[String]] = new ListValueSupport[String](stringSupport)
+  implicit val listBooleanSupport: ValueSupport[List[Boolean]] = new ListValueSupport[Boolean](booleanSupport)
+  implicit val listIntSupport: ValueSupport[List[Int]] = new ListValueSupport[Int](intSupport)
+  implicit val listLongSupport: ValueSupport[List[Long]] = new ListValueSupport[Long](longSupport)
+  implicit val listDoubleSupport: ValueSupport[List[Double]] = new ListValueSupport[Double](doubleSupport)
+  implicit val listSpatialSupport: ValueSupport[List[SpatialPoint]] = new ListValueSupport[SpatialPoint](spatialPointSupport)
+
+  implicit val optionStringSupport: ValueSupport[Option[String]] = new OptionValueSupport[String](stringSupport)
+  implicit val optionBooleanSupport: ValueSupport[Option[Boolean]] = new OptionValueSupport[Boolean](booleanSupport)
+  implicit val optionIntSupport: ValueSupport[Option[Int]] = new OptionValueSupport[Int](intSupport)
+  implicit val optionLongSupport: ValueSupport[Option[Long]] = new OptionValueSupport[Long](longSupport)
+  implicit val optionDoubleSupport: ValueSupport[Option[Double]] = new OptionValueSupport[Double](doubleSupport)
+  implicit val optionSpatialSupport: ValueSupport[Option[SpatialPoint]] = new OptionValueSupport[SpatialPoint](spatialPointSupport)
+
+  implicit def fv2SearchTerm[T](fv: FieldAndValue[T]): SearchTerm = fv.field.support.searchTerm(fv)
+
   implicit def string2ParsableSearchTerm(value: String): SearchTerm = parse(value)
 
-  implicit val booleanFieldValue2SearchTerm: FieldAndValue[Boolean] => SearchTerm = {
-    fv: FieldAndValue[Boolean] => new ExactBooleanSearchTerm(fv.field, fv.value)
-  }
-  implicit val intFieldValue2SearchTerm: FieldAndValue[Int] => SearchTerm = {
-    fv: FieldAndValue[Int] => new ExactIntSearchTerm(fv.field, fv.value)
-  }
-  implicit val longFieldValue2SearchTerm: FieldAndValue[Long] => SearchTerm = {
-    fv: FieldAndValue[Long] => new ExactLongSearchTerm(fv.field, fv.value)
-  }
-  implicit val doubleFieldValue2SearchTerm: FieldAndValue[Double] => SearchTerm = {
-    fv: FieldAndValue[Double] => new ExactDoubleSearchTerm(fv.field, fv.value)
-  }
-  implicit val stringFieldValue2SearchTerm: FieldAndValue[String] => SearchTerm = {
-    fv: FieldAndValue[String] => if (fv.field.fieldType.tokenized) {
-      new PhraseSearchTerm(Some(fv.field), fv.value)
-    } else {
-      new TermSearchTerm(Some(fv.field), fv.value)
-    }
-  }
-  implicit val spatialFieldValue2SearchTerm: FieldAndValue[SpatialPoint] => SearchTerm = {
-    fv: FieldAndValue[SpatialPoint] => spatialDistance(fv.field, fv.value, 1.meters)
+  implicit class IntExtras(i: Int) {
+    def meters: Length = new Length(i)
+    def miles: Length = new Length(i * 1609.344)
   }
 
   def matchAll(): SearchTerm = MatchAllSearchTerm
@@ -95,7 +91,7 @@ package object lucene4s {
   def term(fv: FieldAndValue[String]): TermSearchTerm = new TermSearchTerm(Some(fv.field), fv.value.toString.toLowerCase)
   def term(value: String): TermSearchTerm = new TermSearchTerm(None, value)
 
-  def exact[T](fv: FieldAndValue[T]): SearchTerm = fv.field.fv2SearchTerm(fv)
+  def exact[T](fv: FieldAndValue[T]): SearchTerm = fv.field.support.searchTerm(fv)
   def intRange(field: Field[Int], start: Int, end: Int): SearchTerm = new RangeIntSearchTerm(field, math.min(start, end), math.max(start, end))
   def longRange(field: Field[Long], start: Long, end: Long): SearchTerm = new RangeLongSearchTerm(field, math.min(start, end), math.max(start, end))
   def doubleRange(field: Field[Double], start: Double, end: Double): SearchTerm = new RangeDoubleSearchTerm(field, math.min(start, end), math.max(start, end))
@@ -165,6 +161,12 @@ package object lucene4s {
     conditionalTerms = entries.toList
   )
   def grouped(entries: (SearchTerm, Condition)*): GroupedSearchTerm = grouped(0, entries: _*)
+
+  def all(terms: SearchTerm*): GroupedSearchTerm = grouped(terms.map(t => t -> Condition.Must): _*)
+
+  def any(terms: SearchTerm*): GroupedSearchTerm = grouped(minimumNumberShouldMatch = 1, terms.map(t => t -> Condition.Should): _*)
+
+  def none(terms: SearchTerm*): GroupedSearchTerm = grouped(terms.map(t => t -> Condition.MustNot): _*)
 
   def boost(term: SearchTerm, boost: Double): BoostedSearchTerm = BoostedSearchTerm(term, boost)
 
