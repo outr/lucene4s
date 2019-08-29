@@ -3,8 +3,8 @@ package com.outr.lucene4s.field.value.support
 import com.outr.lucene4s.field.Field
 import com.outr.lucene4s.field.value.FieldAndValue
 import com.outr.lucene4s.query.{ExactLongSearchTerm, SearchTerm}
-import org.apache.lucene.document.{Document, FieldType, IntPoint, LongPoint, NumericDocValuesField, StoredField, Field => LuceneField}
-import org.apache.lucene.index.{IndexableField, PointValues}
+import org.apache.lucene.document.{Document, LongPoint, NumericDocValuesField, StoredField}
+import org.apache.lucene.index.IndexableField
 import org.apache.lucene.search.SortField
 import org.apache.lucene.search.SortField.Type
 

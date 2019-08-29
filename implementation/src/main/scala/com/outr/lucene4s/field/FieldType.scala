@@ -18,6 +18,13 @@ object FieldType {
     stored = true,
     frozen = true
   )
+  val Numeric = FieldType(
+    indexOptions = Set(IndexOption.Documents, IndexOption.Frequencies, IndexOption.Positions),
+    tokenized = false,
+    stored = true,
+    frozen = true,
+    docValuesType = DocValuesType.Numeric
+  )
 }
 
 case class FieldType(stored: Boolean = false,

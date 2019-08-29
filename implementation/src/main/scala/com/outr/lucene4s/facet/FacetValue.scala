@@ -12,4 +12,6 @@ class FacetValue(val field: FacetField, val path: String*) {
     document.add(new Field(field.name, pathString, FieldType.Stored.lucene()))
     document.add(new LuceneFacetField(field.name, updatedPath: _*))
   }
+
+  override def toString: String = s"FacetValue(field: $field, path: $pathString)"
 }

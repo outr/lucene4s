@@ -27,7 +27,8 @@ class DocumentBuilder(lucene: Lucene,
   private[lucene4s] def rebuildFacetsFromDocument(): Unit = {
     lucene.facets.foreach { ff =>
       document.getFields(ff.name).foreach { field =>
-        val path = field.stringValue().split('/').toList
+        val s = field.stringValue()
+        val path = if (ff.hierarchical) s.split('/').toList else List(s)
         unwrittenFacets += ff(path: _*)
       }
     }
@@ -57,7 +58,10 @@ class DocumentBuilder(lucene: Lucene,
     val excludePaths = facetValues.map(_.pathString).toSet
     val values = document.getFields(field.name).toList.map(_.stringValue()).distinct
     val updated = values.collect {
-      case v if !excludePaths.contains(v) => new FacetValue(field, v.split('/'): _*)
+      case v if !excludePaths.contains(v) => {
+        val path = if (field.hierarchical) v.split('/').toList else List(v)
+        new FacetValue(field, path: _*)
+      }
     }
     clear(field.name)
     facets(updated: _*)
@@ -70,7 +74,15 @@ class DocumentBuilder(lucene: Lucene,
 
   def prepareForWriting(): Unit = {
     // Write facets
-    unwrittenFacets.foreach(fv => fv.write(document))
+    unwrittenFacets.foreach { fv =>
+      try {
+        if (fv.pathString.trim.nonEmpty || fv.field.hierarchical) {
+          fv.write(document)
+        }
+      } catch {
+        case t: Throwable => throw new RuntimeException(s"Failure to write facet: $fv", t)
+      }
+    }
     unwrittenFacets = Set.empty
   }
 

@@ -9,4 +9,6 @@ case class Field[T](name: String,
                     fullTextSearchable: Boolean,
                     sortable: Boolean = true) {
   def apply(value: T): FieldAndValue[T] = FieldAndValue[T](this, value)
+
+  override def toString: String = name
 }

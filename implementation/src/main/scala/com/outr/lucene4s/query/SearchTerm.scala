@@ -40,6 +40,8 @@ class PhraseSearchTerm(field: Option[Field[String]], value: String, slop: Int = 
   override protected[lucene4s] def toLucene(lucene: Lucene): Query = {
     new PhraseQuery(slop, field.getOrElse(lucene.fullText).name, value.split(' ').map(_.toLowerCase): _*)
   }
+
+  override def toString: String = s"phrase($field, value: $value, slop: $slop)"
 }
 
 class TermSearchTerm(field: Option[Field[String]], value: String) extends SearchTerm {
@@ -200,6 +202,9 @@ case class GroupedSearchTerm(minimumNumberShouldMatch: Int,
   override protected[lucene4s] def toLucene(lucene: Lucene): Query = {
     val b = new BooleanQuery.Builder
     b.setMinimumNumberShouldMatch(minimumNumberShouldMatch)
+    if (conditionalTerms.forall(_._2 == Condition.MustNot)) {           // Work-around for all negative groups, something must match
+      b.add(MatchAllSearchTerm.toLucene(lucene), Condition.Must.occur)
+    }
     conditionalTerms.foreach {
       case (st, c) => b.add(st.toLucene(lucene), c.occur)
     }
