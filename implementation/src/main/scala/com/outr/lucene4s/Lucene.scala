@@ -39,7 +39,7 @@ trait Lucene {
   def doc(): DocumentBuilder = new DocumentBuilder(this, None)
   def query(): QueryBuilder[SearchResult] = QueryBuilder(this, conversion = sr => sr)
   def delete(term: SearchTerm): Unit
-  def deleteAll(): Unit
+  def deleteAll(commit: Boolean = true): Unit
   def listen(listener: LuceneListener): Unit
   def commit(): Unit
   def optimize(): Unit = {
@@ -91,7 +91,7 @@ trait Lucene {
 }
 
 object Lucene {
-  val specialCharacters = Set('~', '*', '?', '^', ':', '(', ')', '"', '-', '+', '\'')
+  val specialCharacters: Set[Char] = Set('~', '*', '?', '^', ':', '(', ')', '"', '-', '+', '\'')
 
   def isLuceneWord(word: String): Boolean = specialCharacters.exists(c => word.contains(c))
   def removeSpecialCharacters(text: String): String = text.filterNot(specialCharacters.contains)

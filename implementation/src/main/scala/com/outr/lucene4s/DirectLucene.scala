@@ -86,9 +86,10 @@ class DirectLucene(override val uniqueFields: List[String],
   /**
     * Deletes all documents in the index.
     */
-  override def deleteAll(): Unit = {
+  override def deleteAll(commit: Boolean = true): Unit = {
     indexWriter.deleteAll()
     listeners.foreach(_.delete())
+    if (commit) this.commit()
   }
 
   override def dispose(): Unit = {

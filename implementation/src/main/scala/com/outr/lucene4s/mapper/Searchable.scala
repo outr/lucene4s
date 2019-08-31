@@ -64,16 +64,6 @@ trait Searchable[T] extends BaseSearchable {
     * @param value the value to delete
     */
   def delete(value: T): Unit = throw new UnsupportedOperationException("Should be supplied by Macro!")
-
-  /**
-    * Deletes all values from the index.
-    */
-  def deleteAll(commit: Boolean = true): Unit = {
-    query().delete()
-    if (commit) {
-      lucene.commit()
-    }
-  }
 }
 
 @compileTimeOnly("Enable macro paradise to expand macro annotations")

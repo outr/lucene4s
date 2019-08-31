@@ -36,7 +36,7 @@ class ReplaceableLucene extends Lucene {
 
   override def delete(term: SearchTerm): Unit = instance.delete(term)
 
-  override def deleteAll(): Unit = instance.deleteAll()
+  override def deleteAll(commit: Boolean = true): Unit = instance.deleteAll(commit)
 
   override def listen(listener: LuceneListener): Unit = instance.listen(listener)
 
