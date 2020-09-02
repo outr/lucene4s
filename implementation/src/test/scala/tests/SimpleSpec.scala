@@ -4,9 +4,10 @@ import com.outr.lucene4s._
 import com.outr.lucene4s.field.{Field, FieldType}
 import com.outr.lucene4s.keyword.KeywordIndexing
 import com.outr.lucene4s.query._
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class SimpleSpec extends WordSpec with Matchers {
+class SimpleSpec extends AnyWordSpec with Matchers {
   val lucene = new DirectLucene(uniqueFields = List("name"), defaultFullTextSearchable = true, autoCommit = true)
   val keywordIndexing = KeywordIndexing(lucene, "keywords")
   val name: Field[String] = lucene.create.field[String]("name")
@@ -172,9 +173,9 @@ class SimpleSpec extends WordSpec with Matchers {
       val paged = lucene.query().scoreDocs().sort(Sort.Score).filter(fuzzy(name("jhn"))).search()
       paged.total should be(2)
       paged.results(0)(name) should be("John Doe")
-      paged.results(0).score should be(0.42008915543556213)
+      paged.results(0).score should be(0.42 +- 0.01)
       paged.results(1)(name) should be("Jane Doe")
-      paged.results(1).score should be(0.21004457771778107)
+      paged.results(1).score should be(0.21 +- 0.01)
     }
     "query fuzzy matching john and jane with two word phrase" in {
       val paged = lucene.query().scoreDocs().sort(Sort.Score).filter(parseFuzzy("jhn doe", Some(name))).search()
@@ -182,22 +183,22 @@ class SimpleSpec extends WordSpec with Matchers {
       names should be(Set("John Doe", "Jane Doe"))
       paged.total should be(2)
       paged.results(0)(name) should be("John Doe")
-      paged.results(0).score should be(0.8180294632911682)
+      paged.results(0).score should be(0.81 +- 0.01)
       paged.results(1)(name) should be("Jane Doe")
-      paged.results(1).score should be(0.6079849004745483)
+      paged.results(1).score should be(0.60 +- 0.01)
     }
     "query fuzzy matching john and jane with highlighting" in {
       val paged = lucene.query().scoreDocs().sort(Sort.Score).filter(fuzzy(name("jhn"))).highlight().search()
       paged.total should be(2)
       paged.results(0)(name) should be("John Doe")
-      paged.results(0).score should be(0.42008915543556213)
+      paged.results(0).score should be(0.42 +- 0.01)
       val highlightsJohn = paged.results(0).highlighting(name)
       highlightsJohn.length should be(1)
       highlightsJohn.head.fragment should be("<em>John</em> Doe")
       highlightsJohn.head.word should be("John")
 
       paged.results(1)(name) should be("Jane Doe")
-      paged.results(1).score should be(0.21004457771778107)
+      paged.results(1).score should be(0.21 +- 0.01)
       val highlightsJane = paged.results(1).highlighting(name)
       highlightsJane.length should be(1)
       highlightsJane.head.fragment should be("<em>Jane</em> Doe")
@@ -207,14 +208,14 @@ class SimpleSpec extends WordSpec with Matchers {
       val paged = lucene.query().scoreDocs().sort(Sort.Score).filter(fuzzy(lucene.fullText("jhn"))).highlight().search()
       paged.total should be(2)
       paged.results(0)(name) should be("John Doe")
-      paged.results(0).score should be(0.33007004857063293)
+      paged.results(0).score should be(0.33 +- 0.01)
       val highlightsJohn = paged.results(0).highlighting(name)
       highlightsJohn.length should be(1)
       highlightsJohn.head.fragment should be("<em>John</em> Doe")
       highlightsJohn.head.word should be("John")
 
       paged.results(1)(name) should be("Jane Doe")
-      paged.results(1).score should be(0.22541369497776031)
+      paged.results(1).score should be(0.22 +- 0.01)
       val highlightsJane = paged.results(1).highlighting(name)
       highlightsJane.length should be(1)
       highlightsJane.head.fragment should be("<em>Jane</em> Doe")

@@ -4,9 +4,10 @@ import com.outr.lucene4s._
 import com.outr.lucene4s.facet.FacetField
 import com.outr.lucene4s.field.Field
 import com.outr.lucene4s.query.Condition
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class FacetsSpec extends WordSpec with Matchers {
+class FacetsSpec extends AnyWordSpec with Matchers {
   val lucene: Lucene = new DirectLucene(uniqueFields = List("name"))
   val name: Field[String] = lucene.create.field[String]("name")
   val author: FacetField = lucene.create.facet("Author", multiValued = true)

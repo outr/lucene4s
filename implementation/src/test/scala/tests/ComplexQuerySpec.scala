@@ -4,9 +4,10 @@ import com.outr.lucene4s._
 import com.outr.lucene4s.facet.{FacetField, FacetValue}
 import com.outr.lucene4s.field.Field
 import com.outr.lucene4s.query.{Condition, SearchTerm}
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class ComplexQuerySpec extends WordSpec with Matchers {
+class ComplexQuerySpec extends AnyWordSpec with Matchers {
   object values {
     object addresses {
       val annArbor = Address("2300 Traverwood Dr", "", "Ann Arbor", "MI", "48105")

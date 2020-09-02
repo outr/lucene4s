@@ -6,9 +6,10 @@ import com.outr.lucene4s.field.{Field, FieldType}
 import com.outr.lucene4s.keyword.KeywordIndexing
 import com.outr.lucene4s.mapper.Searchable
 import com.outr.lucene4s.query.{Condition, SearchTerm}
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class SearchableSpec extends WordSpec with Matchers {
+class SearchableSpec extends AnyWordSpec with Matchers {
   "Searchable" should {
     "validate the generated docType" in {
       lucene.person.docTypeName should be("testsSearchableSpecPerson")

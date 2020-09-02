@@ -4,9 +4,10 @@ import com.outr.lucene4s._
 import com.outr.lucene4s.field.Field
 import com.outr.lucene4s.field.value.SpatialPoint
 import com.outr.lucene4s.query.Sort
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class SpatialSpec extends WordSpec with Matchers {
+class SpatialSpec extends AnyWordSpec with Matchers {
   val lucene = new DirectLucene(uniqueFields = List("name"))
   val name: Field[String] = lucene.create.field[String]("name")
   val location: Field[SpatialPoint] = lucene.create.field[SpatialPoint]("location")

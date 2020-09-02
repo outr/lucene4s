@@ -3,13 +3,14 @@ package tests
 import java.util.UUID
 
 import org.scalatest.concurrent.Eventually
-import org.scalatest.{Matchers, WordSpec}
 
 import scala.util.Try
 import com.outr.lucene4s._
 import com.outr.lucene4s.field.{Field, FieldType}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class TokenSpec extends WordSpec with Matchers with Eventually {
+class TokenSpec extends AnyWordSpec with Matchers with Eventually {
   val lucene: Lucene = new DirectLucene(uniqueFields = List.empty, defaultFullTextSearchable = true, autoCommit = true)
 
   val sessionTokenField: Field[String] = lucene.create.field[String](name = "sessionTokenField", FieldType.Untokenized)

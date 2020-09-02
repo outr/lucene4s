@@ -3,9 +3,10 @@ package tests
 import com.outr.lucene4s._
 import com.outr.lucene4s.field.Field
 import com.outr.lucene4s.query.SearchTerm
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class PhraseSpec extends WordSpec with Matchers {
+class PhraseSpec extends AnyWordSpec with Matchers {
   val lucene = new DirectLucene(uniqueFields = List("name"), autoCommit = true)
   val name: Field[String] = lucene.create.field[String]("name")
 
