@@ -14,7 +14,7 @@ lucene4s is published to Sonatype OSS and Maven Central currently supporting Sca
 Configuring the dependency in SBT simply requires:
 
 ```
-libraryDependencies += "com.outr" %% "lucene4s" % "1.9.0"
+libraryDependencies += "com.outr" %% "lucene4s" % "1.10.0"
 ```
 
 ## Using

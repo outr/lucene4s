@@ -2,7 +2,7 @@ import sbtcrossproject.CrossPlugin.autoImport.crossProject
 
 name in ThisBuild := "lucene4s"
 organization in ThisBuild := "com.outr"
-version in ThisBuild := "1.10.0-SNAPSHOT"
+version in ThisBuild := "1.10.0"
 scalaVersion in ThisBuild := "2.13.3"
 crossScalaVersions in ThisBuild := List("2.13.3", "2.12.12", "2.11.12")
 parallelExecution in Test in ThisBuild := false
