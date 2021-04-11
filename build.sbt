@@ -2,7 +2,7 @@ import sbtcrossproject.CrossPlugin.autoImport.crossProject
 
 ThisBuild / name := "lucene4s"
 ThisBuild / organization := "com.outr"
-ThisBuild / version := "1.10.1-SNAPSHOT"
+ThisBuild / version := "1.11.0"
 ThisBuild / scalaVersion := "2.13.5"
 ThisBuild / crossScalaVersions := List("2.13.5", "2.12.13", "2.11.12", "3.0.0-RC1")
 scalacOptions ++= Seq("-unchecked", "-deprecation")
