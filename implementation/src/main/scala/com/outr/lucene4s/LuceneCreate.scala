@@ -3,7 +3,6 @@ package com.outr.lucene4s
 import com.outr.lucene4s.facet.FacetField
 import com.outr.lucene4s.field.value.support.{StringifyValueSupport, ValueSupport}
 import com.outr.lucene4s.field.{Field, FieldType}
-import com.outr.lucene4s.mapper.{BaseSearchable, SearchableMacro}
 
 import scala.language.experimental.macros
 
@@ -38,5 +37,5 @@ class LuceneCreate(val lucene: Lucene) {
     }
     field
   }
-  def searchable[S <: BaseSearchable]: S = macro SearchableMacro.generate[S]
+//  def searchable[S <: BaseSearchable]: S = macro SearchableMacro.generate[S]
 }
