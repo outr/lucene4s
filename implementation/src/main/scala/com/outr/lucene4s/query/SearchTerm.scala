@@ -14,14 +14,18 @@ import org.apache.lucene.queryparser.classic.QueryParser
 import org.apache.lucene.search._
 import org.apache.lucene.util.automaton.RegExp
 
-sealed trait SearchTerm {
-  protected[lucene4s] def toLucene(lucene: Lucene): Query
+trait SearchTerm {
+  protected def toLucene(lucene: Lucene): Query
+}
+
+object SearchTerm {
+  protected[lucene4s] def toLucene(searchTerm: SearchTerm, lucene: Lucene): Query = searchTerm.toLucene(lucene)
 }
 
 object MatchAllSearchTerm extends SearchTerm {
   private lazy val instance = new MatchAllDocsQuery
 
-  override protected[lucene4s] def toLucene(lucene: Lucene): Query = instance
+  override protected def toLucene(lucene: Lucene): Query = instance
 
   override def toString: String = "matchAll()"
 }
@@ -37,7 +41,7 @@ class ParsableSearchTerm(field: Option[Field[String]], value: String, allowLeadi
 }
 
 class PhraseSearchTerm(field: Option[Field[String]], value: String, slop: Int = 0) extends SearchTerm {
-  override protected[lucene4s] def toLucene(lucene: Lucene): Query = {
+  override protected def toLucene(lucene: Lucene): Query = {
     new PhraseQuery(slop, field.getOrElse(lucene.fullText).filterName, value.split(' ').map(_.toLowerCase): _*)
   }
 
@@ -45,13 +49,13 @@ class PhraseSearchTerm(field: Option[Field[String]], value: String, slop: Int = 
 }
 
 class TermSearchTerm(field: Option[Field[String]], value: String) extends SearchTerm {
-  override protected[lucene4s] def toLucene(lucene: Lucene): Query = new TermQuery(new Term(field.getOrElse(lucene.fullText).filterName, value))
+  override protected def toLucene(lucene: Lucene): Query = new TermQuery(new Term(field.getOrElse(lucene.fullText).filterName, value))
 
   override def toString: String = s"term(${field.map(_.filterName)} = $value)"
 }
 
 class DrillDownSearchTerm(facet: FacetField, path: Seq[String], onlyThisLevel: Boolean) extends SearchTerm {
-  override protected[lucene4s] def toLucene(lucene: Lucene): Query = {
+  override protected def toLucene(lucene: Lucene): Query = {
     val indexedField = lucene.facetsConfig.getDimConfig(facet.name).indexFieldName
     val exactPath = if (onlyThisLevel) {
       path.toList ::: List("$ROOT$")
@@ -72,7 +76,7 @@ class MoreLikeThisSearchTerm(field: Option[Field[String]], value: String,
                              minWordLen: Int,
                              maxWordLen: Int,
                              maxQueryTerms: Int) extends SearchTerm {
-  override protected[lucene4s] def toLucene(lucene: Lucene): Query = {
+  override protected def toLucene(lucene: Lucene): Query = {
     val fieldName = field.getOrElse(lucene.fullText).filterName
 
     val mlt = lucene.moreLikeThis
@@ -93,98 +97,98 @@ class MoreLikeThisSearchTerm(field: Option[Field[String]], value: String,
 }
 
 class ExactBooleanSearchTerm(field: Field[Boolean], value: Boolean) extends SearchTerm {
-  override protected[lucene4s] def toLucene(lucene: Lucene): Query = IntPoint.newExactQuery(field.filterName, if (value) 1 else 0)
+  override protected def toLucene(lucene: Lucene): Query = IntPoint.newExactQuery(field.filterName, if (value) 1 else 0)
 
   override def toString: String = s"term(${field.storeName} = $value)"
 }
 
 class ExactIntSearchTerm(field: Field[Int], value: Int) extends SearchTerm {
-  override protected[lucene4s] def toLucene(lucene: Lucene): Query = IntPoint.newExactQuery(field.filterName, value)
+  override protected def toLucene(lucene: Lucene): Query = IntPoint.newExactQuery(field.filterName, value)
 
   override def toString: String = s"term(${field.storeName} = $value)"
 }
 
 class ExactLongSearchTerm(field: Field[Long], value: Long) extends SearchTerm {
-  override protected[lucene4s] def toLucene(lucene: Lucene): Query = LongPoint.newExactQuery(field.filterName, value)
+  override protected def toLucene(lucene: Lucene): Query = LongPoint.newExactQuery(field.filterName, value)
 
   override def toString: String = s"term(${field.storeName} = $value)"
 }
 
 class ExactDoubleSearchTerm(field: Field[Double], value: Double) extends SearchTerm {
-  override protected[lucene4s] def toLucene(lucene: Lucene): Query = DoublePoint.newExactQuery(field.filterName, value)
+  override protected def toLucene(lucene: Lucene): Query = DoublePoint.newExactQuery(field.filterName, value)
 
   override def toString: String = s"term(${field.storeName} = $value)"
 }
 
 class RangeIntSearchTerm(field: Field[Int], start: Int, end: Int) extends SearchTerm {
-  override protected[lucene4s] def toLucene(lucene: Lucene): Query = IntPoint.newRangeQuery(field.filterName, start, end)
+  override protected def toLucene(lucene: Lucene): Query = IntPoint.newRangeQuery(field.filterName, start, end)
 
   override def toString: String = s"range(${field.storeName}, start: $start, end: $end)"
 }
 
 class RangeLongSearchTerm(field: Field[Long], start: Long, end: Long) extends SearchTerm {
-  override protected[lucene4s] def toLucene(lucene: Lucene): Query = LongPoint.newRangeQuery(field.filterName, start, end)
+  override protected def toLucene(lucene: Lucene): Query = LongPoint.newRangeQuery(field.filterName, start, end)
 
   override def toString: String = s"range(${field.storeName}, start: $start, end: $end)"
 }
 
 class RangeDoubleSearchTerm(field: Field[Double], start: Double, end: Double) extends SearchTerm {
-  override protected[lucene4s] def toLucene(lucene: Lucene): Query = DoublePoint.newRangeQuery(field.filterName, start, end)
+  override protected def toLucene(lucene: Lucene): Query = DoublePoint.newRangeQuery(field.filterName, start, end)
 
   override def toString: String = s"range(${field.storeName}, start: $start, end: $end)"
 }
 
 class SetIntSearchTerm(field: Field[Int], set: Seq[Int]) extends SearchTerm {
-  override protected[lucene4s] def toLucene(lucene: Lucene): Query = IntPoint.newSetQuery(field.filterName, set: _*)
+  override protected def toLucene(lucene: Lucene): Query = IntPoint.newSetQuery(field.filterName, set: _*)
 
   override def toString: String = s"set(${field.storeName}, set: $set)"
 }
 
 class SetLongSearchTerm(field: Field[Long], set: Seq[Long]) extends SearchTerm {
-  override protected[lucene4s] def toLucene(lucene: Lucene): Query = LongPoint.newSetQuery(field.filterName, set: _*)
+  override protected def toLucene(lucene: Lucene): Query = LongPoint.newSetQuery(field.filterName, set: _*)
 
   override def toString: String = s"set(${field.storeName}, set: $set)"
 }
 
 class SetDoubleSearchTerm(field: Field[Double], set: Seq[Double]) extends SearchTerm {
-  override protected[lucene4s] def toLucene(lucene: Lucene): Query = DoublePoint.newSetQuery(field.filterName, set: _*)
+  override protected def toLucene(lucene: Lucene): Query = DoublePoint.newSetQuery(field.filterName, set: _*)
 
   override def toString: String = s"set(${field.storeName}, set: $set)"
 }
 
 class RegexpSearchTerm(field: Option[Field[String]], value: String) extends SearchTerm {
   // TODO: add support for regular expression flags
-  override protected[lucene4s] def toLucene(lucene: Lucene): Query = new RegexpQuery(new Term(field.getOrElse(lucene.fullText).filterName, value), RegExp.ALL)
+  override protected def toLucene(lucene: Lucene): Query = new RegexpQuery(new Term(field.getOrElse(lucene.fullText).filterName, value), RegExp.ALL)
 
   override def toString: String = s"regexp(${field.map(_.storeName)}, value: $value)"
 }
 
 class WildcardSearchTerm(field: Option[Field[String]], value: String) extends SearchTerm {
-  override protected[lucene4s] def toLucene(lucene: Lucene): Query = new WildcardQuery(new Term(field.getOrElse(lucene.fullText).filterName, value))
+  override protected def toLucene(lucene: Lucene): Query = new WildcardQuery(new Term(field.getOrElse(lucene.fullText).filterName, value))
 
   override def toString: String = s"wildcard(${field.map(_.storeName)}, value: $value)"
 }
 
 class FuzzySearchTerm(field: Option[Field[String]], value: String) extends SearchTerm {
-  override protected[lucene4s] def toLucene(lucene: Lucene): Query = new FuzzyQuery(new Term(field.getOrElse(lucene.fullText).filterName, value))
+  override protected def toLucene(lucene: Lucene): Query = new FuzzyQuery(new Term(field.getOrElse(lucene.fullText).filterName, value))
 
   override def toString: String = s"fuzzy(${field.map(_.storeName)}, value: $value)"
 }
 
 class SpatialBoxTerm(field: Field[SpatialPoint], minLatitude: Double, maxLatitude: Double, minLongitude: Double, maxLongitude: Double) extends SearchTerm {
-  override protected[lucene4s] def toLucene(lucene: Lucene): Query = LatLonPoint.newBoxQuery(field.filterName, minLatitude, maxLatitude, minLongitude, maxLongitude)
+  override protected def toLucene(lucene: Lucene): Query = LatLonPoint.newBoxQuery(field.filterName, minLatitude, maxLatitude, minLongitude, maxLongitude)
 
   override def toString: String = s"spatialBox(${field.storeName}, minLatitude: $minLatitude, maxLatitude: $maxLatitude, minLongitude: $minLongitude, maxLongitude: $maxLongitude)"
 }
 
 class SpatialDistanceTerm(field: Field[SpatialPoint], point: SpatialPoint, radius: Length) extends SearchTerm {
-  override protected[lucene4s] def toLucene(lucene: Lucene): Query = LatLonPoint.newDistanceQuery(field.filterName, point.latitude, point.longitude, radius.meters)
+  override protected def toLucene(lucene: Lucene): Query = LatLonPoint.newDistanceQuery(field.filterName, point.latitude, point.longitude, radius.meters)
 
   override def toString: String = s"spatialDistance(${field.storeName}, latitude: ${point.latitude}, longitude: ${point.longitude}, radius: $radius)"
 }
 
 class SpatialPolygonTerm(field: Field[SpatialPoint], polygons: List[SpatialPolygon]) extends SearchTerm {
-  override protected[lucene4s] def toLucene(lucene: Lucene): Query = LatLonPoint.newPolygonQuery(field.filterName, polygons.map(_.toLucene): _*)
+  override protected def toLucene(lucene: Lucene): Query = LatLonPoint.newPolygonQuery(field.filterName, polygons.map(_.toLucene): _*)
 
   override def toString: String = s"spatialPolygon(${field.storeName}, polygons: ${polygons.mkString("[", ", ", "]")})"
 }
@@ -199,14 +203,14 @@ case class SpatialPolygon(points: List[SpatialPoint], holes: List[SpatialPolygon
 
 case class GroupedSearchTerm(minimumNumberShouldMatch: Int,
                              conditionalTerms: List[(SearchTerm, Condition)]) extends SearchTerm {
-  override protected[lucene4s] def toLucene(lucene: Lucene): Query = {
+  override protected def toLucene(lucene: Lucene): Query = {
     val b = new BooleanQuery.Builder
     b.setMinimumNumberShouldMatch(minimumNumberShouldMatch)
     if (conditionalTerms.forall(_._2 == Condition.MustNot)) {           // Work-around for all negative groups, something must match
-      b.add(MatchAllSearchTerm.toLucene(lucene), Condition.Must.occur)
+      b.add(SearchTerm.toLucene(MatchAllSearchTerm, lucene), Condition.Must.occur)
     }
     conditionalTerms.foreach {
-      case (st, c) => b.add(st.toLucene(lucene), c.occur)
+      case (st, c) => b.add(SearchTerm.toLucene(st, lucene), c.occur)
     }
     b.build()
   }
@@ -215,8 +219,8 @@ case class GroupedSearchTerm(minimumNumberShouldMatch: Int,
 }
 
 case class BoostedSearchTerm(term: SearchTerm, boost: Double) extends SearchTerm {
-  override protected[lucene4s] def toLucene(lucene: Lucene): Query = {
-    new BoostQuery(term.toLucene(lucene), boost.toFloat)
+  override protected def toLucene(lucene: Lucene): Query = {
+    new BoostQuery(SearchTerm.toLucene(term, lucene), boost.toFloat)
   }
 
   override def toString: String = s"boosted(term: $term, boost: $boost)"

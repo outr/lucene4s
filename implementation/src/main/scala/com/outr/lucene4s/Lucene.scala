@@ -48,6 +48,7 @@ trait Lucene {
     indexWriter.forceMergeDeletes()
     indexWriter.deleteUnusedFiles()
   }
+  def count(): Long = withSearcherAndTaxonomy(_.searcher.getIndexReader.numDocs())
   def update(searchTerm: SearchTerm): DocumentBuilder = new DocumentBuilder(this, Some(searchTerm))
   def index(builders: DocumentBuilder*): Unit = {
     builders.foreach(_.prepareForWriting())

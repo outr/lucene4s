@@ -48,7 +48,7 @@ case class QueryBuilder[T] private[lucene4s](lucene: Lucene,
       case st :: Nil => st
       case _ => grouped(searchTerms.map(_ -> Condition.Must): _*)
     }
-    val q = baseQuery.toLucene(lucene)
+    val q = SearchTerm.toLucene(baseQuery, lucene)
     // TODO: support really high offsets via multiple jumps via searchAfter to avoid memory issues
 
     val manager = new DocumentCollector(lucene, this)

@@ -2,9 +2,9 @@ import sbtcrossproject.CrossPlugin.autoImport.crossProject
 
 name in ThisBuild := "lucene4s"
 organization in ThisBuild := "com.outr"
-version in ThisBuild := "1.10.0"
-scalaVersion in ThisBuild := "2.13.3"
-crossScalaVersions in ThisBuild := List("2.13.3", "2.12.12", "2.11.12")
+version in ThisBuild := "1.10.1-SNAPSHOT"
+scalaVersion in ThisBuild := "2.13.5"
+crossScalaVersions in ThisBuild := List("2.13.5", "2.12.13", "2.11.12")
 parallelExecution in Test in ThisBuild := false
 scalacOptions ++= Seq("-unchecked", "-deprecation")
 
@@ -25,7 +25,7 @@ developers in ThisBuild := List(
 )
 testOptions in Test in ThisBuild += Tests.Argument("-oD")
 
-val luceneVersion = "8.6.2"
+val luceneVersion = "8.8.1"
 
 val scalaTestVersion = "3.2.0-M4"
 

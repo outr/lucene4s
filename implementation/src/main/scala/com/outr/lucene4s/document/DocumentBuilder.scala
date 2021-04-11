@@ -34,6 +34,8 @@ class DocumentBuilder(lucene: Lucene,
     }
   }
 
+  def update(searchTerm: SearchTerm): DocumentBuilder = new DocumentBuilder(lucene, Some(searchTerm), document)
+
   def fields(fieldAndValues: FieldAndValue[_]*): DocumentBuilder = synchronized {
     fieldAndValues.foreach { fv =>
       fv.write(document)

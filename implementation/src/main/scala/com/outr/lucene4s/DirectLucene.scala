@@ -66,7 +66,7 @@ class DirectLucene(override val uniqueFields: List[String],
   override lazy val fullText: Field[String] = create.field[String]("fullText", sortable = false)
 
   override def delete(term: SearchTerm): Unit = {
-    indexWriter.deleteDocuments(term.toLucene(this))
+    indexWriter.deleteDocuments(SearchTerm.toLucene(term, this))
     if (autoCommit) {
       commit()
     }
