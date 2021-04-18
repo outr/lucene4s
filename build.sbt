@@ -23,7 +23,7 @@ ThisBuild / developers := List(
   Developer(id="darkfrog", name="Matt Hicks", email="matt@matthicks.com", url=url("http://matthicks.com"))
 )
 
-val luceneVersion = "8.8.1"
+val luceneVersion = "8.8.2"
 
 val scalaTestVersion = "3.2.6"
 
