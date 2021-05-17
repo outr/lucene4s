@@ -9,12 +9,12 @@ Light-weight convenience wrapper around Lucene to simplify complex tasks and add
 
 ## Setup
 
-lucene4s is published to Sonatype OSS and Maven Central currently supporting Scala 2.11, 2.12, and 2.13.
+lucene4s is published to Sonatype OSS and Maven Central currently supporting Scala 2.11, 2.12, 2.13, and 3.0.
 
 Configuring the dependency in SBT simply requires:
 
 ```
-libraryDependencies += "com.outr" %% "lucene4s" % "1.10.0"
+libraryDependencies += "com.outr" %% "lucene4s" % "1.11.1"
 ```
 
 ## Using
