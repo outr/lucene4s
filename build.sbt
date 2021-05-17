@@ -2,9 +2,9 @@ import sbtcrossproject.CrossPlugin.autoImport.crossProject
 
 ThisBuild / name := "lucene4s"
 ThisBuild / organization := "com.outr"
-ThisBuild / version := "1.11.0"
+ThisBuild / version := "1.11.1-SNAPSHOT"
 ThisBuild / scalaVersion := "2.13.5"
-ThisBuild / crossScalaVersions := List("2.13.5", "2.12.13", "2.11.12", "3.0.0-RC1")
+ThisBuild / crossScalaVersions := List("2.13.5", "2.12.13", "2.11.12", "3.0.0")
 scalacOptions ++= Seq("-unchecked", "-deprecation")
 
 ThisBuild / publishTo := sonatypePublishTo.value
@@ -25,7 +25,7 @@ ThisBuild / developers := List(
 
 val luceneVersion = "8.8.2"
 
-val scalaTestVersion = "3.2.6"
+val scalaTestVersion = "3.2.9"
 
 lazy val root = project.in(file("."))
   .aggregate(coreJS, coreJVM, implementation)
