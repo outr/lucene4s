@@ -3,7 +3,7 @@ import sbtcrossproject.CrossPlugin.autoImport.crossProject
 ThisBuild / organization       := "com.outr"
 ThisBuild / version            := "1.11.1"
 ThisBuild / scalaVersion       := "2.13.16"
-ThisBuild / crossScalaVersions := List("2.13.5", "2.12.13", "2.11.12", "3.0.0")
+ThisBuild / crossScalaVersions := List("2.13.16", "2.12.20", "2.11.12", "3.6.3")
 scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature", "-Wunused:all")
 
 ThisBuild / publishTo           := sonatypePublishTo.value
