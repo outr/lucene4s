@@ -7,7 +7,7 @@ import org.apache.lucene.document.Document
 import org.apache.lucene.search.ScoreDoc
 
 class SearchResult private[lucene4s](lucene: Lucene, search: PagedResults[_], scoreDoc: ScoreDoc) {
-  private lazy val doc: Document = lucene.withSearcherAndTaxonomy(_.searcher.doc(scoreDoc.doc))
+  private lazy val doc: Document = lucene.withSearcherAndTaxonomy(_.searcher.storedFields.document(scoreDoc.doc))
 
   def apply[T](field: Field[T]): T = field.support.fromLucene(doc.getFields(field.storeName).toList)
 

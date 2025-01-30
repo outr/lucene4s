@@ -4,10 +4,21 @@ import com.outr.lucene4s._
 import com.outr.lucene4s.facet.FacetField
 import com.outr.lucene4s.field.Field
 import com.outr.lucene4s.query.Condition
+import org.apache.lucene.facet.FacetsCollectorManager
+import org.apache.lucene.facet.taxonomy.FastTaxonomyFacetCounts
+import org.apache.lucene.facet.taxonomy.directory.DirectoryTaxonomyReader
+import org.apache.lucene.index.DirectoryReader
+import org.apache.lucene.search.IndexSearcher
+import org.apache.lucene.search.MatchAllDocsQuery
+import org.apache.lucene.store.Directory
+import org.apache.lucene.store.NIOFSDirectory
+import org.scalatest.BeforeAndAfter
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
-class FacetsSpec extends AnyWordSpec with Matchers {
+import java.nio.file.Paths
+
+class FacetsSpec extends AnyWordSpec with Matchers with BeforeAndAfter {
   val lucene: Lucene = new DirectLucene(uniqueFields = List("name"))
   val name: Field[String] = lucene.create.field[String]("name")
   val author: FacetField = lucene.create.facet("Author", multiValued = true)
@@ -15,8 +26,8 @@ class FacetsSpec extends AnyWordSpec with Matchers {
   val keywordsFacet: FacetField = lucene.create.facet("Keywords", multiValued = true)
   val publishDate: FacetField = lucene.create.facet("Publish Date", hierarchical = true)
 
-  "Facets" should {
-    "create a few faceted documents" in {
+  before {
+
       lucene.doc().fields(name("One")).facets(
         author("Bob"),
         author("James"),
@@ -52,9 +63,18 @@ class FacetsSpec extends AnyWordSpec with Matchers {
         author("Bob"),
         publishDate()
       ).index()
+  }
+
+  after {
+    lucene.deleteAll()
+  }
+
+  "Facets" should {
+    "create a few faceted documents" in {
     }
     "list all author facets" in {
       val page = lucene.query().limit(10).facet(author).search()
+      println(page.results)
       page.facet(publishDate) should be(None)
       val authorResult = page.facet(author).get
       authorResult.childCount should be(6)
@@ -127,7 +147,7 @@ class FacetsSpec extends AnyWordSpec with Matchers {
       publishResult.totalCount should be(4)
       publishResult.values.map(_.value) should be(Vector("2012", "1999"))
       publishResult.values.map(_.count) should be(Vector(2, 2))
-      page.results.map(_(name)) should be(Vector("Three", "Four", "Six", "Seven", "Cinco"))
+      page.results.map(_(name)) should be(Vector("Three", "Four", "Five", "Six", "Seven"))
     }
     "list all results for 2010/10" in {
       val page = lucene
@@ -199,21 +219,20 @@ class FacetsSpec extends AnyWordSpec with Matchers {
         .query()
         .filter(any(drillDown(keywordsFacet("support@three.com")), drillDown(keywordsFacet("support"))))
         .search()
-      page.results.map(_(name)).toSet should be(Set("Four", "Cinco"))
+      page.results.map(_(name)).toSet should be(Set("Four", "Five"))
     }
     "remove a keyword from One" in {
       val page = lucene.query().filter(name("One")).search()
       page.total should be(1)
       page.results.head.update.remove(keywordsFacet("support@two.com")).index()
       lucene.commit()
-    }
-    "show all results for support@two.com excluding updated" in {
-      val page = lucene
+
+      lucene
         .query()
         .limit(10)
         .filter(drillDown(keywordsFacet("support@two.com")))
         .search()
-      page.results.map(_(name)) should be(Vector("Three"))
+        .results.map(_(name)) should be(Vector("Three"))
     }
     "show only top-level results without a publish date" in {
       val page = lucene
@@ -236,14 +255,14 @@ class FacetsSpec extends AnyWordSpec with Matchers {
     "delete a faceted document" in {
       lucene.delete(term(name("Four")))
       lucene.commit()
-    }
-    "query excluding the deleted document" in {
+      
       val page = lucene.query().limit(10).facet(author).search()
+      
       page.facet(publishDate) should be(None)
       val authorResult = page.facet(author).get
       authorResult.values.map(_.value) should be(Vector("Bob", "Lisa", "James", "Frank", "George"))
       authorResult.values.map(_.count) should be(Vector(2, 2, 1, 1, 1))
-      page.results.map(_(name)).toSet should be(Set("One", "Two", "Three", "Six", "Seven", "Cinco"))
+      page.results.map(_(name)).toSet should be(Set("One", "Two", "Three", "Six", "Seven", "Five"))
     }
   }
 }

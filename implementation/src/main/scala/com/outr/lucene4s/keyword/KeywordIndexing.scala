@@ -5,7 +5,6 @@ import java.util.{Timer, TimerTask}
 
 import com.outr.lucene4s._
 import com.outr.lucene4s.document.DocumentBuilder
-import com.outr.lucene4s.facet.FacetField
 import com.outr.lucene4s.field.FieldType
 import com.outr.lucene4s.field.value.FieldAndValue
 import org.apache.lucene.document.{Document, Field}
@@ -130,7 +129,7 @@ case class KeywordIndexing(lucene: Lucene,
     }
     val searchResults: TopDocs = searcher.search(query, limit)
     val keywords = searchResults.scoreDocs.map { scoreDoc =>
-      val doc = searcher.doc(scoreDoc.doc)
+      val doc = searcher.storedFields.document(scoreDoc.doc)
       val word = doc.get("keyword")
       val additionalFields = includeFields.flatMap { f =>
         Option(f.storeName -> doc.get(f.storeName))
