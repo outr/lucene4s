@@ -14,4 +14,7 @@ class CollectorsLeafCollector(leafCollectors: List[LeafCollector]) extends LeafC
       leafCollector.collect(doc)
     }
   }
+
+  override def finish(): Unit =
+    leafCollectors.foreach(_.finish())
 }

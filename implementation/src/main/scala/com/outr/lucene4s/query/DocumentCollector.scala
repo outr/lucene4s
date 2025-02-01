@@ -1,14 +1,13 @@
 package com.outr.lucene4s.query
 
-import java.util
-
 import com.outr.lucene4s.Lucene
-import com.outr.lucene4s.facet.{FacetField, FacetValue}
+import com.outr.lucene4s.facet.FacetField
 import org.apache.lucene.facet.FacetsCollector
 import org.apache.lucene.facet.taxonomy.FastTaxonomyFacetCounts
-import org.apache.lucene.search.{CollectorManager, Sort => LuceneSort, TopDocs, TopFieldCollector}
+import org.apache.lucene.search.{CollectorManager, TopDocs, TopFieldCollectorManager, Sort => LuceneSort}
 
-import scala.collection.JavaConverters._
+import java.util
+import scala.jdk.CollectionConverters._
 
 class DocumentCollector(lucene: Lucene, query: QueryBuilder[_]) extends CollectorManager[Collectors, SearchResults] {
   val sort: LuceneSort = if (query.sorting.nonEmpty) {
@@ -21,7 +20,7 @@ class DocumentCollector(lucene: Lucene, query: QueryBuilder[_]) extends Collecto
     val docMax = math.max(1, lucene.withSearcherAndTaxonomy(_.searcher.getIndexReader.maxDoc()))
     val docLimit = math.min(query.offset + query.limit, docMax)
 
-    val topFieldCollector = TopFieldCollector.create(sort, docLimit, Int.MaxValue)
+    val topFieldCollector = new TopFieldCollectorManager(sort, docLimit, Int.MaxValue).newCollector()
     val facetsCollector = new FacetsCollector(query.scoreDocs)
     Collectors(topFieldCollector, facetsCollector)
   }
