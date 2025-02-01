@@ -1,33 +1,40 @@
-import sbtcrossproject.CrossPlugin.autoImport.crossProject
+// Scala versions
+val scala213 = "2.13.16"
+val scala3 = "3.6.3"
+val scala2 = List(scala213)
+val allScalaVersions = scala3 :: scala2
 
-ThisBuild / organization       := "com.outr"
-ThisBuild / version            := "1.11.1"
-ThisBuild / scalaVersion       := "2.13.16"
-ThisBuild / crossScalaVersions := List("2.13.16", "2.12.20", "2.11.12", "3.6.3")
-scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature", "-Wunused:all")
+// Variables
+val org: String = "com.outr"
+val projectName: String = "lucene4s"
+val githubOrg: String = "outr"
+val email: String = "matt@matthicks.com"
+val developerId: String = "darkfrog"
+val developerName: String = "Matt Hicks"
+val developerURL: String = "https://matthicks.com"
 
-ThisBuild / publishTo           := sonatypePublishTo.value
-ThisBuild / sonatypeProfileName := "com.outr"
-ThisBuild / licenses := Seq(
-  "MIT" -> url("https://github.com/outr/lucene4s/blob/master/LICENSE")
-)
-ThisBuild / sonatypeProjectHosting := Some(
-  xerial.sbt.Sonatype.GitHubHosting("outr", "lucene4s", "matt@outr.com")
-)
-ThisBuild / homepage := Some(url("https://github.com/outr/lucene4s"))
+name := projectName
+ThisBuild / organization := org
+ThisBuild / version := "1.12.0"
+ThisBuild / scalaVersion := scala213
+ThisBuild / crossScalaVersions := allScalaVersions
+ThisBuild / scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
+
+ThisBuild / sonatypeCredentialHost := "s01.oss.sonatype.org"
+ThisBuild / sonatypeRepository := "https://s01.oss.sonatype.org/service/local"
+ThisBuild / publishTo := sonatypePublishToBundle.value
+ThisBuild / sonatypeProfileName := org
+ThisBuild / licenses := Seq("MIT" -> url(s"https://github.com/$githubOrg/$projectName/blob/master/LICENSE"))
+ThisBuild / sonatypeProjectHosting := Some(xerial.sbt.Sonatype.GitHubHosting(githubOrg, projectName, email))
+ThisBuild / homepage := Some(url(s"https://github.com/$githubOrg/$projectName"))
 ThisBuild / scmInfo := Some(
   ScmInfo(
-    url("https://github.com/outr/lucene4s"),
-    "scm:git@github.com:outr/lucene4s.git"
+    url(s"https://github.com/$githubOrg/$projectName"),
+    s"scm:git@github.com:$githubOrg/$projectName.git"
   )
 )
 ThisBuild / developers := List(
-  Developer(
-    id = "darkfrog",
-    name = "Matt Hicks",
-    email = "matt@matthicks.com",
-    url = url("http://matthicks.com")
-  )
+  Developer(id=developerId, name=developerName, email=email, url=url(developerURL))
 )
 
 val luceneVersion = "10.1.0"
