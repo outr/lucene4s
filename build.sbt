@@ -37,7 +37,7 @@ ThisBuild / developers := List(
   Developer(id=developerId, name=developerName, email=email, url=url(developerURL))
 )
 
-val luceneVersion = "10.1.0"
+val luceneVersion = "10.2.2"
 
 val scalaTestVersion = "3.2.19"
 
